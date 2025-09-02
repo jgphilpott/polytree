@@ -1,7 +1,34 @@
 <p align="center">
-    <img width="420" height="420" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png">
+    <img width="320" height="320" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Logo">
 </p>
 
 # Intro
 
-Polytree is a Constructive Solid Geometry (CSG) library.
+**Polytree** is a modern, modular Constructive Solid Geometry (CSG) library for JavaScript and Node.js, built to utilize the efficiencies of Octree data structure. It is designed for robust 3D modeling, spatial queries, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
+
+## Getting Started
+
+```bash
+npm install polytree
+```
+
+```js
+import * as THREE from 'three';
+import { Polytree } from 'polytree';
+
+// Example usage coming soon!
+```
+
+## Applications
+
+- 3D modeling and design for 3D printing.
+- Integration with [Polyslice](https://github.com/jgphilpott/polyslice) FDM slicer.
+- General-purpose spatial querying and mesh manipulation.
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Please [open an issue](https://github.com/jgphilpott/polytree/issues) or submit a [pull request](https://github.com/jgphilpott/polytree/pulls).
+
+---
+
+**Polytree** is developed and maintained by [@jgphilpott](https://github.com/jgphilpott).
