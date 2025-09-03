@@ -1,17 +1,17 @@
-import { Vector2, Vector3, Box3, DoubleSide, Matrix3, Matrix4, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } from 'three';
+import { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } from 'three';
 import { checkTrianglesIntersection } from './three-triangle-intersection.js';
 
 const _v1 = new Vector3();
 const _v2 = new Vector3();
-const _v3 = new Vector3();
+
 const _box3$1 = new Box3();
 
 const tv0 = new Vector3();
 const tv1 = new Vector3();
+
 const _raycaster1 = new Raycaster();
 const _ray = new Ray();
 const _rayDirection = new Vector3(0, 0, 1);
-
 
 const EPSILON = 1e-5;
 const COPLANAR = 0;

@@ -1,13 +1,17 @@
-import OctreeCSG from '../examples/js/OctreeCSG/OctreeCSG.js';
+import OctreeCSG from './OctreeCSG.js';
 import { Vector3, Plane, Line3, Sphere } from 'three';
 import { Capsule } from '../examples/js/Capsule.min.js';
 
 const _v1 = new Vector3();
 const _v2 = new Vector3();
+
 const _plane = new Plane();
+
 const _line1 = new Line3();
 const _line2 = new Line3();
+
 const _sphere = new Sphere();
+
 const _capsule = new Capsule();
 
 class Octree extends OctreeCSG {
