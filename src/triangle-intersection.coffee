@@ -8,7 +8,8 @@ tempVector3 = new Vector3()
 
 @param {Object} triangleA - First triangle, with properties {a, b, c} (Vector3 vertices).
 @param {Object} triangleB - Second triangle, with properties {a, b, c} (Vector3 vertices).
-@param {Object} [additions] - Optional object used for storing extra intersection info:
+
+@param {Object} additions - Optional object used for storing extra intersection info:
     - coplanar {Boolean} whether the triangles lie in the same plane
     - source {Vector3} intersection segment start (if applicable)
     - target {Vector3} intersection segment end (if applicable)
@@ -16,12 +17,12 @@ tempVector3 = new Vector3()
 @returns {Boolean} true if the triangles intersect, false otherwise. ###
 triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: false, source: new Vector3(), target: new Vector3() }) ->
 
-    # Extract vertices of triangle A
+    # Extract vertices of triangle A.
     vertex1TriangleA = triangleA.a
     vertex2TriangleA = triangleA.b
     vertex3TriangleA = triangleA.c
 
-    # Extract vertices of triangle B
+    # Extract vertices of triangle B.
     vertex1TriangleB = triangleB.a
     vertex2TriangleB = triangleB.b
     vertex3TriangleB = triangleB.c
@@ -44,7 +45,7 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 
     if ((distanceVertex1A * distanceVertex2A) > 0) and ((distanceVertex1A * distanceVertex3A) > 0)
 
-        return false # All vertices of Triangle A are on the same side of Triangle B’s plane
+        return false # All vertices of Triangle A are on the same side of Triangle B’s plane.
 
     # Step 2: Compute signed distances of Triangle B’s vertices relative to the plane defined by Triangle A.
 
@@ -64,10 +65,10 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 
     if ((distanceVertex1B * distanceVertex2B) > 0) and ((distanceVertex1B * distanceVertex3B) > 0)
 
-        return false # All vertices of Triangle B are on the same side of Triangle A’s plane
+        return false # All vertices of Triangle B are on the same side of Triangle A’s plane.
 
     # Step 3: At this point, neither triangle is fully on one side of the other’s plane. This means the triangles potentially intersect.
-    # Next, we use the vertex signed distances to decide which configuration applies and call `tri_tri_intersection` (or `coplanar_tri_tri3d` if the triangles are coplanar).
+    # Next, we use the vertex signed distances to decide which configuration applies and call `resolveTriangleIntersection` (or `resolveCoplanarTriangleIntersection` if the triangles are coplanar).
 
     additions.N1 = N1
     additions.N2 = N2
@@ -75,95 +76,117 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
     if distanceVertex1A > 0
 
         if distanceVertex2A > 0
-            tri_tri_intersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+            resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
         else if distanceVertex3A > 0
-            tri_tri_intersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+            resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
         else
-            tri_tri_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+            resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
     else if distanceVertex1A < 0
 
         if distanceVertex2A < 0
-            tri_tri_intersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+            resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
         else if distanceVertex3A < 0
-            tri_tri_intersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+            resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
         else
-            tri_tri_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+            resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
 
     else
 
         if distanceVertex2A < 0
 
             if distanceVertex3A >= 0
-                tri_tri_intersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+                resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
             else
-                tri_tri_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+                resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
         else if distanceVertex2A > 0
 
             if distanceVertex3A > 0
-                tri_tri_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+                resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
             else
-                tri_tri_intersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+                resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
         else
 
             if distanceVertex3A > 0
-                tri_tri_intersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+                resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
             else if distanceVertex3A < 0
-                tri_tri_intersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+                resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
             else
-                additions.coplanar = true # The triangles are co-planar
-                coplanar_tri_tri3d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, N1, N2)
+                additions.coplanar = true # The triangles are co-planar.
+                resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, N1, N2)
 
-tri_tri_intersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions) ->
+### Determines the intersection between two 3D triangles given their vertices and the signed distances of Triangle B’s vertices to the plane of Triangle A.
+    This function decides which case applies (based on the signs of the distances), then calls either `constructIntersection` (for non-coplanar cases) or `coplanarTriangleIntersection` (for coplanar triangles).
+
+@param {Vector3} vertex1TriangleA - First vertex of Triangle A.
+@param {Vector3} vertex2TriangleA - Second vertex of Triangle A.
+@param {Vector3} vertex3TriangleA - Third vertex of Triangle A.
+
+@param {Vector3} vertex1TriangleB - First vertex of Triangle B.
+@param {Vector3} vertex2TriangleB - Second vertex of Triangle B.
+@param {Vector3} vertex3TriangleB - Third vertex of Triangle B.
+
+@param {Number} distanceVertex1B - Signed distance of vertex1TriangleB to Triangle A’s plane.
+@param {Number} distanceVertex2B - Signed distance of vertex2TriangleB to Triangle A’s plane.
+@param {Number} distanceVertex3B - Signed distance of vertex3TriangleB to Triangle A’s plane.
+
+@param {Object} additions - Extra data object used for storing extra intersection info:
+    - coplanar {Boolean} whether the triangles lie in the same plane
+    - source {Vector3} intersection segment start (if applicable)
+    - target {Vector3} intersection segment end (if applicable)
+    - N1 {Vector3} normal of Triangle A (used in coplanar case)
+    - N2 {Vector3} normal of Triangle B (used in coplanar case)
+
+@returns {Boolean|undefined} - Returns true if an intersection is found, false if none, or nothing (constructIntersection handles output). ###
+resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions) ->
 
     if distanceVertex1B > 0
 
         if distanceVertex2B > 0
-            construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
         else if distanceVertex3B > 0
-            construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
         else
-            construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
 
     else if distanceVertex1B < 0
 
         if distanceVertex2B < 0
-            construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
         else if distanceVertex3B < 0
-            construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
         else
-            construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
 
     else
 
         if distanceVertex2B < 0
 
             if distanceVertex3B >= 0
-                construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
             else
-                construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
 
         else if distanceVertex2B > 0
 
             if distanceVertex3B > 0
-                construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
             else
-                construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
 
         else
 
             if distanceVertex3B > 0
-                construct_intersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
             else if distanceVertex3B < 0
-                construct_intersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
             else
-                additions.coplanar = true
-                # return coplanar_tri_tri3d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions);
-                coplanar_tri_tri3d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.N1, additions.N2)
+                additions.coplanar = true # The triangles are co-planar.
+                resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.N1, additions.N2)
 
-coplanar_tri_tri3d = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal_1, normal_2) ->
+resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal_1, normal_2) ->
 
     vertex1TriangleA = new Vector2(); vertex2TriangleA = new Vector2(); vertex3TriangleA = new Vector2()
     vertex1TriangleB = new Vector2(); vertex2TriangleB = new Vector2(); vertex3TriangleB = new Vector2()
@@ -220,9 +243,11 @@ tri_tri_overlap_test_2d = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA,
             ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
 
 ORIENT_2D = (a, b, c) ->
+
     (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.y)
 
 ccw_tri_tri_intersection_2d = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+
     if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex1TriangleA) >= 0
         if ORIENT_2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
             if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
@@ -244,6 +269,7 @@ ccw_tri_tri_intersection_2d = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
             intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
 
 intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+
     if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
         if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) >= 0
             if ORIENT_2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB) >= 0
@@ -274,6 +300,7 @@ intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
             false
 
 intersection_test_vertex = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+
     if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
         if ORIENT_2D(vertex3TriangleB, vertex2TriangleB, vertex2TriangleA) <= 0
             if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) > 0
@@ -318,7 +345,8 @@ intersection_test_vertex = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA
         else
             false
 
-construct_intersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) ->
+constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) ->
+
     alpha = undefined
     N = new Vector3()
     tempVector1.subVectors(vertex2TriangleA, vertex1TriangleA)
@@ -391,6 +419,7 @@ construct_intersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
                 true
 
 pointOnLine = (line, point) ->
+
     ab = tempVector1.copy(line.end).sub(line.start)
     ac = tempVector2.copy(point).sub(line.start)
     area = tempVector3.copy(ab).cross(ac).length()
@@ -423,10 +452,13 @@ lineIntersects = (line1, line2, points) ->
     intersects = false
 
     if (0 <= t <= 1) and (0 <= u <= 1)
+
         onSegment = true
 
     p0p1Length = tempVector1.copy(p0).sub(vertex1TriangleA).length()
+
     if p0p1Length <= 1e-5
+
         intersects = true
 
     # console.log("lineIntersects?", intersects, onSegment, p0, vertex1TriangleA, denom, numer, t, u)
@@ -439,6 +471,7 @@ lineIntersects = (line1, line2, points) ->
     true
 
 getLines = (triangle) ->
+
     [
         { start: triangle.a, end: triangle.b }
         { start: triangle.b, end: triangle.c }
