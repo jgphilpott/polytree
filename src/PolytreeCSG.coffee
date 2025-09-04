@@ -1,5 +1,5 @@
 import { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } from 'three'
-import { checkTrianglesIntersection } from './three-triangle-intersection.js'
+import { checkTrianglesIntersection } from './triangle-intersection.js'
 
 _v1 = new Vector3()
 _v2 = new Vector3()
