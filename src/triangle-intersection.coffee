@@ -248,42 +248,69 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
 
     return trianglesOverlap2D(vertex1TriangleA2D, vertex2TriangleA2D, vertex3TriangleA2D, vertex1TriangleB2D, vertex2TriangleB2D, vertex3TriangleB2D)
 
+### Determines whether two triangles in 2D overlap.
+
+    Triangles may initially be oriented clockwise (CW) or counter-clockwise (CCW).
+    To ensure a consistent comparison, the function:
+
+        1. Checks the orientation of each triangle using `triangleOrientation2D`.
+        2. If a triangle is CW, its vertices are reordered to make it CCW.
+        3. Calls `triangleIntersectionCCW2D` to test for overlap, assuming both are CCW.
+
+@param {Vector2} vertex1TriangleA - First vertex of Triangle A.
+@param {Vector2} vertex2TriangleA - Second vertex of Triangle A.
+@param {Vector2} vertex3TriangleA - Third vertex of Triangle A.
+
+@param {Vector2} vertex1TriangleB - First vertex of Triangle B.
+@param {Vector2} vertex2TriangleB - Second vertex of Triangle B.
+@param {Vector2} vertex3TriangleB - Third vertex of Triangle B.
+
+@returns {Boolean} - True if the triangles overlap in 2D, false otherwise. ###
 trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    if ORIENT_2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0
+    # If triangle A is CW.
+    if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0
 
-        if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
-            ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
-        else
-            ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+        # If both A and B are CW → reorder both.
+        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
 
-    else
+            return triangleIntersectionCCW2D(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
 
-        if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
-            ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
-        else
-            ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+        else # Only A is CW → reorder A.
 
-ORIENT_2D = (a, b, c) ->
+            return triangleIntersectionCCW2D(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+    else # Triangle A is CCW.
+
+        # If only B is CW → reorder B.
+        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
+
+            return triangleIntersectionCCW2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
+
+        else # Both A and B are CCW → no reordering.
+
+            return triangleIntersectionCCW2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+triangleOrientation2D = (a, b, c) ->
 
     (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.y)
 
-ccw_tri_tri_intersection_2d = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex1TriangleA) >= 0
-        if ORIENT_2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
-            if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+    if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex1TriangleA) >= 0
+        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
                 true
             else
                 intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
         else
-            if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
                 intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
             else
                 intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
     else
-        if ORIENT_2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
-            if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
                 intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
             else
                 intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
@@ -292,27 +319,27 @@ ccw_tri_tri_intersection_2d = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
 
 intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
-        if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) >= 0
-            if ORIENT_2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB) >= 0
+    if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
+        if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) >= 0
+            if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB) >= 0
                 true
             else
                 false
         else
-            if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
-                if ORIENT_2D(vertex3TriangleA, vertex1TriangleA, vertex1TriangleB) >= 0
+            if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
+                if triangleOrientation2D(vertex3TriangleA, vertex1TriangleA, vertex1TriangleB) >= 0
                     true
                 else
                     false
             else
                 false
     else
-        if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
-            if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
-                if ORIENT_2D(vertex1TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
+        if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
+            if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
+                if triangleOrientation2D(vertex1TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
                     true
                 else
-                    if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
+                    if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
                         true
                     else
                         false
@@ -323,25 +350,25 @@ intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
 
 intersection_test_vertex = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
-        if ORIENT_2D(vertex3TriangleB, vertex2TriangleB, vertex2TriangleA) <= 0
-            if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) > 0
-                if ORIENT_2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
+    if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
+        if triangleOrientation2D(vertex3TriangleB, vertex2TriangleB, vertex2TriangleA) <= 0
+            if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) > 0
+                if triangleOrientation2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
                     true
                 else
                     false
             else
-                if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
-                    if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
+                if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
+                    if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
                         true
                     else
                         false
                 else
                     false
         else
-            if ORIENT_2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
-                if ORIENT_2D(vertex3TriangleB, vertex2TriangleB, vertex3TriangleA) <= 0
-                    if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
+            if triangleOrientation2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
+                if triangleOrientation2D(vertex3TriangleB, vertex2TriangleB, vertex3TriangleA) <= 0
+                    if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
                         true
                     else
                         false
@@ -350,15 +377,15 @@ intersection_test_vertex = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA
             else
                 false
     else
-        if ORIENT_2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
-            if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
-                if ORIENT_2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
+        if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
+            if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
+                if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
                     true
                 else
                     false
             else
-                if ORIENT_2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
-                    if ORIENT_2D(vertex3TriangleB, vertex3TriangleA, vertex2TriangleB) >= 0
+                if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
+                    if triangleOrientation2D(vertex3TriangleB, vertex3TriangleA, vertex2TriangleB) >= 0
                         true
                     else
                         false
