@@ -186,57 +186,79 @@ resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
                 additions.coplanar = true # The triangles are co-planar.
                 resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.N1, additions.N2)
 
-resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal_1, normal_2) ->
+### Resolves intersection between two coplanar triangles in 3D space.
+    Since the triangles lie in the same plane, the problem is reduced from 3D to 2D.
+    By projecting both triangles onto the axis-aligned plane (XY, YZ, or XZ) that maximizes the projected area.
+    This minimizes numerical errors when working in 2D. The function then delegates the overlap test to `trianglesOverlap2D`.
 
-    vertex1TriangleA = new Vector2(); vertex2TriangleA = new Vector2(); vertex3TriangleA = new Vector2()
-    vertex1TriangleB = new Vector2(); vertex2TriangleB = new Vector2(); vertex3TriangleB = new Vector2()
+@param {Vector3} vertex1TriangleA - First vertex of Triangle A.
+@param {Vector3} vertex2TriangleA - Second vertex of Triangle A.
+@param {Vector3} vertex3TriangleA - Third vertex of Triangle A.
 
-    n_x = if normal_1.x < 0 then -normal_1.x else normal_1.x
-    n_y = if normal_1.y < 0 then -normal_1.y else normal_1.y
-    n_z = if normal_1.z < 0 then -normal_1.z else normal_1.z
+@param {Vector3} vertex1TriangleB - First vertex of Triangle B.
+@param {Vector3} vertex2TriangleB - Second vertex of Triangle B.
+@param {Vector3} vertex3TriangleB - Third vertex of Triangle B.
 
-    ### Projection of the triangles in 3D onto 2D such that the area of
-    the projection is maximized. ###
+@param {Vector3} normalTriangleA - Normal vector of Triangle A.
+@param {Vector3} normalTriangleB - Normal vector of Triangle B.
 
-    if (n_x > n_z) and (n_x >= n_y) # Project onto plane YZ
+@returns {Boolean} - True if the coplanar triangles overlap in 2D, false otherwise. ###
+resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normalTriangleA, normalTriangleB) ->
 
-        vertex1TriangleA.x = vertex2TriangleA.z; vertex1TriangleA.y = vertex2TriangleA.y
-        vertex2TriangleA.x = vertex1TriangleA.z; vertex2TriangleA.y = vertex1TriangleA.y
-        vertex3TriangleA.x = vertex3TriangleA.z; vertex3TriangleA.y = vertex3TriangleA.y
+    # Prepare 2D projected vertices.
+    vertex1TriangleA2D = new Vector2(); vertex2TriangleA2D = new Vector2(); vertex3TriangleA2D = new Vector2()
+    vertex1TriangleB2D = new Vector2(); vertex2TriangleB2D = new Vector2(); vertex3TriangleB2D = new Vector2()
 
-        vertex1TriangleB.x = vertex2TriangleB.z; vertex1TriangleB.y = vertex2TriangleB.y
-        vertex2TriangleB.x = vertex1TriangleB.z; vertex2TriangleB.y = vertex1TriangleB.y
-        vertex3TriangleB.x = vertex3TriangleB.z; vertex3TriangleB.y = vertex3TriangleB.y
+    # Absolute values of the triangle's normal components.
+    # Used to determine the dominant axis, which we drop during 2D projection.
+    normalAbsX = Math.abs(normalTriangleA.x)
+    normalAbsY = Math.abs(normalTriangleA.y)
+    normalAbsZ = Math.abs(normalTriangleA.z)
 
-    else if (n_y > n_z) and (n_y >= n_x) # Project onto plane XZ
+    # Project triangles into 2D by dropping the dominant axis of the normal.
+    if (normalAbsX > normalAbsZ) and (normalAbsX >= normalAbsY) # Project onto YZ plane.
 
-        vertex1TriangleA.x = vertex2TriangleA.x; vertex1TriangleA.y = vertex2TriangleA.z
-        vertex2TriangleA.x = vertex1TriangleA.x; vertex2TriangleA.y = vertex1TriangleA.z
-        vertex3TriangleA.x = vertex3TriangleA.x; vertex3TriangleA.y = vertex3TriangleA.z
+        vertex1TriangleA2D.set(vertex1TriangleA.z, vertex1TriangleA.y)
+        vertex2TriangleA2D.set(vertex2TriangleA.z, vertex2TriangleA.y)
+        vertex3TriangleA2D.set(vertex3TriangleA.z, vertex3TriangleA.y)
 
-        vertex1TriangleB.x = vertex2TriangleB.x; vertex1TriangleB.y = vertex2TriangleB.z
-        vertex2TriangleB.x = vertex1TriangleB.x; vertex2TriangleB.y = vertex1TriangleB.z
-        vertex3TriangleB.x = vertex3TriangleB.x; vertex3TriangleB.y = vertex3TriangleB.z
+        vertex1TriangleB2D.set(vertex1TriangleB.z, vertex1TriangleB.y)
+        vertex2TriangleB2D.set(vertex2TriangleB.z, vertex2TriangleB.y)
+        vertex3TriangleB2D.set(vertex3TriangleB.z, vertex3TriangleB.y)
 
-    else # Project onto plane XY
+    else if (normalAbsY > normalAbsZ) and (normalAbsY >= normalAbsX) # Project onto XZ plane.
 
-        vertex1TriangleA.x = vertex1TriangleA.x; vertex1TriangleA.y = vertex1TriangleA.y
-        vertex2TriangleA.x = vertex2TriangleA.x; vertex2TriangleA.y = vertex2TriangleA.y
-        vertex3TriangleA.x = vertex3TriangleA.x; vertex3TriangleA.y = vertex3TriangleA.y
+        vertex1TriangleA2D.set(vertex1TriangleA.x, vertex1TriangleA.z)
+        vertex2TriangleA2D.set(vertex2TriangleA.x, vertex2TriangleA.z)
+        vertex3TriangleA2D.set(vertex3TriangleA.x, vertex3TriangleA.z)
 
-        vertex1TriangleB.x = vertex1TriangleB.x; vertex1TriangleB.y = vertex1TriangleB.y
-        vertex2TriangleB.x = vertex2TriangleB.x; vertex2TriangleB.y = vertex2TriangleB.y
-        vertex3TriangleB.x = vertex3TriangleB.x; vertex3TriangleB.y = vertex3TriangleB.y
+        vertex1TriangleB2D.set(vertex1TriangleB.x, vertex1TriangleB.z)
+        vertex2TriangleB2D.set(vertex2TriangleB.x, vertex2TriangleB.z)
+        vertex3TriangleB2D.set(vertex3TriangleB.x, vertex3TriangleB.z)
 
-    tri_tri_overlap_test_2d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+    else # Project onto XY plane
 
-tri_tri_overlap_test_2d = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+        vertex1TriangleA2D.set(vertex1TriangleA.x, vertex1TriangleA.y)
+        vertex2TriangleA2D.set(vertex2TriangleA.x, vertex2TriangleA.y)
+        vertex3TriangleA2D.set(vertex3TriangleA.x, vertex3TriangleA.y)
+
+        vertex1TriangleB2D.set(vertex1TriangleB.x, vertex1TriangleB.y)
+        vertex2TriangleB2D.set(vertex2TriangleB.x, vertex2TriangleB.y)
+        vertex3TriangleB2D.set(vertex3TriangleB.x, vertex3TriangleB.y)
+
+    return trianglesOverlap2D(vertex1TriangleA2D, vertex2TriangleA2D, vertex3TriangleA2D, vertex1TriangleB2D, vertex2TriangleB2D, vertex3TriangleB2D)
+
+trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+
     if ORIENT_2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0
+
         if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
             ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
         else
             ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
     else
+
         if ORIENT_2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
             ccw_tri_tri_intersection_2d(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
         else
