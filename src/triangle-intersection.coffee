@@ -291,9 +291,24 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
 
             return triangleIntersectionCCW2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
 
+### Computes the orientation (signed area) of a 2D triangle defined by three vertices.
+    The result indicates whether the points are arranged clockwise (CW), counter-clockwise (CCW), or collinear.
+
+    Formula: orientation(a, b, c) = (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
+
+    - If result > 0 → counter-clockwise (CCW).
+    - If result < 0 → clockwise (CW).
+    - If result = 0 → points are collinear.
+
+@param {Vector2} a - First vertex.
+@param {Vector2} b - Second vertex.
+@param {Vector2} c - Third vertex.
+
+@returns {Number} - Positive if CCW, negative if CW, zero if collinear. ###
 triangleOrientation2D = (a, b, c) ->
 
-    (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.y)
+    # Compute the signed area of the triangle (a, b, c).
+    (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
 
 triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
