@@ -9,10 +9,11 @@ tempVector3 = new Vector3()
 @param {Object} triangleA - First triangle, with properties {a, b, c} (Vector3 vertices).
 @param {Object} triangleB - Second triangle, with properties {a, b, c} (Vector3 vertices).
 
-@param {Object} additions - Optional object used for storing extra intersection info:
-    - coplanar {Boolean} whether the triangles lie in the same plane
-    - source {Vector3} intersection segment start (if applicable)
-    - target {Vector3} intersection segment end (if applicable)
+@param {Object} additions - Optional data object used for storing extra intersection info:
+
+    - coplanar {Boolean} whether the triangles lie in the same plane.
+    - source {Vector3} intersection segment start (if applicable).
+    - target {Vector3} intersection segment end (if applicable).
 
 @returns {Boolean} true if the triangles intersect, false otherwise. ###
 triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: false, source: new Vector3(), target: new Vector3() }) ->
@@ -127,14 +128,15 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 @param {Number} distanceVertex2B - Signed distance of vertex2TriangleB to Triangle A’s plane.
 @param {Number} distanceVertex3B - Signed distance of vertex3TriangleB to Triangle A’s plane.
 
-@param {Object} additions - Extra data object used for storing extra intersection info:
-    - coplanar {Boolean} whether the triangles lie in the same plane
-    - source {Vector3} intersection segment start (if applicable)
-    - target {Vector3} intersection segment end (if applicable)
-    - N1 {Vector3} normal of Triangle A (used in coplanar case)
-    - N2 {Vector3} normal of Triangle B (used in coplanar case)
+@param {Object} additions - Data object used for storing extra intersection info:
 
-@returns {Boolean|undefined} - Returns true if an intersection is found, false if none, or nothing (constructIntersection handles output). ###
+    - coplanar {Boolean} whether the triangles lie in the same plane.
+    - source {Vector3} intersection segment start (if applicable).
+    - target {Vector3} intersection segment end (if applicable).
+    - N1 {Vector3} normal of Triangle A (used in coplanar case).
+    - N2 {Vector3} normal of Triangle B (used in coplanar case).
+
+@returns {Boolean} - Returns true if an intersection is found, false otherwise. ###
 resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions) ->
 
     if distanceVertex1B > 0
@@ -506,34 +508,53 @@ intersectionTestVertex2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA
 
             return false
 
+### Determines the intersection segment (if any) between two triangles in 3D space.
+    If an intersection segment exists, its endpoints are written to `additions.source` and `additions.target`.
+
+@param {Vector3} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector3} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
+
+@param {Object} additions - Data object used for storing extra intersection info:
+
+    - coplanar {Boolean} whether the triangles lie in the same plane.
+    - source {Vector3} intersection segment start (if applicable).
+    - target {Vector3} intersection segment end (if applicable).
+    - N1 {Vector3} normal of Triangle A (used in coplanar case).
+    - N2 {Vector3} normal of Triangle B (used in coplanar case).
+
+@return {Boolean} True if intersection segment exists, false otherwise. ###
 constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) ->
 
     alpha = undefined
-    N = new Vector3()
+    crossNormal = new Vector3()
 
+    # Compute cross product for triangle orientation.
     tempVector1.subVectors(vertex2TriangleA, vertex1TriangleA)
     tempVector2.subVectors(vertex3TriangleB, vertex1TriangleA)
-
-    N.copy(tempVector1).cross(tempVector2)
+    crossNormal.copy(tempVector1).cross(tempVector2)
     tempVector3.subVectors(vertex1TriangleB, vertex1TriangleA)
 
-    if tempVector3.dot(N) > 0
+    if tempVector3.dot(crossNormal) > 0
 
+        # Check orientation with triangle A's third vertex.
         tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
-        N.copy(tempVector1).cross(tempVector2)
+        crossNormal.copy(tempVector1).cross(tempVector2)
 
-        if tempVector3.dot(N) <= 0
+        if tempVector3.dot(crossNormal) <= 0
 
+            # Check orientation with triangle B's second vertex.
             tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
-            N.copy(tempVector1).cross(tempVector2)
+            crossNormal.copy(tempVector1).cross(tempVector2)
 
-            if tempVector3.dot(N) > 0
+            if tempVector3.dot(crossNormal) > 0
 
+                # Compute intersection segment endpoints (case 1).
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleA, tempVector1)
+
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
@@ -544,11 +565,13 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
             else
 
+                # Compute intersection segment endpoints (case 2).
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleB, tempVector1)
+
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
@@ -559,29 +582,31 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
         else
 
-            return false
+            return false # No intersection, orientation test failed.
 
     else
 
         tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
-        N.copy(tempVector1).cross(tempVector2)
+        crossNormal.copy(tempVector1).cross(tempVector2)
 
-        if tempVector3.dot(N) < 0
+        if tempVector3.dot(crossNormal) < 0
 
-            return false
+            return false # No intersection, orientation test failed.
 
         else
 
             tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
-            N.copy(tempVector1).cross(tempVector2)
+            crossNormal.copy(tempVector1).cross(tempVector2)
 
-            if tempVector3.dot(N) < 0
+            if tempVector3.dot(crossNormal) < 0
 
+                # Compute intersection segment endpoints (case 3).
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleB, tempVector1)
+
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
@@ -592,11 +617,13 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
             else
 
+                # Compute intersection segment endpoints (case 4).
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleA, tempVector1)
+
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex2TriangleA)
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
@@ -604,5 +631,7 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 additions.target.subVectors(vertex1TriangleA, tempVector1)
 
                 return true
+
+    return false # If none of the above, no intersection found.
 
 export { triangleIntersectsTriangle }
