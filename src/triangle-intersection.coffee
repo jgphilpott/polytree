@@ -510,17 +510,25 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     alpha = undefined
     N = new Vector3()
+
     tempVector1.subVectors(vertex2TriangleA, vertex1TriangleA)
     tempVector2.subVectors(vertex3TriangleB, vertex1TriangleA)
+
     N.copy(tempVector1).cross(tempVector2)
     tempVector3.subVectors(vertex1TriangleB, vertex1TriangleA)
+
     if tempVector3.dot(N) > 0
+
         tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
         N.copy(tempVector1).cross(tempVector2)
+
         if tempVector3.dot(N) <= 0
+
             tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
             N.copy(tempVector1).cross(tempVector2)
+
             if tempVector3.dot(N) > 0
+
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
@@ -531,8 +539,11 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
-                true
+
+                return true
+
             else
+
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
@@ -543,18 +554,29 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
-                true
+
+                return true
+
         else
-            false
+
+            return false
+
     else
+
         tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
         N.copy(tempVector1).cross(tempVector2)
+
         if tempVector3.dot(N) < 0
-            false
+
+            return false
+
         else
+
             tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
             N.copy(tempVector1).cross(tempVector2)
+
             if tempVector3.dot(N) < 0
+
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
@@ -565,8 +587,11 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 alpha = tempVector1.dot(additions.N1) / tempVector2.dot(additions.N1)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
-                true
+
+                return true
+
             else
+
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
@@ -577,92 +602,7 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 alpha = tempVector1.dot(additions.N2) / tempVector2.dot(additions.N2)
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleA, tempVector1)
-                true
 
-pointOnLine = (line, point) ->
+                return true
 
-    ab = tempVector1.copy(line.end).sub(line.start)
-    ac = tempVector2.copy(point).sub(line.start)
-    area = tempVector3.copy(ab).cross(ac).length()
-    CD = area / ab.length()
-    return CD
-
-lineIntersects = (line1, line2, points) ->
-
-    r = (new Vector3()).copy(line1.end).sub(line1.start)
-    s = (new Vector3()).copy(line2.end).sub(line2.start)
-    q = (new Vector3()).copy(line1.start).sub(line2.start)
-    # w = tempVector3.copy(line2.start).sub(line1.start)
-
-    dotqr = q.dot(r)
-    dotqs = q.dot(s)
-    dotrs = r.dot(s)
-    dotrr = r.dot(r)
-    dotss = s.dot(s)
-
-    denom = (dotrr * dotss) - (dotrs * dotrs)
-    numer = (dotqs * dotrs) - (dotqr * dotss)
-
-    t = numer / denom
-    u = (dotqs + t * dotrs) / dotss
-
-    p0 = r.multiplyScalar(t).add(line1.start)
-    vertex1TriangleA = s.multiplyScalar(u).add(line2.start)
-
-    onSegment = false
-    intersects = false
-
-    if (0 <= t <= 1) and (0 <= u <= 1)
-
-        onSegment = true
-
-    p0p1Length = tempVector1.copy(p0).sub(vertex1TriangleA).length()
-
-    if p0p1Length <= 1e-5
-
-        intersects = true
-
-    # console.log("lineIntersects?", intersects, onSegment, p0, vertex1TriangleA, denom, numer, t, u)
-    unless intersects and onSegment
-        # return []
-        return false
-
-    points and points.push(p0, vertex1TriangleA)
-    # return [p0, vertex1TriangleA]
-    true
-
-getLines = (triangle) ->
-
-    [
-        { start: triangle.a, end: triangle.b }
-        { start: triangle.b, end: triangle.c }
-        { start: triangle.c, end: triangle.a }
-    ]
-
-checkTrianglesIntersection = (triangle1, triangle2, additions = { coplanar: false, source: new Vector3(), target: new Vector3() }) ->
-    # additions =
-    #     coplanar: false
-    #     source: new Vector3()
-    #     target: new Vector3()
-    triangleIntersects = triangleIntersectsTriangle(triangle1, triangle2, additions)
-    # console.log("??? 1", triangleIntersects, additions)
-    additions.triangleCheck = triangleIntersects
-
-    if not triangleIntersects and additions.coplanar
-        # console.log("check failed, checking lines")
-        triangle1Lines = getLines(triangle1)
-        triangle2Lines = getLines(triangle2)
-        intersects = false
-
-        for i in [0...3]
-            intersects = false
-            for j in [0...3]
-                intersects = lineIntersects(triangle1Lines[i], triangle2Lines[j])
-                break if intersects
-            break if intersects
-
-        return intersects
-
-    triangleIntersects
-
-export { triangleIntersectsTriangle, checkTrianglesIntersection, getLines, lineIntersects }
+export { triangleIntersectsTriangle }
