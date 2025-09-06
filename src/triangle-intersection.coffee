@@ -314,7 +314,7 @@ triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3Triangle
             # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA.
             if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
 
-                true  # All vertices of B are inside A.
+                return true  # All vertices of B are inside A.
 
             else # Then vertex3TriangleB is outside, test edge intersection.
 
@@ -354,37 +354,64 @@ triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3Triangle
 @param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
 @param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
 
-@return {Boolean} ###
+@return {Boolean} True if an edge intersection is found, false otherwise. ###
 intersectionTestEdge2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
+    # If vertex3TriangleB is on or to the left of edge vertex1TriangleB-vertex2TriangleA.
     if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
+
+        # If vertex1TriangleA is on or to the left of edge vertex1TriangleB-vertex2TriangleA.
         if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) >= 0
+
+            # If vertex1TriangleA is on or to the left of edge vertex2TriangleA-vertex3TriangleB.
             if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB) >= 0
-                true
-            else
-                false
-        else
+                return true
+            else # Then vertex1TriangleA is outside edge vertex2TriangleA-vertex3TriangleB.
+                return false
+
+        else # Then vertex1TriangleA is outside edge vertex1TriangleB-vertex2TriangleA.
+
+            # If vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex1TriangleB.
             if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
+
+                # If vertex3TriangleA is on or to the left of edge vertex1TriangleA-vertex1TriangleB.
                 if triangleOrientation2D(vertex3TriangleA, vertex1TriangleA, vertex1TriangleB) >= 0
-                    true
-                else
-                    false
-            else
-                false
-    else
+                    return true
+                else # Then vertex3TriangleA is outside edge vertex1TriangleA-vertex1TriangleB.
+                    return false
+
+            else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex1TriangleB.
+
+                return false
+
+    else # Then vertex3TriangleB is outside edge vertex1TriangleB-vertex2TriangleA.
+
+        # If vertex3TriangleB is on or to the left of edge vertex1TriangleB-vertex3TriangleA.
         if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
+
+            # If vertex1TriangleA is on or to the left of edge vertex1TriangleB-vertex3TriangleA.
             if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
+
+                # If vertex1TriangleA is on or to the left of edge vertex3TriangleA-vertex3TriangleB.
                 if triangleOrientation2D(vertex1TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
-                    true
+
+                    return true
+
                 else
+
+                    # Then vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex3TriangleB.
                     if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
-                        true
-                    else
-                        false
-            else
-                false
-        else
-            false
+                        return true
+                    else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex3TriangleB.
+                        return false
+
+            else # Then vertex1TriangleA is outside edge vertex1TriangleB-vertex3TriangleA.
+
+                return false
+
+        else # Then vertex3TriangleB is outside edge vertex1TriangleB-vertex3TriangleA.
+
+            return false
 
 ### Checks for vertex intersection between two triangles in 2D.
 
