@@ -120,13 +120,8 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 ### Determines the intersection between two 3D triangles given their vertices and the signed distances of Triangle B’s vertices to the plane of Triangle A.
     This function decides which case applies (based on the signs of the distances), then calls either `constructIntersection` (for non-coplanar cases) or `coplanarTriangleIntersection` (for coplanar triangles).
 
-@param {Vector3} vertex1TriangleA - First vertex of Triangle A.
-@param {Vector3} vertex2TriangleA - Second vertex of Triangle A.
-@param {Vector3} vertex3TriangleA - Third vertex of Triangle A.
-
-@param {Vector3} vertex1TriangleB - First vertex of Triangle B.
-@param {Vector3} vertex2TriangleB - Second vertex of Triangle B.
-@param {Vector3} vertex3TriangleB - Third vertex of Triangle B.
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
 
 @param {Number} distanceVertex1B - Signed distance of vertex1TriangleB to Triangle A’s plane.
 @param {Number} distanceVertex2B - Signed distance of vertex2TriangleB to Triangle A’s plane.
@@ -191,13 +186,8 @@ resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
     By projecting both triangles onto the axis-aligned plane (XY, YZ, or XZ) that maximizes the projected area.
     This minimizes numerical errors when working in 2D. The function then delegates the overlap test to `trianglesOverlap2D`.
 
-@param {Vector3} vertex1TriangleA - First vertex of Triangle A.
-@param {Vector3} vertex2TriangleA - Second vertex of Triangle A.
-@param {Vector3} vertex3TriangleA - Third vertex of Triangle A.
-
-@param {Vector3} vertex1TriangleB - First vertex of Triangle B.
-@param {Vector3} vertex2TriangleB - Second vertex of Triangle B.
-@param {Vector3} vertex3TriangleB - Third vertex of Triangle B.
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
 
 @param {Vector3} normalTriangleA - Normal vector of Triangle A.
 @param {Vector3} normalTriangleB - Normal vector of Triangle B.
@@ -257,13 +247,8 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
         2. If a triangle is CW, its vertices are reordered to make it CCW.
         3. Calls `triangleIntersectionCCW2D` to test for overlap, assuming both are CCW.
 
-@param {Vector2} vertex1TriangleA - First vertex of Triangle A.
-@param {Vector2} vertex2TriangleA - Second vertex of Triangle A.
-@param {Vector2} vertex3TriangleA - Third vertex of Triangle A.
-
-@param {Vector2} vertex1TriangleB - First vertex of Triangle B.
-@param {Vector2} vertex2TriangleB - Second vertex of Triangle B.
-@param {Vector2} vertex3TriangleB - Third vertex of Triangle B.
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
 
 @returns {Boolean} - True if the triangles overlap in 2D, false otherwise. ###
 trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
@@ -310,29 +295,67 @@ triangleOrientation2D = (a, b, c) ->
     # Compute the signed area of the triangle (a, b, c).
     (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
 
+### Determines if two counter-clockwise (CCW) triangles in 2D overlap.
+    The function checks the relative orientation of triangle B's vertices with respect to triangle A.
+    Then recursively tests for edge or vertex intersection depending on the configuration.
+
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A (CCW order)
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B (CCW order)
+
+@return {Boolean} True if triangles overlap, false otherwise. ###
 triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
+    # If vertex1TriangleB is on or to the left of edge vertex1TriangleA-vertex2TriangleA-vertex3TriangleA.
     if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex1TriangleA) >= 0
-        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
-            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
-                true
-            else
-                intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
-        else
-            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
-                intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
-            else
-                intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
-    else
-        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
-            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
-                intersection_test_edge(vertex1TriangleA, vertex2TriangleA, vertex3TriangleB, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
-            else
-                intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
-        else
-            intersection_test_vertex(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
 
-intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+        # If vertex2TriangleB is on or to the left of edge vertex2TriangleA-vertex3TriangleA-vertex1TriangleA.
+        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
+
+            # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA.
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+
+                true  # All vertices of B are inside A.
+
+            else # Then vertex3TriangleB is outside, test edge intersection.
+
+                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+        else # Then vertex2TriangleB is outside.
+
+            # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA, test edge intersection.
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+
+                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
+
+            else # Then both vertex2TriangleB and vertex3TriangleB are outside, test vertex intersection.
+
+                intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+    else # Then vertex2TriangleB is on or to the left of edge vertex2TriangleA-vertex3TriangleA-vertex1TriangleA.
+
+        # If vertex2TriangleB is on or to the left of edge vertex2TriangleA-vertex3TriangleA-vertex1TriangleA.
+        if triangleOrientation2D(vertex2TriangleB, vertex3TriangleB, vertex1TriangleA) >= 0
+
+            # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA, test edge intersection.
+            if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
+
+                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
+
+            else # Then vertex3TriangleB is outside, test vertex intersection.
+
+                intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
+
+        else # Then both vertex1TriangleB and vertex2TriangleB are outside, test vertex intersection.
+
+            intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
+
+### Checks for edge intersection between two triangles in 2D.
+
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
+
+@return {Boolean} ###
+intersectionTestEdge2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
     if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
         if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) >= 0
@@ -363,7 +386,13 @@ intersection_test_edge = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
         else
             false
 
-intersection_test_vertex = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
+### Checks for vertex intersection between two triangles in 2D.
+
+@param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
+@param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
+
+@return {Boolean} ###
+intersectionTestVertex2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
     if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
         if triangleOrientation2D(vertex3TriangleB, vertex2TriangleB, vertex2TriangleA) <= 0
