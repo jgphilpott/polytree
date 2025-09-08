@@ -54,7 +54,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
 - **Web Worker Offloading**
   - Complex geometric calculations (e.g., winding number, triangle-triangle intersection) are designed for isolation and may be offloaded to a worker for computational efficiency (see `PolytreeCSG.worker.coffee`).
 - **Algorithms**
-  - Intersection, spatial queries, and geometry validation routines are implemented in file `src/triangle-intersection.coffee` and related modules; functions are generally documented for clarity.
+  - Intersection, spatial queries, and geometry validation routines are implemented in file `src/triangle.intersection.coffee` and related modules; functions are generally documented for clarity.
 
 ### Extensibility & Contributing
 - While the package is generic, it is designed as a core engine for advanced 3D modeling, spatial-analysis, or use as a backend for other tools (such as Polyslice, see README Applications).

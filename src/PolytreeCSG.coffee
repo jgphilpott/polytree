@@ -1,5 +1,5 @@
 import { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } from 'three'
-import { checkTrianglesIntersection } from './triangle-intersection.js'
+import { triangleIntersectsTriangle } from './triangle.intersection.js'
 
 _v1 = new Vector3()
 _v2 = new Vector3()
@@ -194,7 +194,7 @@ class OctreeCSG
                     polygon = allPolygons[i]
                     unless polygon.originalValid and polygon.valid and polygon.intersects
                         continue
-                    if checkTrianglesIntersection(targetPolygon.triangle, polygon.triangle)
+                    if triangleIntersectsTriangle(targetPolygon.triangle, polygon.triangle)
                         polygons.push(polygon)
         for i in [0...@subTrees.length]
             @subTrees[i].getPolygonsIntersectingPolygon(targetPolygon, polygons)

@@ -9,6 +9,7 @@
   },
   "scripts": {
     "test": "jest",
+    "pretest": "npm run compile",
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &"
   },

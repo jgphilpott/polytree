@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three"
+({Vector2, Vector3} = require("three"))
 
 tempVector1 = new Vector3()
 tempVector2 = new Vector3()
@@ -74,49 +74,95 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
     additions.normal1 = normal1
     additions.normal2 = normal2
 
+    # Decide how to proceed by looking at the signs of distanceVertex1A, distanceVertex2A and distanceVertex3A.
+    # These numbers tell us whether each vertex of Triangle A sits above the flat surface of Triangle B (positive), below it (negative), or exactly on it (zero).
+    # We then pass the vertices to the resolver in a stable order: the single “different-side” vertex first, followed by the two vertices that are on the same side.
+
     if distanceVertex1A > 0
 
+        # If distanceVertex1A is positive (the first vertex of Triangle A is above Triangle B's surface):
         if distanceVertex2A > 0
-            resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+            # Then distanceVertex2A is also positive, while distanceVertex3A is zero or negative.
+            # In plain terms: the third vertex of Triangle A lies on the other side of Triangle B’s surface (or exactly on it).
+            return resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
         else if distanceVertex3A > 0
-            resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+            # Then distanceVertex3A is positive, while distanceVertex2A is zero or negative.
+            # That means the second vertex of Triangle A is the one on the other side (or exactly on the surface).
+            return resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
         else
-            resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+            # Here only the first vertex is above the surface; the second and third are on or below it.
+            return resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
     else if distanceVertex1A < 0
 
+        # If distanceVertex1A is negative (the first vertex of Triangle A is below Triangle B's surface):
         if distanceVertex2A < 0
-            resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+            # Then distanceVertex2A is also negative, while distanceVertex3A is zero or positive.
+            # In other words: the third vertex of Triangle A is on the other side (or exactly on the surface).
+            return resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
         else if distanceVertex3A < 0
-            resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+            # Then distanceVertex3A is negative, while distanceVertex2A is zero or positive.
+            # So the second vertex is the one on the other side (or exactly on the surface).
+            return resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
         else
-            resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+            # Only the first vertex is below the surface; the second and third are on or above it.
+            # Note: We also swap the order of Triangle B’s vertices here to keep a consistent “one different, two the same” pattern for the resolver.
+            return resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
 
     else
 
+        # Then the first vertex of Triangle A lies exactly on Triangle B’s surface (distanceVertex1A is zero).
+        # We look at distanceVertex2A and distanceVertex3A to decide which side the other vertices are on.
         if distanceVertex2A < 0
 
             if distanceVertex3A >= 0
-                resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+                # The second vertex is below the surface, while the third is on or above it.
+                return resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
             else
-                resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+                # Both the second and third vertices are below the surface.
+                return resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
         else if distanceVertex2A > 0
 
             if distanceVertex3A > 0
-                resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+                # Both the second and third vertices are above the surface.
+                return resolveTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
             else
-                resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+                # The second vertex is above the surface, while the third is on or below it.
+                return resolveTriangleIntersection(vertex2TriangleA, vertex3TriangleA, vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
 
         else
 
             if distanceVertex3A > 0
-                resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
+                # The second vertex is exactly on the surface, and the third is above it.
+                return resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions)
+
             else if distanceVertex3A < 0
-                resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
+                # The second vertex is exactly on the surface, and the third is below it.
+                return resolveTriangleIntersection(vertex3TriangleA, vertex1TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB, distanceVertex1B, distanceVertex3B, distanceVertex2B, additions)
+
             else
-                additions.coplanar = true # The triangles are co-planar.
-                resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal1, normal2)
+
+                additions.coplanar = true # All three vertices of Triangle A lie in Triangle B's plane.
+                return resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal1, normal2)
 
 ### Determines the intersection between two 3D triangles given their vertices and the signed distances of Triangle B’s vertices to the plane of Triangle A.
     This function decides which case applies (based on the signs of the distances), then calls either `constructIntersection` (for non-coplanar cases) or `coplanarTriangleIntersection` (for coplanar triangles).
@@ -634,4 +680,4 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     return false # If none of the above, no intersection found.
 
-export { triangleIntersectsTriangle }
+module.exports = { triangleIntersectsTriangle }
