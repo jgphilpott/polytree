@@ -320,18 +320,18 @@ triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3Triangle
 
             else # Then vertex3TriangleB is outside, test edge intersection.
 
-                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+                return intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
 
         else # Then vertex2TriangleB is outside.
 
             # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA, test edge intersection.
             if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
 
-                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
+                return intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
 
             else # Then both vertex2TriangleB and vertex3TriangleB are outside, test vertex intersection.
 
-                intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+                return intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
 
     else # Then vertex2TriangleB is on or to the left of edge vertex2TriangleA-vertex3TriangleA-vertex1TriangleA.
 
@@ -341,15 +341,15 @@ triangleIntersectionCCW2D = (vertex1TriangleA, vertex2TriangleA, vertex3Triangle
             # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex1TriangleA-vertex1TriangleA, test edge intersection.
             if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex1TriangleA) >= 0
 
-                intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
+                return intersectionTestEdge2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
 
             else # Then vertex3TriangleB is outside, test vertex intersection.
 
-                intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
+                return intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB)
 
         else # Then both vertex1TriangleB and vertex2TriangleB are outside, test vertex intersection.
 
-            intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
+            return intersectionTestVertex2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB)
 
 ### Checks for edge intersection between two triangles in 2D.
 

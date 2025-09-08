@@ -28,6 +28,17 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
   npx jest polytree.test.coffee -t "Test name or regex"
   ```
 
+## Code Style Preferences
+
+- Whitespace and vertical spacing:
+  - Preserve and prefer generous vertical whitespace for readability.
+  - Insert a blank line after:
+    - function declarations/definitions
+    - if/else blocks
+    - loops
+    - any change in indentation level
+  - Do not collapse existing blank lines when editing.
+
 ## High-Level Architecture
 
 ### Overview
@@ -50,7 +61,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
 - Contributions should follow idiomatic CoffeeScript and aim to extend OctreeCSG without breaking three.js compatibility.
 
 ## Project Entry and Examples
-- Main package entry: `polytree.js` (compiled from `polytree.coffee`).   
+- Main package entry: `polytree.js` (compiled from `polytree.coffee`).
 - Internal codebase uses ES modules and standard `import`/`export` syntax in CoffeeScript.
 - For usage, refer to integration patterns outlined in the README; the typical import is:
   ```js
