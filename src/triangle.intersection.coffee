@@ -282,13 +282,13 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
     # Project triangles into 2D by dropping the dominant axis of the normal.
     if (normalAbsX > normalAbsZ) and (normalAbsX >= normalAbsY) # Project onto YZ plane.
 
-        vertex1TriangleA2D.set(vertex1TriangleA.z, vertex1TriangleA.y)
-        vertex2TriangleA2D.set(vertex2TriangleA.z, vertex2TriangleA.y)
-        vertex3TriangleA2D.set(vertex3TriangleA.z, vertex3TriangleA.y)
+        vertex1TriangleA2D.set(vertex1TriangleA.y, vertex1TriangleA.z)
+        vertex2TriangleA2D.set(vertex2TriangleA.y, vertex2TriangleA.z)
+        vertex3TriangleA2D.set(vertex3TriangleA.y, vertex3TriangleA.z)
 
-        vertex1TriangleB2D.set(vertex1TriangleB.z, vertex1TriangleB.y)
-        vertex2TriangleB2D.set(vertex2TriangleB.z, vertex2TriangleB.y)
-        vertex3TriangleB2D.set(vertex3TriangleB.z, vertex3TriangleB.y)
+        vertex1TriangleB2D.set(vertex1TriangleB.y, vertex1TriangleB.z)
+        vertex2TriangleB2D.set(vertex2TriangleB.y, vertex2TriangleB.z)
+        vertex3TriangleB2D.set(vertex3TriangleB.y, vertex3TriangleB.z)
 
     else if (normalAbsY > normalAbsZ) and (normalAbsY >= normalAbsX) # Project onto XZ plane.
 
@@ -706,4 +706,4 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     return false # If none of the above, no intersection found.
 
-module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection }
+module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection, resolveCoplanarTriangleIntersection }

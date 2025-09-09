@@ -4,6 +4,7 @@
 
     triangleIntersectsTriangle
     resolveTriangleIntersection
+    resolveCoplanarTriangleIntersection
 
 } = require "../src/triangle.intersection.js"
 
@@ -242,3 +243,68 @@ describe 'resolveTriangleIntersection', ->
     result = resolveTriangleIntersection(vA1, vA2, vA3, vB1, vB2, vB3, 1, -1, -1, additions)
 
     expect(result).toBe(true)
+
+describe 'resolveCoplanarTriangleIntersection', ->
+
+    v = (x, y, z) -> new Vector3(x, y, z)
+    n = (x, y, z) -> new Vector3(x, y, z).normalize()
+
+    it 'returns false for separated coplanar triangles', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(1,0,0), v(0,1,0),
+            v(2,2,0), v(3,2,0), v(2,3,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe false
+
+    it 'returns true for coplanar triangles sharing an edge', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(1,0,0), v(0,1,0),
+            v(1,0,0), v(0,0,0), v(1,1,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe true
+
+    it 'returns true for coplanar triangles with partial overlap', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(3,0,0), v(0,3,0),
+            v(1,0,0), v(2,0,0), v(1,2,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe true
+
+    it 'returns true for full containment (B inside A)', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(5,0,0), v(0,5,0),
+            v(1,1,0), v(2,1,0), v(1,2,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe true
+
+    it 'returns true for identical triangles', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(2,0,0), v(0,2,0),
+            v(0,0,0), v(2,0,0), v(0,2,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe true
+
+    it 'returns true for coplanar shared vertex only', ->
+
+        result = resolveCoplanarTriangleIntersection(
+            v(0,0,0), v(1,0,0), v(0,1,0),
+            v(0,0,0), v(-1,0,0), v(0,-1,0),
+            n(0,0,1), n(0,0,1)
+        )
+
+        expect(result).toBe true
