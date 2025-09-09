@@ -45,6 +45,8 @@ Triangle intersection tests must include:
 12. Degenerate point inside other (count as intersect).
 13. Skew oblique intersect.
 14. Skew oblique disjoint.
+15. Identical triangles (full overlap).
+16. Degenerate line across interior.
 
 Future (add later):
 
@@ -95,11 +97,6 @@ When adding a geometry routine (e.g. ray-triangle, octree CSG steps):
 
 - Follow CoffeeScript whitespace guidance (blank line after blocks).
 - Keep tests readable over condensed.
-
-## Skipping / Focusing
-
-- Do not commit `.only` / `.skip`.
-- Use conditional logic with env flags if needed.
 
 ## TODO Tags
 

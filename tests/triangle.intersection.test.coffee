@@ -1,11 +1,11 @@
 { Vector3 } = require "three"
 { triangleIntersectsTriangle } = require "../src/triangle.intersection.js"
 
-tri = (ax, ay, az, bx, bY, bz, cx, cy, cz) -> # Helper to build a triangle object matching the function’s expected shape.
+tri = (aX, aY, aZ, bX, bY, bZ, cX, cY, cZ) -> # Helper to build a triangle object matching the function’s expected shape.
 
-    a: new Vector3(ax, ay, az)
-    b: new Vector3(bx, bY, bz)
-    c: new Vector3(cx, cy, cz)
+    a: new Vector3(aX, aY, aZ)
+    b: new Vector3(bX, bY, bZ)
+    c: new Vector3(cX, cY, cZ)
 
 assertIntersection = (tA, tB, expected, { coplanar: expectedCoplanar = undefined, intersection: expectSegment = false, approx = 1e-6, label } = {}) ->
 
@@ -179,3 +179,23 @@ describe 'triangleIntersectsTriangle', ->
 
             coplanar: false
             label: 'skew disjoint'
+
+    it 'identical triangles (full overlap)', ->
+
+        tA = tri(0,0,0, 2,0,0, 0,2,0)
+        tB = tri(0,0,0, 2,0,0, 0,2,0)
+
+        assertIntersection tA, tB, true,
+
+            coplanar: true
+            label: 'identical triangles'
+
+    it 'degenerate line across interior', ->
+
+        tA = tri(0,0,0,  4,0,0,  0,4,0)
+        tB = tri(1,1,0, 3,1,0, 1,1,0)
+
+        assertIntersection tA, tB, true,
+
+            coplanar: true
+            label: 'degenerate line inside'
