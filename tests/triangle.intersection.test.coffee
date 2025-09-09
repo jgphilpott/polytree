@@ -1,5 +1,11 @@
 { Vector3 } = require "three"
-{ triangleIntersectsTriangle } = require "../src/triangle.intersection.js"
+
+{
+
+    triangleIntersectsTriangle
+    resolveTriangleIntersection
+
+} = require "../src/triangle.intersection.js"
 
 tri = (aX, aY, aZ, bX, bY, bZ, cX, cY, cZ) -> # Helper to build a triangle object matching the function’s expected shape.
 
@@ -199,3 +205,40 @@ describe 'triangleIntersectsTriangle', ->
 
             coplanar: true
             label: 'degenerate line inside'
+
+describe 'resolveTriangleIntersection', ->
+
+  # Helper to create new Vector3 quickly.
+  v = (x,y,z) -> new Vector3(x,y,z)
+
+  # Degenerate/no intersection: all positive distances (triangle B fully outside A).
+  it 'returns false for all-positive distances (should do nothing)', ->
+
+    vA1 = v(0,0,0)
+    vA2 = v(1,0,0)
+    vA3 = v(0,1,0)
+
+    vB1 = v(0,0,1)
+    vB2 = v(1,0,1)
+    vB3 = v(0,1,1)
+
+    additions = { coplanar: false, source: new Vector3(), target: new Vector3(), normal1: v(0,0,1), normal2: v(0,0,1) }
+    result = resolveTriangleIntersection(vA1, vA2, vA3, vB1, vB2, vB3, 1, 1, 1, additions)
+
+    expect(result).toBe(false)
+
+  # Crossing case: B first above, others below (ensures correct permutation and branch).
+  it 'handles one B vertex above and two below', ->
+
+    vA1 = v(0,0,0)
+    vA2 = v(2,0,0)
+    vA3 = v(0,2,0)
+
+    vB1 = v(1,1,1) # Above
+    vB2 = v(0.5,0.5,-1) # Below
+    vB3 = v(1.5,0.5,-1) # Below
+
+    additions = { coplanar: false, source: new Vector3(), target: new Vector3(), normal1: v(0,0,1), normal2: v(0,0,1) }
+    result = resolveTriangleIntersection(vA1, vA2, vA3, vB1, vB2, vB3, 1, -1, -1, additions)
+
+    expect(result).toBe(true)

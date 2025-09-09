@@ -165,7 +165,9 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
                 return resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, normal1, normal2)
 
 ### Determines the intersection between two 3D triangles given their vertices and the signed distances of Triangle B’s vertices to the plane of Triangle A.
-    This function decides which case applies (based on the signs of the distances), then calls either `constructIntersection` (for non-coplanar cases) or `coplanarTriangleIntersection` (for coplanar triangles).
+    Goal: Always pass to `constructIntersection` the triangles arranged so the first vertex of each lies alone on one side of the other triangle’s plane (or is on the plane), and the remaining two share the opposite side.
+    This function chooses one of several vertex orderings based on the sign pattern of (distanceVertex1B, distanceVertex2B, distanceVertex3B).
+    If all three distances for Triangle B are zero → triangles are coplanar and handled by `resolveCoplanarTriangleIntersection`.
 
 @param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
 @param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
@@ -185,48 +187,72 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 @returns {Boolean} - True if an intersection is found, false otherwise. ###
 resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, distanceVertex1B, distanceVertex2B, distanceVertex3B, additions) ->
 
-    if distanceVertex1B > 0
+    # Early exit → If all B's distances are strictly positive (totally outside/above) or negative (totally outside/below), there's no intersection.
+    if (distanceVertex1B > 0 and distanceVertex2B > 0 and distanceVertex3B > 0) or (distanceVertex1B < 0 and distanceVertex2B < 0 and distanceVertex3B < 0) then return false
 
-        if distanceVertex2B > 0
-            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
-        else if distanceVertex3B > 0
-            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
-        else
-            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+    if distanceVertex1B > 0 # First vertex of Triangle B is above (positive side of) Triangle A's plane.
 
-    else if distanceVertex1B < 0
+        if distanceVertex2B > 0 # First two vertices of B are positive, third is zero or negative.
 
-        if distanceVertex2B < 0
-            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
-        else if distanceVertex3B < 0
-            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
-        else
-            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions) # Reorder B as (C, A, B) so differing vertex is last.
 
-    else
+        else if distanceVertex3B > 0 # First and third vertices of B are positive, second is zero or negative.
 
-        if distanceVertex2B < 0
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions) # Reorder B as (B, C, A).
 
-            if distanceVertex3B >= 0
-                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
-            else
-                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
+        else # Only first vertex of B is positive.
 
-        else if distanceVertex2B > 0
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) # Pass original B ordering.
 
-            if distanceVertex3B > 0
-                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions)
-            else
-                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions)
+    else if distanceVertex1B < 0 # First vertex of Triangle B is below (negative side of) Triangle A's plane.
 
-        else
+        if distanceVertex2B < 0 # First two vertices of B are negative, third is zero or positive.
 
-            if distanceVertex3B > 0
-                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
-            else if distanceVertex3B < 0
-                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions)
-            else
-                additions.coplanar = true # The triangles are co-planar.
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions) # Reorder B as (C, A, B) so differing vertex is last.
+
+        else if distanceVertex3B < 0 # First and third vertices of B are negative, second is zero or positive.
+
+            constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions) # Reorder B as (B, C, A).
+
+        else # Only first vertex of B is negative.
+
+            constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) # Pass A, reordered B.
+
+    else # First vertex of Triangle B is exactly on the plane (distance zero).
+
+        if distanceVertex2B < 0 # Second vertex is negative, third will decide.
+
+            if distanceVertex3B >= 0 # Second negative, third zero or positive.
+
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions) # Mixed across the plane.
+
+            else # Second & third negative.
+
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) # Only first on the plane.
+
+        else if distanceVertex2B > 0 # Second vertex is positive.
+
+            if distanceVertex3B > 0 # Both second and third are positive.
+
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions) # Both above the plane.
+
+            else # Second positive, third zero or negative.
+
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex2TriangleB, vertex3TriangleB, vertex1TriangleB, additions) # Mixed, split across plane.
+
+        else # Second vertex is exactly on the plane (zero).
+
+            if distanceVertex3B > 0 # Only third is positive.
+
+                constructIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions) # Third above, first/second on plane.
+
+            else if distanceVertex3B < 0 # Only third is negative.
+
+                constructIntersection(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex3TriangleB, vertex1TriangleB, vertex2TriangleB, additions) # Third below plane.
+
+            else # All three B vertices are exactly on the plane (coplanar).
+
+                additions.coplanar = true # Mark coplanar.
                 resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.normal1, additions.normal2)
 
 ### Resolves intersection between two coplanar triangles in 3D space.
@@ -680,4 +706,4 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     return false # If none of the above, no intersection found.
 
-module.exports = { triangleIntersectsTriangle }
+module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection }
