@@ -22,7 +22,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ## Key Development Notes
 
 - The library is implemented in CoffeeScript; edits are made to `.coffee` files and then compiled to JavaScript.
-- Main entry points: `polytree.coffee` and `src/PolytreeCSG.coffee` (and related files in `src/`).
+- Main entry point: `src/polytree.coffee` (and related files in `src/`).
 - Unit tests are in `polytree.test.coffee` and use Jest. To run a single test interactively, use Jest’s built-in filter options, e.g.:
   ```bash
   npx jest polytree.test.coffee -t "Test name or regex"
@@ -52,7 +52,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
   - The library expects three.js primitives for most geometry operations (Triangle, Vector3, Plane, etc.).
   - Mesh manipulation and conversion utilities interact directly with three.js types.
 - **Web Worker Offloading**
-  - Complex geometric calculations (e.g., winding number, triangle-triangle intersection) are designed for isolation and may be offloaded to a worker for computational efficiency (see `PolytreeCSG.worker.coffee`).
+  - Complex geometric calculations (e.g., winding number, triangle-triangle intersection) are designed for isolation and may be offloaded to a worker for computational efficiency (see `polytree.worker.coffee`).
 - **Algorithms**
   - Intersection, spatial queries, and geometry validation routines are implemented in file `src/triangle.intersection.coffee` and related modules; functions are generally documented for clarity.
 
