@@ -1,10 +1,8 @@
-{ Vector2, Vector3 } = require "three"
+EPS2D = 1e-10
 
 tempVector1 = new Vector3()
 tempVector2 = new Vector3()
 tempVector3 = new Vector3()
-
-EPS2D = 1e-10
 
 # Epsilon-aware 2D point equality.
 pointsEqual2D = (p, q, eps = EPS2D) ->

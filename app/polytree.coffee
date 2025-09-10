@@ -1,5 +1,4 @@
 { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } = require "three"
-{ triangleIntersectsTriangle } = require "./app/triangle.intersection.js"
 
 _v1 = new Vector3()
 _v2 = new Vector3()

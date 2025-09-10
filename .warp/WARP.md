@@ -22,11 +22,8 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ## Key Development Notes
 
 - The library is implemented in CoffeeScript; edits are made to `.coffee` files and then compiled to JavaScript.
-- Main entry point: `polytree.js`.
-- Unit tests are in `polytree.test.js` and use Jest. To run a single test interactively, use Jest’s built-in filter options, e.g.:
-  ```bash
-  npx jest polytree.test.js -t "Test name or regex"
-  ```
+- Main entry point: `polytree.bundle.js`.
+- Unit tests are in `/tests` and use Jest. To run a single test interactively, use Jest’s built-in filter options.
 
 ## Code Style Preferences
 
@@ -59,7 +56,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
 - Contributions should follow idiomatic CoffeeScript and aim to extend OctreeCSG without breaking three.js compatibility.
 
 ## Project Entry and Examples
-- Main package entry: `polytree.js` (compiled from `polytree.coffee`).
+- Main package entry: `polytree.bundle.js` (compiled from `polytree.coffee`).
 - Internal codebase uses ES modules and standard `import`/`export` syntax in CoffeeScript.
 - For usage, refer to integration patterns outlined in the README; the typical import is:
   ```js

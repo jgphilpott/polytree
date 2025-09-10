@@ -12,7 +12,7 @@
     intersectionTestVertex2D
     constructIntersection
 
-} = require "./app/triangle.intersection.js"
+} = require "../polytree.bundle.js"
 
 # Helper functions to keep tests DRY.
 
