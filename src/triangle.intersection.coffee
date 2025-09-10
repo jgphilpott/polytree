@@ -4,6 +4,77 @@ tempVector1 = new Vector3()
 tempVector2 = new Vector3()
 tempVector3 = new Vector3()
 
+EPS2D = 1e-10
+
+# Epsilon-aware 2D point equality.
+pointsEqual2D = (p, q, eps = EPS2D) ->
+
+    return Math.abs(p.x - q.x) <= eps and Math.abs(p.y - q.y) <= eps
+
+# Inclusive point-on-segment check for collinear points.
+pointOnSegmentInclusive2D = (p, a, b, eps = EPS2D) ->
+
+    return pointsEqual2D(p, a, eps) or pointsEqual2D(p, b, eps) if pointsEqual2D(a, b, eps)
+
+    return false if Math.abs(triangleOrientation2D(p, a, b)) > eps
+
+    minX = Math.min(a.x, b.x) - eps
+    maxX = Math.max(a.x, b.x) + eps
+    minY = Math.min(a.y, b.y) - eps
+    maxY = Math.max(a.y, b.y) + eps
+
+    return (p.x >= minX and p.x <= maxX and p.y >= minY and p.y <= maxY)
+
+# Inclusive point-in-triangle test using orientations.
+# - Works for CW or CCW input (auto-detects orientation).
+# - Inclusive of edges/vertices.
+# - Handles degenerate triangles (point or segment) robustly.
+pointInTriangleInclusive2D = (p, a, b, c, eps = EPS2D) ->
+
+    o = triangleOrientation2D(a, b, c)
+
+    if o > eps
+
+        s1 = triangleOrientation2D(p, a, b)
+        s2 = triangleOrientation2D(p, b, c)
+        s3 = triangleOrientation2D(p, c, a)
+
+        return (s1 >= -eps) and (s2 >= -eps) and (s3 >= -eps)
+
+    else if o < -eps
+
+        s1 = triangleOrientation2D(p, a, b)
+        s2 = triangleOrientation2D(p, b, c)
+        s3 = triangleOrientation2D(p, c, a)
+
+        return (s1 <= eps) and (s2 <= eps) and (s3 <= eps)
+
+    else
+
+        # Degenerate triangle: either a point (all equal) or a segment (collinear).
+
+        if pointsEqual2D(a, b, eps) and pointsEqual2D(b, c, eps)
+
+            return pointsEqual2D(p, a, eps)
+
+        # Reduce to the non-degenerate segment and test inclusively.
+
+        if pointsEqual2D(a, b, eps)
+
+            return pointOnSegmentInclusive2D(p, b, c, eps)
+
+        if pointsEqual2D(b, c, eps)
+
+            return pointOnSegmentInclusive2D(p, a, b, eps)
+
+        if pointsEqual2D(c, a, eps)
+
+            return pointOnSegmentInclusive2D(p, a, b, eps)
+
+        # All three distinct but collinear: test against hull segments.
+
+        return pointOnSegmentInclusive2D(p, a, b, eps) or pointOnSegmentInclusive2D(p, b, c, eps) or pointOnSegmentInclusive2D(p, c, a, eps)
+
 ### Checks whether two triangles in 3D space intersect.
 
 @param {Object} triangleA - First triangle, with properties {a, b, c} (Vector3 vertices).
@@ -314,12 +385,15 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
 
 ### Determines whether two triangles in 2D overlap.
 
-    Triangles may initially be oriented clockwise (CW) or counter-clockwise (CCW).
-    To ensure a consistent comparison, the function:
+    Behavior and notes:
 
-        1. Checks the orientation of each triangle using `triangleOrientation2D`.
-        2. If a triangle is CW, its vertices are reordered to make it CCW.
-        3. Calls `triangleIntersectionCCW2D` to test for overlap, assuming both are CCW.
+    - Orientation: Triangles may be CW or CCW; inputs are normalized to CCW before testing.
+    - Inclusivity: Overlap is inclusive of shared edges and shared vertices.
+    - Degenerate handling:
+
+        - If one triangle degenerates to a point, returns whether that point lies in (or on) the other triangle.
+        - If both degenerate to points, returns true only if the points coincide within EPS2D.
+        - Degenerate line triangles are handled by the main CCW intersection routine and by point/segment checks where applicable.
 
 @param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
 @param {Vector2} vertex1TriangleB, vertex2TriangleB, vertex3TriangleB - Vertices of triangle B
@@ -327,11 +401,19 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
 @returns {Boolean} - True if the triangles overlap in 2D, false otherwise. ###
 trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    # If triangle A is CW.
-    if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0
+    # Early handle point-degenerate cases explicitly and efficiently.
 
-        # If both A and B are CW → reorder both.
-        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
+    if pointsEqual2D(vertex1TriangleB, vertex2TriangleB, EPS2D) and pointsEqual2D(vertex2TriangleB, vertex3TriangleB, EPS2D)
+
+        return pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
+
+    if pointsEqual2D(vertex1TriangleA, vertex2TriangleA, EPS2D) and pointsEqual2D(vertex2TriangleA, vertex3TriangleA, EPS2D)
+
+        return pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
+
+    if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0 # If triangle A is CW.
+
+        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0 # If both A and B are CW → reorder both.
 
             return triangleIntersectionCCW2D(vertex1TriangleA, vertex3TriangleA, vertex2TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
 
@@ -341,8 +423,7 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
 
     else # Triangle A is CCW.
 
-        # If only B is CW → reorder B.
-        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0
+        if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0 # If only B is CW → reorder B.
 
             return triangleIntersectionCCW2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex3TriangleB, vertex2TriangleB)
 
@@ -706,4 +787,4 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     return false # If none of the above, no intersection found.
 
-module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection, resolveCoplanarTriangleIntersection }
+module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection, resolveCoplanarTriangleIntersection, trianglesOverlap2D, triangleOrientation2D, triangleIntersectionCCW2D, intersectionTestEdge2D, intersectionTestVertex2D, constructIntersection }
