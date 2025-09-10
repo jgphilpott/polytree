@@ -20,6 +20,10 @@ v2 = (x, y) -> new Vector2(x, y)
 v3 = (x, y, z) -> new Vector3(x, y, z)
 n = (x, y, z) -> new Vector3(x, y, z).normalize()
 
+sign = (x, eps = 1e-12) ->
+
+    if x > eps then 1 else if x < -eps then -1 else 0
+
 tri = (aX, aY, aZ, bX, bY, bZ, cX, cY, cZ) ->
 
     a: new Vector3(aX, aY, aZ)
@@ -421,3 +425,81 @@ describe "trianglesOverlap2D", ->
             c: v2(3, 3)
 
         expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe false
+
+describe "triangleOrientation2D", ->
+
+    it "returns > 0 for CCW", ->
+
+        a = v2(0, 0)
+        b = v2(1, 0)
+        c = v2(0, 1)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe 1
+
+    it "returns < 0 for CW", ->
+
+        a = v2(0, 0)
+        b = v2(0, 1)
+        c = v2(1, 0)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe -1
+
+    it "returns 0 for collinear (horizontal line)", ->
+
+        a = v2(0, 1)
+        b = v2(2, 1)
+        c = v2(5, 1)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe 0
+
+    it "returns 0 for collinear (diagonal line)", ->
+
+        a = v2(0, 0)
+        b = v2(1, 1)
+        c = v2(2, 2)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe 0
+
+    it "returns 0 when two points are identical (degenerate)", ->
+
+        a = v2(0, 0)
+        b = v2(0, 0)
+        c = v2(1, 1)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe 0
+
+    it "preserves sign under uniform scaling", ->
+
+        a = v2(0, 0); b = v2(2, 0); c = v2(0, 3)
+        s = 10
+
+        val1 = triangleOrientation2D(a, b, c)
+
+        a2 = v2(a.x * s, a.y * s)
+        b2 = v2(b.x * s, b.y * s)
+        c2 = v2(c.x * s, c.y * s)
+
+        val2 = triangleOrientation2D(a2, b2, c2)
+
+        expect(sign(val1)).toBe 1
+        expect(sign(val2)).toBe 1
+
+    it "handles large coordinates without flipping sign", ->
+
+        a = v2(1e6, 1e6)
+        b = v2(2e6, 1e6)
+        c = v2(1e6, 3e6)
+
+        val = triangleOrientation2D(a, b, c)
+
+        expect(sign(val)).toBe 1

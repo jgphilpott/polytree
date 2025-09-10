@@ -434,6 +434,9 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
 ### Computes the orientation (signed area) of a 2D triangle defined by three vertices.
     The result indicates whether the points are arranged clockwise (CW), counter-clockwise (CCW), or collinear.
 
+    Note: This returns the raw signed area (twice the triangle area), without applying an epsilon threshold.
+    Callers should compare against a small EPS (e.g., EPS2D) when classifying near-collinear inputs.
+
     Formula: orientation(a, b, c) = (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
 
     - If result > 0 → counter-clockwise (CCW).
