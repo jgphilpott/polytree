@@ -12,7 +12,7 @@
     intersectionTestVertex2D
     constructIntersection
 
-} = require "../src/triangle.intersection.js"
+} = require "./app/triangle.intersection.js"
 
 # Helper functions to keep tests DRY.
 

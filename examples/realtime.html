@@ -16,7 +16,7 @@
                     "three": "./js/three.module.min.js",
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "OctreeCSG": "../src/polytree.js",
+                    "OctreeCSG": "../polytree.js",
                     "STLLoader": "./js/STLLoader.min.js",
                     "Stats": "./js/stats.module.min.js"
                 }
@@ -111,7 +111,6 @@
 
             window.addEventListener('resize', onWindowResize);
 
-            // Start
             const stlLoader = new STLLoader();
 
             function loadSTL(path) {
@@ -227,7 +226,7 @@
             let hollowWindowOctree = OctreeCSG.fromMesh(hollowWindowMesh, 0);
             let originalMatrix = windowMesh.matrix.clone();
 
-            let towerWithWindowMesh;
+            var towerWithWindowMesh;
             OctreeCSG.async.operation({
                 op: "union",
                 material: [wall.material, windowMesh.material],
@@ -271,6 +270,7 @@
                     isRendering = true;
 
                     if (objectMoved) {
+
                         objectMoved = false;
 
                         windowMesh.updateMatrix();

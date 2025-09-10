@@ -1,5 +1,5 @@
-import { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } from 'three'
-import { triangleIntersectsTriangle } from './triangle.intersection.js'
+{ Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } = require "three"
+{ triangleIntersectsTriangle } = require "./app/triangle.intersection.js"
 
 _v1 = new Vector3()
 _v2 = new Vector3()
@@ -2252,5 +2252,12 @@ OctreeCSG.maxLevel = 16
 OctreeCSG.polygonsPerTree = 100
 # OctreeCSG.Octree = Octree
 
-export default OctreeCSG
-export { OctreeCSG as CSG, OctreeCSG, Polygon, Plane, Vertex, rayIntersectsTriangle }
+module.exports =
+
+    default: OctreeCSG
+    CSG: OctreeCSG
+    OctreeCSG: OctreeCSG
+    Polygon: Polygon
+    Plane: Plane
+    Vertex: Vertex
+    rayIntersectsTriangle: rayIntersectsTriangle

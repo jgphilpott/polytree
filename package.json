@@ -1,9 +1,19 @@
 {
-  "name": "polytree",
-  "version": "1.0.0",
+  "name": "@jgphilpott/polytree",
+  "version": "0.0.6",
   "description": "A Constructive Solid Geometry (CSG) library using Octree data structure.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.js",
+  "exports": {
+    ".": {
+      "require": "./polytree.js"
+    }
+  },
+  "files": [
+    "polytree.js",
+    "README.md",
+    "LICENSE"
+  ],
   "directories": {
     "example": "examples"
   },
@@ -11,32 +21,26 @@
     "test": "jest",
     "pretest": "npm run compile",
     "compile": "coffee -cb .",
-    "compile:watch": "coffee -cbw . &"
+    "compile:watch": "coffee -cbw . &",
+    "build": "npm run compile && npm test",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/jgphilpott/polytree"
   },
-  "keywords": [
-    "polytree",
-    "octree",
-    "CSG",
-    "BVH"
-  ],
-  "author": {
-    "name": "Jacob Philpott",
-    "email": "jacob.philpott@gmx.com"
-  },
+  "keywords": ["Polytree","Octree","CSG","BVH"],
+  "author": { "name": "Jacob Philpott", "email": "jacob.philpott@gmx.com" },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jgphilpott/polytree/issues"
-  },
+  "bugs": { "url": "https://github.com/jgphilpott/polytree/issues" },
   "homepage": "https://github.com/jgphilpott/polytree#readme",
   "devDependencies": {
     "coffeescript": "^2.7.0",
     "jest": "^30.1.3"
   },
-  "dependencies": {
+  "peerDependencies": {
     "three": "^0.180.0"
-  }
+  },
+  "dependencies": {}
 }

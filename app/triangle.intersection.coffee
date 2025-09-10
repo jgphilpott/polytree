@@ -1,4 +1,4 @@
-({Vector2, Vector3} = require("three"))
+{ Vector2, Vector3 } = require "three"
 
 tempVector1 = new Vector3()
 tempVector2 = new Vector3()

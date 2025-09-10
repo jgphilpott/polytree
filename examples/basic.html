@@ -17,8 +17,7 @@
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "lil-gui": "./js/lil-gui.module.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "OctreeCSG": "../src/polytree.js",
-                    "Octree": "../src/polytree.extended.js",
+                    "OctreeCSG": "../polytree.js",
                     "Capsule": "./js/Capsule.min.js",
                     "STLExporter": "./js/STLExporter.min.js"
                 }
@@ -142,7 +141,6 @@
 
             window.addEventListener('resize', onWindowResize);
 
-            // Start
             const csgOperations = ["Union", "Subtract", "Intersect"];
 
             const geometries = {

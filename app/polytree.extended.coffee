@@ -1,4 +1,4 @@
-import OctreeCSG from './OctreeCSG.js'
+import OctreeCSG from './polytree.js'
 import { Vector3, Plane, Line3, Sphere } from 'three'
 import { Capsule } from '../examples/js/Capsule.min.js'
 
