@@ -672,38 +672,38 @@ class Polytree
         #             if Polytree.useWindingNumber is true
         #                 inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
         #             else
-        #                 point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
+        #                 point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
         #                 if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
-        #                     _rayDirection.copy(currentPolygon.plane.normal)
-        #                     _raycaster1.set(point, _rayDirection)
-        #                     intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+        #                     tempRayDirection.copy(currentPolygon.plane.normal)
+        #                     tempRaycaster.set(point, tempRayDirection)
+        #                     intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
         #                     if intersects.length
-        #                         if _rayDirection.dot(intersects[0].face.normal) > 0
+        #                         if tempRayDirection.dot(intersects[0].face.normal) > 0
         #                             inside = true
         #                     unless inside or not currentPolygon.coplanar
         #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+        #                             tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
+        #                             intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
         #                             if intersects.length
-        #                                 if _rayDirection.dot(intersects[0].face.normal) > 0
+        #                                 if tempRayDirection.dot(intersects[0].face.normal) > 0
         #                                     inside = true
         #                                     break
         #                 else
-        #                     _ray.origin.copy(point)
-        #                     _rayDirection.copy(currentPolygon.plane.normal)
-        #                     _ray.direction.copy(currentPolygon.plane.normal)
-        #                     intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+        #                     tempRay.origin.copy(point)
+        #                     tempRayDirection.copy(currentPolygon.plane.normal)
+        #                     tempRay.direction.copy(currentPolygon.plane.normal)
+        #                     intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
         #                     if intersects.length
-        #                         if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+        #                         if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                             inside = true
         #                     unless inside or not currentPolygon.coplanar
         #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             _ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             _rayDirection.copy(currentPolygon.plane.normal)
-        #                             _ray.direction.copy(currentPolygon.plane.normal)
-        #                             intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+        #                             tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
+        #                             tempRayDirection.copy(currentPolygon.plane.normal)
+        #                             tempRay.direction.copy(currentPolygon.plane.normal)
+        #                             intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
         #                             if intersects.length
-        #                                 if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+        #                                 if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                                     inside = true
         #                                     break
         #         if inside is true
@@ -2437,29 +2437,29 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 
         for j in [0...3]
 
-            vi = index[i + j]
-            vp = vi * 3
-            vt = vi * 2
+            vertexIndex = index[i + j]
+            positionIndex = vertexIndex * 3
+            uvIndex = vertexIndex * 2
 
-            pos = new Vector3(posattr.array[vp], posattr.array[vp + 1], posattr.array[vp + 2])
-            normal = new Vector3(normalattr.array[vp], normalattr.array[vp + 1], normalattr.array[vp + 2])
+            pos = new Vector3(posattr.array[positionIndex], posattr.array[positionIndex + 1], posattr.array[positionIndex + 2])
+            normal = new Vector3(normalattr.array[positionIndex], normalattr.array[positionIndex + 1], normalattr.array[positionIndex + 2])
 
             pos.applyMatrix4(obj.matrix)
             normal.applyMatrix3(tmpm3)
 
-            uv =
+            uvCoords =
                 if uvattr
-                    { x: uvattr.array[vt], y: uvattr.array[vt + 1] }
+                    { x: uvattr.array[uvIndex], y: uvattr.array[uvIndex + 1] }
                 else
                     undefined
 
             color =
                 if colorattr
-                    { x: colorattr.array[vt], y: colorattr.array[vt + 1], z: colorattr.array[vt + 2] }
+                    { x: colorattr.array[uvIndex], y: colorattr.array[uvIndex + 1], z: colorattr.array[uvIndex + 2] }
                 else
                     undefined
 
-            vertices.push(new Vertex(pos, normal, uv, color))
+            vertices.push(new Vertex(pos, normal, uvCoords, color))
 
         if (objectIndex is undefined) and groups and groups.length > 0
 
