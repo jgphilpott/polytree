@@ -1350,42 +1350,42 @@ Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
   polytree
 
 CSG_Rules =
-  union:
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: false, rule: "inside" }
-    ]
-    b: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "inside" }
-    ]
-  subtract:
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "inside" }
-    ]
-    b: [
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "outside" }
-    ]
-  intersect:
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: false, rule: "outside" }
-    ]
-    b: [
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: false, rule: "outside" }
-    ]
+    union:
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: false, rule: "inside" }
+        ]
+        b: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "inside" }
+        ]
+    subtract:
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "inside" }
+        ]
+        b: [
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "outside" }
+        ]
+    intersect:
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: false, rule: "outside" }
+        ]
+        b: [
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: false, rule: "outside" }
+        ]
 
 # class Polytree { };
 
