@@ -409,6 +409,54 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
 
         return pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
 
+    # If both are line-degenerate (not points): reduce to segment overlap test.
+    isLineDegenerate = (v1, v2, v3) ->
+
+        (pointsEqual2D(v1, v2, EPS2D) and not pointsEqual2D(v2, v3, EPS2D)) or
+        (pointsEqual2D(v2, v3, EPS2D) and not pointsEqual2D(v1, v2, EPS2D)) or
+        (pointsEqual2D(v3, v1, EPS2D) and not pointsEqual2D(v1, v2, EPS2D))
+
+    extractSegment = (v1, v2, v3) ->
+
+        # Return the two distinct endpoints in stable order.
+        if pointsEqual2D(v1, v2, EPS2D) then [v2, v3] else if pointsEqual2D(v2, v3, EPS2D) then [v1, v2] else [v1, v2] # fallback (should not reach if collinear case handled earlier)
+
+    if isLineDegenerate(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) and isLineDegenerate(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+        [aS, aE] = extractSegment(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA)
+        [bS, bE] = extractSegment(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
+
+        # Fast reject by axis-aligned bounding boxes.
+        minAx = Math.min(aS.x, aE.x); maxAx = Math.max(aS.x, aE.x)
+        minAy = Math.min(aS.y, aE.y); maxAy = Math.max(aS.y, aE.y)
+        minBx = Math.min(bS.x, bE.x); maxBx = Math.max(bS.x, bE.x)
+        minBy = Math.min(bS.y, bE.y); maxBy = Math.max(bS.y, bE.y)
+
+        return false if maxAx < minBx - EPS2D or maxBx < minAx - EPS2D or maxAy < minBy - EPS2D or maxBy < minAy - EPS2D
+
+        # Collinear check: orientation of any mixed triple should be ~0; since we know each triangle is a line, test one.
+        if Math.abs(triangleOrientation2D(aS, aE, bS)) > EPS2D
+
+            return false
+
+        # 1D overlap test along dominant axis (choose axis with larger span to reduce precision issues).
+        spanAx = Math.abs(aE.x - aS.x); spanAy = Math.abs(aE.y - aS.y)
+
+        if spanAx >= spanAy
+
+            # Project onto X.
+            aMin = Math.min(aS.x, aE.x) - EPS2D; aMax = Math.max(aS.x, aE.x) + EPS2D
+            bMin = Math.min(bS.x, bE.x) - EPS2D; bMax = Math.max(bS.x, bE.x) + EPS2D
+
+            return not (aMax < bMin or bMax < aMin)
+
+        else
+
+            aMin = Math.min(aS.y, aE.y) - EPS2D; aMax = Math.max(aS.y, aE.y) + EPS2D
+            bMin = Math.min(bS.y, bE.y) - EPS2D; bMax = Math.max(bS.y, bE.y) + EPS2D
+
+            return not (aMax < bMin or bMax < aMin)
+
     if triangleOrientation2D(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) < 0 # If triangle A is CW.
 
         if triangleOrientation2D(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) < 0 # If both A and B are CW → reorder both.
@@ -724,4 +772,12 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     return false # If none of the above, no intersection found.
 
-module.exports = { triangleIntersectsTriangle, resolveTriangleIntersection, resolveCoplanarTriangleIntersection, trianglesOverlap2D, triangleOrientation2D, triangleIntersectionCCW2D, intersectionTestEdge2D, intersectionTestVertex2D, constructIntersection }
+module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
+module.exports.resolveTriangleIntersection = resolveTriangleIntersection
+module.exports.resolveCoplanarTriangleIntersection = resolveCoplanarTriangleIntersection
+module.exports.trianglesOverlap2D = trianglesOverlap2D
+module.exports.triangleOrientation2D = triangleOrientation2D
+module.exports.triangleIntersectionCCW2D = triangleIntersectionCCW2D
+module.exports.intersectionTestEdge2D = intersectionTestEdge2D
+module.exports.intersectionTestVertex2D = intersectionTestVertex2D
+module.exports.constructIntersection = constructIntersection

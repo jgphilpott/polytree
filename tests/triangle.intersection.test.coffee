@@ -398,6 +398,35 @@ describe "trianglesOverlap2D", ->
 
         expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe false
 
+    it "returns true when both triangles degenerate to same point", ->
+
+        P = v2(1,1)
+        A = a: P, b: P, c: P
+        B = a: P.clone(), b: P.clone(), c: P.clone()
+
+        expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe true
+
+    it "returns false when both degenerate to different points", ->
+
+        A = a: v2(1,1), b: v2(1,1), c: v2(1,1)
+        B = a: v2(2,2), b: v2(2,2), c: v2(2,2)
+
+        expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe false
+
+    it "returns true when both degenerate to overlapping collinear segments", ->
+
+        A = a: v2(0,0), b: v2(3,0), c: v2(0,0)
+        B = a: v2(1,0), b: v2(2,0), c: v2(1,0)
+
+        expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe true
+
+    it "returns false when both degenerate to disjoint collinear segments", ->
+
+        A = a: v2(0,0), b: v2(1,0), c: v2(0,0)
+        B = a: v2(2,0), b: v2(3,0), c: v2(2,0)
+
+        expect(trianglesOverlap2D(A.a, A.b, A.c, B.a, B.b, B.c)).toBe false
+
 describe "triangleOrientation2D", ->
 
     it "returns > 0 for CCW", ->
@@ -563,6 +592,48 @@ describe "intersectionTestEdge2D (direct edge cases)", ->
 
         expect(callEdge(A,B)).toBe true
 
+    it "detects shared full edge", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[2,0],[0,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects endpoint touch only", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[2,0],[4,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects T-junction (edge hits midpoint)", ->
+
+        A = build([[0,0],[4,0],[0,3]])
+        B = build([[2,-1],[2,1],[3,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects collinear overlapping partial edge", ->
+
+        A = build([[0,0],[5,0],[0,3]])
+        B = build([[2,0],[7,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "rejects collinear but disjoint edge", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[3,0],[5,0],[3,2]])
+
+        expect(callEdge(A,B)).toBe false
+
+    it "detects edge containment (small inside large sharing edge)", ->
+
+        A = build([[0,0],[5,0],[0,5]])
+        B = build([[1,0],[3,0],[1,2]])
+
+        expect(callEdge(A,B)).toBe true
+
 describe "intersectionTestVertex2D (vertex containment / touch)", ->
 
     build = (pts) -> pts.map (p) -> v2(p[0], p[1])
@@ -645,6 +716,13 @@ describe "intersectionTestVertex2D (vertex containment / touch)", ->
 
         A = build([[0,0],[3,0],[0,3]])
         B = build([[0,0],[3,0],[0,3]])
+
+        expect(callVertex(A,B)).toBe true
+
+    it "shared edge only counts via boundary vertices", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[2,0],[0,0],[2,2]])
 
         expect(callVertex(A,B)).toBe true
 
