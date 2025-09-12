@@ -63,7 +63,7 @@ class Polytree
             subTree = new @constructor(undefined, this).copy(source.subTrees[i])
             @subTrees.push(subTree)
 
-        this
+        return this
 
     addPolygonsArrayToRoot: (array) ->
 
@@ -117,7 +117,7 @@ class Polytree
         @bounds.max.z = Math.max(@bounds.max.z, triangle.a.z, triangle.b.z, triangle.c.z)
 
         @polygons.push(polygon)
-        this
+        return this
 
     calcBox: ->
 
@@ -132,7 +132,7 @@ class Polytree
         @box.min.y -= 0.01
         @box.min.z -= 0.01
 
-        this
+        return this
 
     newPolytree: (box, parent) ->
 
@@ -190,14 +190,14 @@ class Polytree
             @subTrees.push(subTrees[i])
             # }
 
-        this
+        return this
 
     buildTree: ->
 
         @calcBox()
         @split(0)
         @processTree()
-        this
+        return this
 
     processTree: ->
 
@@ -999,8 +999,8 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
     for i in [0...polygon.vertices.length]
 
-        t = plane.normal.dot(polygon.vertices[i].pos) - plane.w
-        type = if t < -EPSILON then BACK else if t > EPSILON then FRONT else COPLANAR
+        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.w
+        type = if distanceToPlane < -EPSILON then BACK else if distanceToPlane > EPSILON then FRONT else COPLANAR
         polygonType |= type
         types.push(type)
 
@@ -1023,69 +1023,69 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
         when SPANNING
 
-            f = []
-            b = []
+            frontVertices = []
+            backVertices = []
 
             for i in [0...polygon.vertices.length]
 
-                j = (i + 1) % polygon.vertices.length
-                ti = types[i]
-                tj = types[j]
-                vi = polygon.vertices[i]
-                vj = polygon.vertices[j]
+                nextIndex = (i + 1) % polygon.vertices.length
+                currentType = types[i]
+                nextType = types[nextIndex]
+                currentVertex = polygon.vertices[i]
+                nextVertex = polygon.vertices[nextIndex]
 
-                if ti != BACK
+                if currentType != BACK
 
-                    f.push(vi)
+                    frontVertices.push(currentVertex)
 
-                if ti != FRONT
+                if currentType != FRONT
 
-                    b.push(if ti != BACK then vi.clone() else vi)
+                    backVertices.push(if currentType != BACK then currentVertex.clone() else currentVertex)
 
-                if (ti | tj) == SPANNING
+                if (currentType | nextType) == SPANNING
 
-                    intersectionParameter = (plane.w - plane.normal.dot(vi.pos)) / plane.normal.dot(triangleVertex0.copy(vj.pos).sub(vi.pos))
-                    vertexParameter = vi.interpolate(vj, intersectionParameter)
-                    f.push(vertexParameter)
-                    b.push(vertexParameter.clone())
+                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(triangleVertex0.copy(nextVertex.pos).sub(currentVertex.pos))
+                    vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
+                    frontVertices.push(vertexParameter)
+                    backVertices.push(vertexParameter.clone())
 
-            if f.length >= 3
+            if frontVertices.length >= 3
 
-                if f.length > 3
+                if frontVertices.length > 3
 
-                    newPolys = splitPolygonArr(f)
+                    newPolygons = splitPolygonArr(frontVertices)
 
-                    for npI in [0...newPolys.length]
+                    for polygonIndex in [0...newPolygons.length]
 
                         result.push(
-                            polygon: new Polygon(newPolys[npI], polygon.shared)
+                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
                             type: "front"
                         )
 
                 else
 
                     result.push(
-                        polygon: new Polygon(f, polygon.shared)
+                        polygon: new Polygon(frontVertices, polygon.shared)
                         type: "front"
                     )
 
-            if b.length >= 3
+            if backVertices.length >= 3
 
-                if b.length > 3
+                if backVertices.length > 3
 
-                    newPolys = splitPolygonArr(b)
+                    newPolygons = splitPolygonArr(backVertices)
 
-                    for npI in [0...newPolys.length]
+                    for polygonIndex in [0...newPolygons.length]
 
                         result.push(
-                            polygon: new Polygon(newPolys[npI], polygon.shared)
+                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
                             type: "back"
                         )
 
                 else
 
                     result.push(
-                        polygon: new Polygon(b, polygon.shared)
+                        polygon: new Polygon(backVertices, polygon.shared)
                         type: "back"
                     )
 
@@ -2131,7 +2131,7 @@ Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
 
-    polytreeA
+    return polytreeA
 
 Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
 
@@ -2191,7 +2191,7 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
 
         return { result: resultPolytree, operationTree: obj }
 
-    resultPolytree
+    return resultPolytree
 
 handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options) ->
 
@@ -2274,7 +2274,7 @@ isUniqueTriangle = (triangle, set, map) ->
 
     if set.has(hash1) is true
 
-        false
+        return false
 
     else
 
@@ -2284,7 +2284,7 @@ isUniqueTriangle = (triangle, set, map) ->
 
             map.set(triangle, triangle)
 
-        true
+        return true
 
 nbuf3 = (ct) ->
 
@@ -2405,12 +2405,12 @@ Polytree.toGeometry = (polytree) ->
 
         geometry.setIndex(index)
 
-    geometry
+    return geometry
 
 Polytree.toMesh = (polytree, toMaterial) ->
 
     geometry = Polytree.toGeometry(polytree)
-    new Mesh(geometry, toMaterial)
+    return new Mesh(geometry, toMaterial)
 
 Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPolytree = true) ->
 
@@ -2629,7 +2629,7 @@ class Polygon
         return false if (@state isnt state) or ((@previousState isnt state) and (@previousState isnt "undecided"))
         for s in @previousStates
             return false if s isnt state
-        true
+        return true
 
     setInvalid: -> @valid = false
 
@@ -2714,7 +2714,7 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
         wN += omega
 
     wN = Math.round(wN / wNPI)
-    wN
+    return wN
 
 polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
@@ -2740,7 +2740,7 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
         result = true
 
-    result
+    return result
 
 # -----
 
@@ -2787,7 +2787,7 @@ prepareTriangleBuffer = (polygons) ->
         array[bufferIndex++] = triangle.c.y
         array[bufferIndex++] = triangle.c.z
 
-    array
+    return array
 
 # https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 edge1 = new Vector3()
@@ -2829,7 +2829,7 @@ rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
 
         return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
 
-    null
+    return null
 
 Polytree.rayIntersectsTriangle = rayIntersectsTriangle
 
