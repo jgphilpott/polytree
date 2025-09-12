@@ -13,6 +13,7 @@ These notes define conventions and coverage expectations for the test suite.
 - Name pattern: `*.test.coffee`.
 - One logical unit per file (e.g. `triangle.intersection.test.coffee`).
 - Group related geometry helpers (e.g. future `octree-ray.test.coffee`).
+ - CURRENT PATTERN: All helpers from `triangle.intersection.coffee` share a single consolidated test file `triangle.intersection.test.coffee` (append new helper tests at bottom, do not create a separate file).
 
 ## Structure
 
