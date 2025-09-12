@@ -1,16 +1,16 @@
 { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } = require "three"
 
-_v1 = new Vector3()
-_v2 = new Vector3()
+tempVector1 = new Vector3()
+tempVector2 = new Vector3()
 
-_box3$1 = new Box3()
+tempBox3 = new Box3()
 
-tv0 = new Vector3()
-tv1 = new Vector3()
+triangleVertex0 = new Vector3()
+triangleVertex1 = new Vector3()
 
-_raycaster1 = new Raycaster()
-_ray = new Ray()
-_rayDirection = new Vector3(0, 0, 1)
+tempRaycaster = new Raycaster()
+tempRay = new Ray()
+tempRayDirection = new Vector3(0, 0, 1)
 
 EPSILON = 1e-5
 COPLANAR = 0
@@ -63,7 +63,7 @@ class Polytree
             subTree = new @constructor(undefined, this).copy(source.subTrees[i])
             @subTrees.push(subTree)
 
-        this
+        return this
 
     addPolygonsArrayToRoot: (array) ->
 
@@ -117,7 +117,7 @@ class Polytree
         @bounds.max.z = Math.max(@bounds.max.z, triangle.a.z, triangle.b.z, triangle.c.z)
 
         @polygons.push(polygon)
-        this
+        return this
 
     calcBox: ->
 
@@ -132,7 +132,7 @@ class Polytree
         @box.min.y -= 0.01
         @box.min.z -= 0.01
 
-        this
+        return this
 
     newPolytree: (box, parent) ->
 
@@ -143,7 +143,7 @@ class Polytree
         return unless @box
 
         subTrees = []
-        halfsize = _v2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
+        halfsize = tempVector2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
         for x in [0..1]
 
@@ -152,9 +152,9 @@ class Polytree
                 for z in [0..1]
 
                     box = new Box3()
-                    v = _v1.set(x, y, z)
+                    vectorPosition = tempVector1.set(x, y, z)
 
-                    box.min.copy(@box.min).add(v.multiply(halfsize))
+                    box.min.copy(@box.min).add(vectorPosition.multiply(halfsize))
                     box.max.copy(box.min).add(halfsize)
                     box.expandByScalar(EPSILON)
                     subTrees.push(@newPolytree(box, this))
@@ -190,20 +190,20 @@ class Polytree
             @subTrees.push(subTrees[i])
             # }
 
-        this
+        return this
 
     buildTree: ->
 
         @calcBox()
         @split(0)
         @processTree()
-        this
+        return this
 
     processTree: ->
 
         unless @isEmpty()
 
-            _box3$1.copy(@box)
+            tempBox3.copy(@box)
 
             for i in [0...@polygons.length]
 
@@ -294,12 +294,12 @@ class Polytree
 
             if Polytree.rayIntersectTriangleType is "regular"
 
-                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, _v1)
+                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, tempVector1)
 
                 if result
 
-                    _v1.applyMatrix4(matrixWorld)
-                    distance = _v1.distanceTo(ray.origin)
+                    tempVector1.applyMatrix4(matrixWorld)
+                    distance = tempVector1.distanceTo(ray.origin)
 
                     if distance < 0 or distance > Infinity
 
@@ -307,11 +307,11 @@ class Polytree
 
                     else
 
-                        intersects.push({ distance: distance, polygon: polygons[i], position: _v1.clone() })
+                        intersects.push({ distance: distance, polygon: polygons[i], position: tempVector1.clone() })
 
             else
 
-                result = rayIntersectsTriangle(ray, polygons[i].triangle, _v1)
+                result = rayIntersectsTriangle(ray, polygons[i].triangle, tempVector1)
 
                 if result
 
@@ -672,38 +672,38 @@ class Polytree
         #             if Polytree.useWindingNumber is true
         #                 inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
         #             else
-        #                 point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
+        #                 point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
         #                 if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
-        #                     _rayDirection.copy(currentPolygon.plane.normal)
-        #                     _raycaster1.set(point, _rayDirection)
-        #                     intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+        #                     tempRayDirection.copy(currentPolygon.plane.normal)
+        #                     tempRaycaster.set(point, tempRayDirection)
+        #                     intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
         #                     if intersects.length
-        #                         if _rayDirection.dot(intersects[0].face.normal) > 0
+        #                         if tempRayDirection.dot(intersects[0].face.normal) > 0
         #                             inside = true
         #                     unless inside or not currentPolygon.coplanar
         #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+        #                             tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
+        #                             intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
         #                             if intersects.length
-        #                                 if _rayDirection.dot(intersects[0].face.normal) > 0
+        #                                 if tempRayDirection.dot(intersects[0].face.normal) > 0
         #                                     inside = true
         #                                     break
         #                 else
-        #                     _ray.origin.copy(point)
-        #                     _rayDirection.copy(currentPolygon.plane.normal)
-        #                     _ray.direction.copy(currentPolygon.plane.normal)
-        #                     intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+        #                     tempRay.origin.copy(point)
+        #                     tempRayDirection.copy(currentPolygon.plane.normal)
+        #                     tempRay.direction.copy(currentPolygon.plane.normal)
+        #                     intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
         #                     if intersects.length
-        #                         if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+        #                         if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                             inside = true
         #                     unless inside or not currentPolygon.coplanar
         #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             _ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             _rayDirection.copy(currentPolygon.plane.normal)
-        #                             _ray.direction.copy(currentPolygon.plane.normal)
-        #                             intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+        #                             tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
+        #                             tempRayDirection.copy(currentPolygon.plane.normal)
+        #                             tempRay.direction.copy(currentPolygon.plane.normal)
+        #                             intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
         #                             if intersects.length
-        #                                 if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+        #                                 if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                                     inside = true
         #                                     break
         #         if inside is true
@@ -788,17 +788,17 @@ class Polytree
 
                     else
 
-                        point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
+                        point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
 
                         if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
 
-                            _rayDirection.copy(currentPolygon.plane.normal)
-                            _raycaster1.set(point, _rayDirection)
-                            intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+                            tempRayDirection.copy(currentPolygon.plane.normal)
+                            tempRaycaster.set(point, tempRayDirection)
+                            intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
 
                             if intersects.length
 
-                                if _rayDirection.dot(intersects[0].face.normal) > 0
+                                if tempRayDirection.dot(intersects[0].face.normal) > 0
 
                                     inside = true
 
@@ -806,26 +806,26 @@ class Polytree
 
                                 for j in [0..._wP_EPS_ARR_COUNT]
 
-                                    _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+                                    tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
+                                    intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
 
                                     if intersects.length
 
-                                        if _rayDirection.dot(intersects[0].face.normal) > 0
+                                        if tempRayDirection.dot(intersects[0].face.normal) > 0
 
                                             inside = true
                                             break
 
                         else
 
-                            _ray.origin.copy(point)
-                            _rayDirection.copy(currentPolygon.plane.normal)
-                            _ray.direction.copy(currentPolygon.plane.normal)
-                            intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+                            tempRay.origin.copy(point)
+                            tempRayDirection.copy(currentPolygon.plane.normal)
+                            tempRay.direction.copy(currentPolygon.plane.normal)
+                            intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
 
                             if intersects.length
 
-                                if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                     inside = true
 
@@ -833,14 +833,14 @@ class Polytree
 
                                 for j in [0..._wP_EPS_ARR_COUNT]
 
-                                    _ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    _rayDirection.copy(currentPolygon.plane.normal)
-                                    _ray.direction.copy(currentPolygon.plane.normal)
-                                    intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+                                    tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
+                                    tempRayDirection.copy(currentPolygon.plane.normal)
+                                    tempRay.direction.copy(currentPolygon.plane.normal)
+                                    intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
 
                                     if intersects.length
 
-                                        if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                        if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                             inside = true
                                             break
@@ -999,8 +999,8 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
     for i in [0...polygon.vertices.length]
 
-        t = plane.normal.dot(polygon.vertices[i].pos) - plane.w
-        type = if t < -EPSILON then BACK else if t > EPSILON then FRONT else COPLANAR
+        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.w
+        type = if distanceToPlane < -EPSILON then BACK else if distanceToPlane > EPSILON then FRONT else COPLANAR
         polygonType |= type
         types.push(type)
 
@@ -1023,69 +1023,69 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
         when SPANNING
 
-            f = []
-            b = []
+            frontVertices = []
+            backVertices = []
 
             for i in [0...polygon.vertices.length]
 
-                j = (i + 1) % polygon.vertices.length
-                ti = types[i]
-                tj = types[j]
-                vi = polygon.vertices[i]
-                vj = polygon.vertices[j]
+                nextIndex = (i + 1) % polygon.vertices.length
+                currentType = types[i]
+                nextType = types[nextIndex]
+                currentVertex = polygon.vertices[i]
+                nextVertex = polygon.vertices[nextIndex]
 
-                if ti != BACK
+                if currentType != BACK
 
-                    f.push(vi)
+                    frontVertices.push(currentVertex)
 
-                if ti != FRONT
+                if currentType != FRONT
 
-                    b.push(if ti != BACK then vi.clone() else vi)
+                    backVertices.push(if currentType != BACK then currentVertex.clone() else currentVertex)
 
-                if (ti | tj) == SPANNING
+                if (currentType | nextType) == SPANNING
 
-                    t = (plane.w - plane.normal.dot(vi.pos)) / plane.normal.dot(tv0.copy(vj.pos).sub(vi.pos))
-                    v = vi.interpolate(vj, t)
-                    f.push(v)
-                    b.push(v.clone())
+                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(triangleVertex0.copy(nextVertex.pos).sub(currentVertex.pos))
+                    vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
+                    frontVertices.push(vertexParameter)
+                    backVertices.push(vertexParameter.clone())
 
-            if f.length >= 3
+            if frontVertices.length >= 3
 
-                if f.length > 3
+                if frontVertices.length > 3
 
-                    newPolys = splitPolygonArr(f)
+                    newPolygons = splitPolygonArr(frontVertices)
 
-                    for npI in [0...newPolys.length]
+                    for polygonIndex in [0...newPolygons.length]
 
                         result.push(
-                            polygon: new Polygon(newPolys[npI], polygon.shared)
+                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
                             type: "front"
                         )
 
                 else
 
                     result.push(
-                        polygon: new Polygon(f, polygon.shared)
+                        polygon: new Polygon(frontVertices, polygon.shared)
                         type: "front"
                     )
 
-            if b.length >= 3
+            if backVertices.length >= 3
 
-                if b.length > 3
+                if backVertices.length > 3
 
-                    newPolys = splitPolygonArr(b)
+                    newPolygons = splitPolygonArr(backVertices)
 
-                    for npI in [0...newPolys.length]
+                    for polygonIndex in [0...newPolygons.length]
 
                         result.push(
-                            polygon: new Polygon(newPolys[npI], polygon.shared)
+                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
                             type: "back"
                         )
 
                 else
 
                     result.push(
-                        polygon: new Polygon(b, polygon.shared)
+                        polygon: new Polygon(backVertices, polygon.shared)
                         type: "back"
                     )
 
@@ -2131,7 +2131,7 @@ Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
 
-    polytreeA
+    return polytreeA
 
 Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
 
@@ -2191,7 +2191,7 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
 
         return { result: resultPolytree, operationTree: obj }
 
-    resultPolytree
+    return resultPolytree
 
 handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options) ->
 
@@ -2274,7 +2274,7 @@ isUniqueTriangle = (triangle, set, map) ->
 
     if set.has(hash1) is true
 
-        false
+        return false
 
     else
 
@@ -2284,7 +2284,7 @@ isUniqueTriangle = (triangle, set, map) ->
 
             map.set(triangle, triangle)
 
-        true
+        return true
 
 nbuf3 = (ct) ->
 
@@ -2405,12 +2405,12 @@ Polytree.toGeometry = (polytree) ->
 
         geometry.setIndex(index)
 
-    geometry
+    return geometry
 
 Polytree.toMesh = (polytree, toMaterial) ->
 
     geometry = Polytree.toGeometry(polytree)
-    new Mesh(geometry, toMaterial)
+    return new Mesh(geometry, toMaterial)
 
 Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPolytree = true) ->
 
@@ -2437,29 +2437,29 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 
         for j in [0...3]
 
-            vi = index[i + j]
-            vp = vi * 3
-            vt = vi * 2
+            vertexIndex = index[i + j]
+            positionIndex = vertexIndex * 3
+            uvIndex = vertexIndex * 2
 
-            pos = new Vector3(posattr.array[vp], posattr.array[vp + 1], posattr.array[vp + 2])
-            normal = new Vector3(normalattr.array[vp], normalattr.array[vp + 1], normalattr.array[vp + 2])
+            pos = new Vector3(posattr.array[positionIndex], posattr.array[positionIndex + 1], posattr.array[positionIndex + 2])
+            normal = new Vector3(normalattr.array[positionIndex], normalattr.array[positionIndex + 1], normalattr.array[positionIndex + 2])
 
             pos.applyMatrix4(obj.matrix)
             normal.applyMatrix3(tmpm3)
 
-            uv =
+            uvCoords =
                 if uvattr
-                    { x: uvattr.array[vt], y: uvattr.array[vt + 1] }
+                    { x: uvattr.array[uvIndex], y: uvattr.array[uvIndex + 1] }
                 else
                     undefined
 
             color =
                 if colorattr
-                    { x: colorattr.array[vt], y: colorattr.array[vt + 1], z: colorattr.array[vt + 2] }
+                    { x: colorattr.array[uvIndex], y: colorattr.array[uvIndex + 1], z: colorattr.array[uvIndex + 2] }
                 else
                     undefined
 
-            vertices.push(new Vertex(pos, normal, uv, color))
+            vertices.push(new Vertex(pos, normal, uvCoords, color))
 
         if (objectIndex is undefined) and groups and groups.length > 0
 
@@ -2568,8 +2568,8 @@ class Plane
 
 Plane.fromPoints = (a, b, c) ->
 
-    n = tv0.copy(b).sub(a).cross(tv1.copy(c).sub(a)).normalize().clone()
-    new Plane(n, n.dot(a))
+    planeNormal = triangleVertex0.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
+    new Plane(planeNormal, planeNormal.dot(a))
 
 # class Polygon
 class Polygon
@@ -2629,7 +2629,7 @@ class Polygon
         return false if (@state isnt state) or ((@previousState isnt state) and (@previousState isnt "undecided"))
         for s in @previousStates
             return false if s isnt state
-        true
+        return true
 
     setInvalid: -> @valid = false
 
@@ -2714,7 +2714,7 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
         wN += omega
 
     wN = Math.round(wN / wNPI)
-    wN
+    return wN
 
 polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
@@ -2740,7 +2740,7 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
         result = true
 
-    result
+    return result
 
 # -----
 
@@ -2787,7 +2787,7 @@ prepareTriangleBuffer = (polygons) ->
         array[bufferIndex++] = triangle.c.y
         array[bufferIndex++] = triangle.c.z
 
-    array
+    return array
 
 # https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 edge1 = new Vector3()
@@ -2829,7 +2829,7 @@ rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
 
         return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
 
-    null
+    return null
 
 Polytree.rayIntersectsTriangle = rayIntersectsTriangle
 
