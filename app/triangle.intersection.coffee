@@ -322,7 +322,6 @@ resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
             else # All three B vertices are exactly on the plane (coplanar).
 
                 additions.coplanar = true # Mark coplanar.
-
                 resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.normal1, additions.normal2)
 
 ### Resolves intersection between two coplanar triangles in 3D space.
@@ -776,12 +775,9 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
 module.exports.resolveTriangleIntersection = resolveTriangleIntersection
 module.exports.resolveCoplanarTriangleIntersection = resolveCoplanarTriangleIntersection
-
 module.exports.trianglesOverlap2D = trianglesOverlap2D
 module.exports.triangleOrientation2D = triangleOrientation2D
 module.exports.triangleIntersectionCCW2D = triangleIntersectionCCW2D
-
 module.exports.intersectionTestEdge2D = intersectionTestEdge2D
 module.exports.intersectionTestVertex2D = intersectionTestVertex2D
-
 module.exports.constructIntersection = constructIntersection

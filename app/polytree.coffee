@@ -22,6 +22,7 @@ _polygonID = 0
 class Polytree
 
     constructor: (box, parent) ->
+
         @polygons = []
         @replacedPolygons = []
         @mesh
@@ -45,14 +46,20 @@ class Polytree
         @addPolygonsArrayToRoot(@polygons)
 
         @replacedPolygons = source.replacedPolygons.map (p) -> p.clone()
+
         if source.mesh
+
             @mesh = source.mesh
+
         if source.originalMatrixWorld
+
             @originalMatrixWorld = source.originalMatrixWorld.clone()
+
         @box = source.box.clone()
         @level = source.level
 
         for i in [0...source.subTrees.length]
+
             subTree = new @constructor(undefined, this).copy(source.subTrees[i])
             @subTrees.push(subTree)
 
@@ -61,19 +68,29 @@ class Polytree
     addPolygonsArrayToRoot: (array) ->
 
         if @parent
+
             @parent.addPolygonsArrayToRoot(array)
+
         else
+
             if @polygonArrays is undefined
+
                 @polygonArrays = []
+
             @polygonArrays.push(array)
 
     deletePolygonsArrayFromRoot: (array) ->
 
         if @parent
+
             @parent.deletePolygonsArrayFromRoot(array)
+
         else
+
             index = @polygonArrays.indexOf(array)
+
             if index > -1
+
                 @polygonArrays.splice(index, 1)
 
     isEmpty: ->
@@ -83,10 +100,15 @@ class Polytree
     addPolygon: (polygon, trianglesSet) ->
 
         unless @bounds
+
             @bounds = new Box3()
+
         triangle = polygon.triangle
+
         if trianglesSet and not isUniqueTriangle(triangle, trianglesSet)
+
             return this
+
         @bounds.min.x = Math.min(@bounds.min.x, triangle.a.x, triangle.b.x, triangle.c.x)
         @bounds.min.y = Math.min(@bounds.min.y, triangle.a.y, triangle.b.y, triangle.c.y)
         @bounds.min.z = Math.min(@bounds.min.z, triangle.a.z, triangle.b.z, triangle.c.z)
@@ -100,7 +122,9 @@ class Polytree
     calcBox: ->
 
         unless @bounds
+
             @bounds = new Box3()
+
         @box = @bounds.clone()
 
         # offset small ammount to account for regular grid
@@ -120,9 +144,13 @@ class Polytree
 
         subTrees = []
         halfsize = _v2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
+
         for x in [0..1]
+
             for y in [0..1]
+
                 for z in [0..1]
+
                     box = new Box3()
                     v = _v1.set(x, y, z)
 
@@ -132,26 +160,36 @@ class Polytree
                     subTrees.push(@newPolytree(box, this))
 
         polygon = undefined
+
         while polygon = @polygons.pop()
+
             found = false
+
             for i in [0...subTrees.length]
+
                 if subTrees[i].box.containsPoint(polygon.getMidpoint())
+
                     subTrees[i].polygons.push(polygon)
                     found = true
+
             unless found
+
                 console.error("ERROR: unable to find subtree for:", polygon.triangle)
                 throw new Error("Unable to find subtree for triangle at level #{level}")
 
         for i in [0...subTrees.length]
+
             subTrees[i].level = level + 1
             len = subTrees[i].polygons.length
 
             # if (len !== 0) {
             if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
+
                 subTrees[i].split(level + 1)
 
             @subTrees.push(subTrees[i])
             # }
+
         this
 
     buildTree: ->
@@ -164,13 +202,19 @@ class Polytree
     processTree: ->
 
         unless @isEmpty()
+
             _box3$1.copy(@box)
+
             for i in [0...@polygons.length]
+
                 @box.expandByPoint(@polygons[i].triangle.a)
                 @box.expandByPoint(@polygons[i].triangle.b)
                 @box.expandByPoint(@polygons[i].triangle.c)
+
             @expandParentBox()
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].processTree()
 
     expandParentBox: ->
@@ -184,34 +228,55 @@ class Polytree
     getPolygonsIntersectingPolygon: (targetPolygon, polygons = []) ->
 
         if @box.intersectsTriangle(targetPolygon.triangle)
+
             if @polygons.length > 0
+
                 allPolygons = @polygons.slice()
+
                 if @replacedPolygons.length > 0
+
                     for i in [0...@replacedPolygons.length]
+
                         allPolygons.push(@replacedPolygons[i])
+
                 for i in [0...allPolygons.length]
+
                     polygon = allPolygons[i]
+
                     unless polygon.originalValid and polygon.valid and polygon.intersects
+
                         continue
+
                     if triangleIntersectsTriangle(targetPolygon.triangle, polygon.triangle)
+
                         polygons.push(polygon)
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].getPolygonsIntersectingPolygon(targetPolygon, polygons)
+
         polygons
 
     getRayPolygons: (ray, polygons = []) ->
 
         if @polygons.length > 0
+
             for i in [0...@polygons.length]
+
                 if @polygons[i].valid and @polygons[i].originalValid
+
                     if polygons.indexOf(@polygons[i]) is -1
+
                         polygons.push(@polygons[i])
 
         if @replacedPolygons.length > 0
+
             polygons.push(...@replacedPolygons)
 
         for i in [0...@subTrees.length]
+
             if ray.intersectsBox(@subTrees[i].box)
+
                 @subTrees[i].getRayPolygons(ray, polygons)
 
         return polygons
@@ -224,24 +289,42 @@ class Polytree
         polygons = @getRayPolygons(ray)
 
         for i in [0...polygons.length]
+
             result = undefined
+
             if Polytree.rayIntersectTriangleType is "regular"
+
                 result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, _v1)
+
                 if result
+
                     _v1.applyMatrix4(matrixWorld)
                     distance = _v1.distanceTo(ray.origin)
+
                     if distance < 0 or distance > Infinity
+
                         console.warn("[rayIntersect] Failed ray distance check", ray)
+
                     else
+
                         intersects.push({ distance: distance, polygon: polygons[i], position: _v1.clone() })
+
             else
+
                 result = rayIntersectsTriangle(ray, polygons[i].triangle, _v1)
+
                 if result
+
                     newdistance = result.clone().sub(ray.origin).length()
+
                     if distance > newdistance
+
                         distance = newdistance
+
                     if distance < 1e100
+
                         intersects.push({ distance: distance, polygon: polygons[i], position: result.clone().add(ray.origin) })
+
         intersects.length and intersects.sort(raycastIntersectAscSort)
 
         return intersects
@@ -249,9 +332,13 @@ class Polytree
     getIntersectingPolygons: (polygons = []) ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 for i in [0...polygonsArray.length]
+
                     if polygonsArray[i].valid and polygonsArray[i].intersects
+
                         polygons.push(polygonsArray[i])
 
     # if (@polygons.length)
@@ -265,10 +352,15 @@ class Polytree
 
     getPolygons: (polygons = []) ->
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 for i in [0...polygonsArray.length]
+
                     if polygonsArray[i].valid
+
                         if polygons.indexOf(polygonsArray[i]) is -1
+
                             polygons.push(polygonsArray[i])
 
     # if @polygons.length > 0
@@ -284,7 +376,9 @@ class Polytree
     invert: ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonsArray.forEach (p) -> p.flip()
 
     # if @polygons.length > 0
@@ -295,13 +389,17 @@ class Polytree
     getMesh: ->
 
         if @parent
+
             @parent.getMesh()
+
         else
+
             @mesh
 
     replacePolygon: (polygon, newPolygons) ->
 
         unless Array.isArray(newPolygons)
+
             newPolygons = [newPolygons]
 
         # if @polygons.length > 0
@@ -316,14 +414,23 @@ class Polytree
         #     @subTrees[i].replacePolygon(polygon, newPolygons)
 
         if @polygons.length > 0
+
             polygonIndex = @polygons.indexOf(polygon)
+
             if polygonIndex > -1
+
                 if polygon.originalValid is true
+
                     @replacedPolygons.push(polygon)
+
                 else
+
                     polygon.setInvalid()
+
                 @polygons.splice(polygonIndex, 1, ...newPolygons)
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].replacePolygon(polygon, newPolygons)
 
     deletePolygonsByStateRules: (rulesArr, firstRun = true) ->
