@@ -6,6 +6,11 @@ applyTo: '*.coffee'
 
 These guidelines apply to all CoffeeScript source edits in this repository.
 
+## Code Style: Indentation
+
+- Use 4-space indentation for all code blocks (consistent with `.editorconfig`).
+- All indentation must be multiples of 4 spaces (4, 8, 12, 16, etc.).
+
 ## Code Style: Whitespace and Vertical Spacing
 
 - Preserve and prefer generous vertical whitespace for readability.

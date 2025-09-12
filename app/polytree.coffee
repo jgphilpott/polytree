@@ -1129,50 +1129,50 @@ splitPolygonArr = (arr) ->
 
 CSG_Rules =
 
-  union:
+    union:
 
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: false, rule: "inside" }
-    ]
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: false, rule: "inside" }
+        ]
 
-    b: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "inside" }
-    ]
+        b: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "inside" }
+        ]
 
-  subtract:
+    subtract:
 
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "inside" }
-    ]
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "inside" }
+        ]
 
-    b: [
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: false, rule: "outside" }
-    ]
+        b: [
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: false, rule: "outside" }
+        ]
 
-  intersect:
+    intersect:
 
-    a: [
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: false, rule: "outside" }
-    ]
+        a: [
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: false, rule: "outside" }
+        ]
 
-    b: [
-      { array: true, rule: ["inside", "coplanar-front"] }
-      { array: true, rule: ["inside", "coplanar-back"] }
-      { array: true, rule: ["outside", "coplanar-front"] }
-      { array: true, rule: ["outside", "coplanar-back"] }
-      { array: false, rule: "outside" }
-    ]
+        b: [
+            { array: true, rule: ["inside", "coplanar-front"] }
+            { array: true, rule: ["inside", "coplanar-back"] }
+            { array: true, rule: ["outside", "coplanar-front"] }
+            { array: true, rule: ["outside", "coplanar-back"] }
+            { array: false, rule: "outside" }
+        ]
 
 # class Polytree { };
 
