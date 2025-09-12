@@ -1345,7 +1345,9 @@ Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
   trianglesSet.clear()
   trianglesSet = undefined
 
-  polytree.markPolygons
+  polytree.markPolygonsAsOriginal()
+  buildTargetPolytree and polytree.buildTree()
+  polytree
 
 CSG_Rules =
   union:
@@ -1568,48 +1570,69 @@ Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
     return polytree
 
 Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
+
     polytreeA = undefined
     polytreeB = undefined
+
     if targetMaterial and Array.isArray(targetMaterial)
+
         polytreeA = Polytree.fromMesh(mesh1, 0)
         polytreeB = Polytree.fromMesh(mesh2, 1)
+
     else
+
         polytreeA = Polytree.fromMesh(mesh1)
         polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
     resultPolytree = Polytree.union(polytreeA, polytreeB, false)
     resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
     disposePolytree(polytreeA, polytreeB, resultPolytree)
+
     return resultMesh
 
 Polytree.meshSubtract = (mesh1, mesh2, targetMaterial) ->
+
     polytreeA = undefined
     polytreeB = undefined
+
     if targetMaterial and Array.isArray(targetMaterial)
+
         polytreeA = Polytree.fromMesh(mesh1, 0)
         polytreeB = Polytree.fromMesh(mesh2, 1)
+
     else
+
         polytreeA = Polytree.fromMesh(mesh1)
         polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
     resultPolytree = Polytree.subtract(polytreeA, polytreeB, false)
     resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
     disposePolytree(polytreeA, polytreeB, resultPolytree)
+
     return resultMesh
 
 Polytree.meshIntersect = (mesh1, mesh2, targetMaterial) ->
+
     polytreeA = undefined
     polytreeB = undefined
+
     if targetMaterial and Array.isArray(targetMaterial)
+
         polytreeA = Polytree.fromMesh(mesh1, 0)
         polytreeB = Polytree.fromMesh(mesh2, 1)
+
     else
+
         polytreeA = Polytree.fromMesh(mesh1)
         polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
     resultPolytree = Polytree.intersect(polytreeA, polytreeB, false)
     resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
     disposePolytree(polytreeA, polytreeB, resultPolytree)
+
     return resultMesh
 
 _asyncUnionID = 0
@@ -1617,116 +1640,187 @@ _asyncUnionArrayID = 0
 Polytree.disposePolytree = true
 
 Polytree.async =
+
     batchSize: 100
 
     union: (polytreeA, polytreeB, buildTargetPolytree = true) ->
+
         new Promise (resolve, reject) ->
+
             # const id = _asyncUnionID++
             # console.log("Promise Union ##{id} started")
+
             try
+
                 result = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
+
             catch e
+
                 reject(e)
 
     subtract: (polytreeA, polytreeB, buildTargetPolytree = true) ->
+
         new Promise (resolve, reject) ->
+
             try
+
                 result = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
+
             catch e
+
                 reject(e)
 
     intersect: (polytreeA, polytreeB, buildTargetPolytree = true) ->
+
         new Promise (resolve, reject) ->
+
             try
+
                 result = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
+
             catch e
+
                 reject(e)
 
     unionArray: (objArr, materialIndexMax = Infinity) ->
+
         new Promise (resolve, reject) ->
+
             try
+
                 usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
                 # const id = _asyncUnionArrayID++
                 # console.log("Promise Union Array ##{id}", usingBatches)
                 mainPolytree = undefined
                 mainPolytreeUsed = false
                 promises = []
+
                 if usingBatches
+
                     batches = []
                     currentIndex = 0
+
                     while currentIndex < objArr.length
+
                         batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
                         currentIndex += Polytree.async.batchSize
 
                     batch = batches.shift()
+
                     while batch
+
                         promise = Polytree.async.unionArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
+
                     usingBatches = true
                     mainPolytreeUsed = true
                     objArr.length = 0
+
                 else
+
                     polytreesArray = []
+
                     for i in [0...objArr.length]
+
                         materialIndex = if i > materialIndexMax then materialIndexMax else i
                         tempPolytree = undefined
+
                         if objArr[i].isMesh
+
                             tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
+
                         else
+
                             tempPolytree = objArr[i]
+
                             if materialIndexMax > -1
+
                                 tempPolytree.setPolygonIndex(materialIndex)
+
                         tempPolytree.polytreeIndex = i
                         polytreesArray.push(tempPolytree)
+
                     mainPolytree = polytreesArray.shift()
                     result = undefined
                     hasLeftOver = false
                     leftOverPolytree = undefined
+
                     for i in [0...polytreesArray.length] by 2
+
                         if i + 1 >= polytreesArray.length
+
                             leftOverPolytree = polytreesArray[i]
                             hasLeftOver = true
                             break
+
                         promise = Polytree.async.union(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
+
                     if leftOverPolytree
+
                         promise = Polytree.async.union(mainPolytree, leftOverPolytree)
                         promises.push(promise)
                         mainPolytreeUsed = true
 
                 Promise.allSettled(promises).then (results) ->
+
                     polytrees = []
+
                     results.forEach (r) ->
+
                         if r.status is "fulfilled"
+
                             polytrees.push(r.value)
+
                     unless mainPolytreeUsed
+
                         polytrees.unshift(mainPolytree)
+
                     if polytrees.length > 0
+
                         if polytrees.length is 1
+
                             resolve(polytrees[0])
+
                         else if polytrees.length > 3
+
                             Polytree.async.unionArray(polytrees, if usingBatches then 0 else -1).then (result) ->
+
                                 resolve(result)
+
                             .catch (e) -> reject(e)
+
                         else
+
                             Polytree.async.union(polytrees[0], polytrees[1]).then (result) ->
+
                                 if polytrees.length is 3
+
                                     Polytree.async.union(result, polytrees[2]).then (result) ->
+
                                         resolve(result)
+
                                     .catch (e) -> reject(e)
+
                                 else
+
                                     resolve(result)
+
                             .catch (e) -> reject(e)
+
                     else
+
                         reject('Unable to find any result polytree')
+
             catch e
+
                 reject(e)
 
     subtractArray: (objArr, materialIndexMax = Infinity) ->
@@ -1941,165 +2035,275 @@ Polytree.async =
                 reject(e)
 
 Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
+
     polytreesArray = []
+
     for i in [0...objArr.length]
+
         materialIndex = if i > materialIndexMax then materialIndexMax else i
         tempPolytree = undefined
+
         if objArr[i].isMesh
+
             tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
+
         else
+
             tempPolytree = objArr[i]
             tempPolytree.setPolygonIndex(materialIndex)
+
         tempPolytree.polytreeIndex = i
         polytreesArray.push(tempPolytree)
+
     polytreeA = polytreesArray.shift()
     polytreeB = polytreesArray.shift()
+
     while polytreeA and polytreeB
+
         resultPolytree = Polytree.union(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
+
     polytreeA
 
 Polytree.subtractArray = (objArr, materialIndexMax = Infinity) ->
+
     polytreesArray = []
+
     for i in [0...objArr.length]
+
         materialIndex = if i > materialIndexMax then materialIndexMax else i
         tempPolytree = undefined
+
         if objArr[i].isMesh
+
             tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
+
         else
+
             tempPolytree = objArr[i]
             tempPolytree.setPolygonIndex(materialIndex)
+
         tempPolytree.polytreeIndex = i
         polytreesArray.push(tempPolytree)
+
     polytreeA = polytreesArray.shift()
     polytreeB = polytreesArray.shift()
+
     while polytreeA and polytreeB
+
         resultPolytree = Polytree.subtract(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
+
     polytreeA
 
 Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
+
     polytreesArray = []
+
     for i in [0...objArr.length]
+
         materialIndex = if i > materialIndexMax then materialIndexMax else i
         tempPolytree = undefined
+
         if objArr[i].isMesh
+
             tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
+
         else
+
             tempPolytree = objArr[i]
             tempPolytree.setPolygonIndex(materialIndex)
+
         tempPolytree.polytreeIndex = i
         polytreesArray.push(tempPolytree)
+
     polytreeA = polytreesArray.shift()
     polytreeB = polytreesArray.shift()
+
     while polytreeA and polytreeB
+
         resultPolytree = Polytree.intersect(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
+
     polytreeA
 
 Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
+
     polytreeA = undefined
     polytreeB = undefined
     resultPolytree = undefined
     material = undefined
+
     if obj.material
+
         material = obj.material
+
     if obj.objA
+
         polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options)
+
         if returnPolytrees == true
+
             obj.objA = polytreeA.original
             polytreeA = polytreeA.result
+
     if obj.objB
+
         polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options)
+
         if returnPolytrees == true
+
             obj.objB = polytreeB.original
             polytreeB = polytreeB.result
+
     switch obj.op
+
         when 'union'
+
             resultPolytree = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
+
         when 'subtract'
+
             resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+
         when 'intersect'
+
             resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+
     unless returnPolytrees
+
         disposePolytree(polytreeA, polytreeB)
+
     if firstRun and material
+
         mesh = Polytree.toMesh(resultPolytree, material)
         disposePolytree(resultPolytree)
+
         return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
+
     if firstRun and returnPolytrees
+
         return { result: resultPolytree, operationTree: obj }
+
     resultPolytree
 
 handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options) ->
+
     returnObj = undefined
+
     if obj.isMesh
+
         returnObj = Polytree.fromMesh(obj, options.objCounter++)
+
         if returnPolytrees
+
             returnObj = { result: returnObj, original: returnObj.clone() }
+
     else if obj.isPolytree
+
         returnObj = obj
+
         if returnPolytrees
+
             returnObj = { result: obj, original: obj.clone() }
+
     else if obj.op
+
         returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false)
+
         if returnPolytrees
+
             returnObj = { result: returnObj, original: obj }
+
     return returnObj
 
 handleObjectForOp_async = (obj, returnPolytrees, buildTargetPolytree, options, objIndex) ->
+
     new Promise (resolve, reject) ->
+
         try
+
             returnObj = undefined
+
             if obj.isMesh
+
                 returnObj = Polytree.fromMesh(obj, options.objCounter++)
+
                 if returnPolytrees
+
                     returnObj = { result: returnObj, original: returnObj.clone() }
+
                 returnObj.objIndex = objIndex
                 resolve(returnObj)
+
             else if obj.isPolytree
+
                 returnObj = obj
+
                 if returnPolytrees
+
                     returnObj = { result: obj, original: obj.clone() }
+
                 returnObj.objIndex = objIndex
                 resolve(returnObj)
+
             else if obj.op
+
                 Polytree.async.operation(obj, returnPolytrees, buildTargetPolytree, options, false).then (returnObj) ->
+
                     if returnPolytrees
+
                         returnObj = { result: returnObj, original: obj }
+
                     returnObj.objIndex = objIndex
                     resolve(returnObj)
+
         catch e
+
             reject(e)
 
 isUniqueTriangle = (triangle, set, map) ->
+
     hash1 = "{#{triangle.a.x},#{triangle.a.y},#{triangle.a.z}}-{#{triangle.b.x},#{triangle.b.y},#{triangle.b.z}}-{#{triangle.c.x},#{triangle.c.y},#{triangle.c.z}}"
+
     if set.has(hash1) is true
+
         false
+
     else
+
         set.add(hash1)
+
         if map
+
             map.set(triangle, triangle)
+
         true
 
 nbuf3 = (ct) ->
+
     top: 0
     array: new Float32Array(ct)
+
     write: (v) ->
+
         @array[@top++] = v.x
         @array[@top++] = v.y
         @array[@top++] = v.z
 
 nbuf2 = (ct) ->
+
     top: 0
     array: new Float32Array(ct)
+
     write: (v) ->
+
         @array[@top++] = v.x
         @array[@top++] = v.y
 
@@ -2108,6 +2312,7 @@ tmpm3 = new Matrix3()
 ttvv0 = new Vector3()
 
 Polytree.toGeometry = (polytree) ->
+
     polygons = polytree.getPolygons()
     triangleCount = polygons.length
     # let validPolygons = [];
@@ -2133,17 +2338,28 @@ Polytree.toGeometry = (polytree) ->
     defaultGroup = []
 
     for polygon in polygons
+
         vertices = polygon.vertices
         verticesLen = vertices.length
+
         if polygon.shared isnt undefined
+
             unless groups[polygon.shared]
+
                 groups[polygon.shared] = []
+
         if verticesLen > 0
+
             if vertices[0].uv isnt undefined
+
                 uvs or= nbuf2(triangleCount * 2 * 3)
+
             if vertices[0].color isnt undefined
+
                 colors or= nbuf3(triangleCount * 3 * 3)
+
         for i in [3..verticesLen]
+
             (if polygon.shared is undefined then defaultGroup else groups[polygon.shared]).push(positions.top / 3, (positions.top / 3) + 1, (positions.top / 3) + 2)
             positions.write(vertices[0].pos)
             positions.write(vertices[i - 2].pos)
@@ -2151,11 +2367,15 @@ Polytree.toGeometry = (polytree) ->
             normals.write(vertices[0].normal)
             normals.write(vertices[i - 2].normal)
             normals.write(vertices[i - 1].normal)
+
             if uvs?
+
                 uvs.write(vertices[0].uv)
                 uvs.write(vertices[i - 2].uv)
                 uvs.write(vertices[i - 1].uv)
+
             if colors?
+
                 colors.write(vertices[0].color)
                 colors.write(vertices[i - 2].color)
                 colors.write(vertices[i - 1].color)
@@ -2167,28 +2387,39 @@ Polytree.toGeometry = (polytree) ->
     colors and geometry.setAttribute('color', new BufferAttribute(colors.array, 3))
 
     if groups.length > 0
+
         index = []
         groupBase = 0
+
         for i in [0...groups.length]
+
             groups[i] = groups[i] or []
             geometry.addGroup(groupBase, groups[i].length, i)
             groupBase += groups[i].length
             index = index.concat(groups[i])
+
         if defaultGroup.length
+
             geometry.addGroup(groupBase, defaultGroup.length, groups.length)
             index = index.concat(defaultGroup)
+
         geometry.setIndex(index)
 
     geometry
 
 Polytree.toMesh = (polytree, toMaterial) ->
+
     geometry = Polytree.toGeometry(polytree)
     new Mesh(geometry, toMaterial)
 
 Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPolytree = true) ->
+
     return obj if obj.isPolytree
+
     if Polytree.rayIntersectTriangleType is "regular"
+
         polytree.originalMatrixWorld = obj.matrixWorld.clone()
+
     obj.updateWorldMatrix(true, true)
     geometry = obj.geometry
     tmpm3.getNormalMatrix(obj.matrix)
@@ -2199,8 +2430,11 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
     groups = geometry.groups
     index = if geometry.index then geometry.index.array else (Array((posattr.array.length / posattr.itemSize) | 0).fill().map((_, i) -> i))
     polys = []
+
     for i in [0...index.length] by 3
+
         vertices = []
+
         for j in [0...3]
 
             vi = index[i + j]
@@ -2228,24 +2462,40 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
             vertices.push(new Vertex(pos, normal, uv, color))
 
         if (objectIndex is undefined) and groups and groups.length > 0
+
             polygon = undefined
+
             for group in groups
+
                 if (index[i] >= group.start) and (index[i] < (group.start + group.count))
+
                     polygon = new Polygon(vertices, group.materialIndex)
                     polygon.originalValid = true
+
             polys.push(polygon) if polygon
+
         else
+
             polygon = new Polygon(vertices, objectIndex)
             polygon.originalValid = true
             polys.push(polygon)
+
     for i in [0...polys.length]
+
         if isValidTriangle(polys[i].triangle)
+
             polytree.addPolygon(polys[i])
+
         else
+
             polys[i].delete()
+
     buildTargetPolytree and polytree.buildTree()
+
     if Polytree.usePolytreeRay isnt true
+
         polytree.mesh = obj
+
     return polytree
 
 isValidTriangle = (triangle) ->
@@ -2448,8 +2698,11 @@ returnXYZ = (arr, index) ->
     z: arr[index + 2]
 
 calcWindingNumber_buffer = (trianglesArr, point) ->
+
     wN = 0
+
     for i in [0...trianglesArr.length] by 9
+
         _wV1.subVectors(returnXYZ(trianglesArr, i), point)
         _wV2.subVectors(returnXYZ(trianglesArr, i + 3), point)
         _wV3.subVectors(returnXYZ(trianglesArr, i + 6), point)
@@ -2459,46 +2712,70 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
         _matrix3.set(_wV1.x, _wV1.y, _wV1.z, _wV2.x, _wV2.y, _wV2.z, _wV3.x, _wV3.y, _wV3.z)
         omega = 2 * Math.atan2(_matrix3.determinant(), (lenA * lenB * lenC + _wV1.dot(_wV2) * lenC + _wV2.dot(_wV3) * lenA + _wV3.dot(_wV1) * lenB))
         wN += omega
+
     wN = Math.round(wN / wNPI)
     wN
 
 polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
+
     result = false
     _wP.copy(point)
     wN = calcWindingNumber_buffer(trianglesArr, _wP)
+
     if wN is 0
+
         if coplanar
+
             for j in [0..._wP_EPS_ARR_COUNT]
+
                 _wP.copy(point).add(_wP_EPS_ARR[j])
                 wN = calcWindingNumber_buffer(trianglesArr, _wP)
+
                 if wN isnt 0
+
                     result = true
                     break
+
     else
+
         result = true
+
     result
 
 # -----
 
 handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
+
     polytreeA_buffer = undefined
     polytreeB_buffer = undefined
+
     if Polytree.useWindingNumber is true
+
         if bothPolytrees
+
             polytreeA_buffer = prepareTriangleBuffer(polytreeA.getPolygons())
+
         polytreeB_buffer = prepareTriangleBuffer(polytreeB.getPolygons())
+
     polytreeA.handleIntersectingPolygons(polytreeB, polytreeB_buffer)
+
     if bothPolytrees
+
         polytreeB.handleIntersectingPolygons(polytreeA, polytreeA_buffer)
+
     if polytreeA_buffer isnt undefined
+
         polytreeA_buffer = undefined
         polytreeB_buffer = undefined
 
 prepareTriangleBuffer = (polygons) ->
+
     numOfTriangles = polygons.length
     array = new Float32Array(numOfTriangles * 3 * 3)
     bufferIndex = 0
+
     for i in [0...numOfTriangles]
+
         triangle = polygons[i].triangle
         array[bufferIndex++] = triangle.a.x
         array[bufferIndex++] = triangle.a.y
@@ -2509,6 +2786,7 @@ prepareTriangleBuffer = (polygons) ->
         array[bufferIndex++] = triangle.c.x
         array[bufferIndex++] = triangle.c.y
         array[bufferIndex++] = triangle.c.z
+
     array
 
 # https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
@@ -2520,24 +2798,37 @@ q = new Vector3()
 RAY_EPSILON = 0.0000001
 
 rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
+
     edge1.subVectors(triangle.b, triangle.a)
     edge2.subVectors(triangle.c, triangle.a)
     h.crossVectors(ray.direction, edge2)
     a = edge1.dot(h)
+
     if a > -RAY_EPSILON and a < RAY_EPSILON
+
         return null # Ray is parallel to the triangle
+
     f = 1 / a
     s.subVectors(ray.origin, triangle.a)
     u = f * s.dot(h)
+
     if u < 0 or u > 1
+
         return null
+
     q.crossVectors(s, edge1)
     v = f * ray.direction.dot(q)
+
     if v < 0 or u + v > 1
+
         return null
+
     t = f * edge2.dot(q)
+
     if t > RAY_EPSILON
+
         return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
+
     null
 
 Polytree.rayIntersectsTriangle = rayIntersectsTriangle
