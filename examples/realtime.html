@@ -31,7 +31,7 @@
 
         <div id="info">
 
-            OctreeCSG - Real-Time CSG
+            Polytree - Real-Time CSG
 
             <br/>
 
@@ -45,7 +45,7 @@
             import { OrbitControls } from 'OrbitControls';
             import { TransformControls } from 'TransformControls';
             import { STLLoader } from 'STLLoader';
-            import OctreeCSG from 'OctreeCSG';
+            import Polytree from 'OctreeCSG';
             import Stats from 'Stats';
 
             const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -166,9 +166,9 @@
                 horizontalWallMesh3.position.y = 9;
                 horizontalWallMesh4.position.y = 19;
 
-                let resultOctree = OctreeCSG.unionArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
+                let resultPolytree = Polytree.unionArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
 
-                return OctreeCSG.toMesh(resultOctree, baseMaterial);
+                return Polytree.toMesh(resultPolytree, baseMaterial);
 
             }
 
@@ -187,7 +187,7 @@
             let outerWall = new THREE.Mesh(outerWallGeometry, wallMaterial);
             let innerWall = new THREE.Mesh(innerWallGeometry, wallMaterial);
 
-            let wall = OctreeCSG.meshSubtract(outerWall, innerWall);
+            let wall = Polytree.meshSubtract(outerWall, innerWall);
 
             scene.add(wall);
 
@@ -221,21 +221,21 @@
             windowMesh.position.set(90, 29, 17.5);
             hollowWindowMesh.position.copy(windowMesh.position);
 
-            let towerOctree = OctreeCSG.fromMesh(wall, 0);
-            let windowOctree = OctreeCSG.fromMesh(windowMesh, 1);
-            let hollowWindowOctree = OctreeCSG.fromMesh(hollowWindowMesh, 0);
+            let towerPolytree = Polytree.fromMesh(wall, 0);
+            let windowPolytree = Polytree.fromMesh(windowMesh, 1);
+            let hollowWindowPolytree = Polytree.fromMesh(hollowWindowMesh, 0);
             let originalMatrix = windowMesh.matrix.clone();
 
             var towerWithWindowMesh;
-            OctreeCSG.async.operation({
+            Polytree.async.operation({
                 op: "union",
                 material: [wall.material, windowMesh.material],
                 objA: {
                     op: "subtract",
-                    objA: towerOctree.clone(),
-                    objB: hollowWindowOctree.clone()
+                    objA: towerPolytree.clone(),
+                    objB: hollowWindowPolytree.clone()
                 },
-                objB: windowOctree.clone()
+                objB: windowPolytree.clone()
             }).then(mesh => {
                 scene.remove(wall);
                 towerWithWindowMesh = mesh;
@@ -277,19 +277,19 @@
 
                         let newTransformedMatrix = calcTransformMatrix(originalMatrix, windowMesh.matrix);
 
-                        windowOctree.applyMatrix(newTransformedMatrix);
-                        hollowWindowOctree.applyMatrix(newTransformedMatrix);
+                        windowPolytree.applyMatrix(newTransformedMatrix);
+                        hollowWindowPolytree.applyMatrix(newTransformedMatrix);
                         originalMatrix.copy(windowMesh.matrix);
 
-                        OctreeCSG.async.operation({
+                        Polytree.async.operation({
                             op: "union",
                             material: [wall.material, windowMesh.material],
                             objA: {
                                 op: "subtract",
-                                objA: towerOctree.clone(),
-                                objB: hollowWindowOctree.clone()
+                                objA: towerPolytree.clone(),
+                                objB: hollowWindowPolytree.clone()
                             },
-                            objB: windowOctree.clone()
+                            objB: windowPolytree.clone()
                         }).then(mesh => {
 
                             towerWithWindowMesh.geometry.dispose();

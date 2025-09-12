@@ -1,6 +1,6 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A Constructive Solid Geometry (CSG) library using Octree data structure.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
@@ -19,7 +19,7 @@
   },
   "scripts": {
     "test": "jest",
-    "pretest": "npm run compile",
+    "pretest": "npm run build",
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &",
     "build": "npm run compile && cat app/polytree.js app/triangle.intersection.js > polytree.bundle.js",
