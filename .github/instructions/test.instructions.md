@@ -20,6 +20,7 @@ These notes define conventions and coverage expectations for the test suite.
 - Use a small helper factory for repetitive data construction (e.g. `tri()`).
 - Keep assertion helpers local (no global shared unless reused across 3+ files).
 - Avoid hidden magic numbers; define `EPS`, `TOL`, etc. at top of file.
+- Place any new shared helper functions (e.g. geometry builders, orientation wrappers) near the TOP of the consolidated test file so subsequent describe blocks can reuse them.
 
 ## Assertions
 

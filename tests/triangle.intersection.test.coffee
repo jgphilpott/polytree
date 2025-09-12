@@ -591,3 +591,67 @@ describe "triangleIntersectionCCW2D (embedded subset)", ->
             _ = callCCW(A, B)
 
         expect(true).toBe true
+
+describe "intersectionTestEdge2D (direct edge cases)", ->
+
+    build = (pts) -> pts.map (p) -> v2(p[0], p[1])
+
+    callEdge = (A, B) ->
+
+        intersectionTestEdge2D(A[0], A[1], A[2], B[0], B[1], B[2])
+
+    it "detects simple crossing (X shape)", ->
+
+        A = build([[0,0],[3,0],[0,3]])
+        B = build([[3,3],[0,3],[3,0]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects shared full edge", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[2,0],[0,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects endpoint touch only", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[2,0],[4,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects T-junction (edge hits midpoint)", ->
+
+        A = build([[0,0],[4,0],[0,3]])
+        B = build([[2,-1],[2,1],[3,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "detects collinear overlapping partial edge", ->
+
+        A = build([[0,0],[5,0],[0,3]])
+        B = build([[2,0],[7,0],[2,2]])
+
+        expect(callEdge(A,B)).toBe true
+
+    it "rejects collinear but disjoint edge", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[3,0],[5,0],[3,2]])
+
+        expect(callEdge(A,B)).toBe false
+
+    it "rejects clearly separated triangles", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[5,5],[7,5],[5,7]])
+
+        expect(callEdge(A,B)).toBe false
+
+    it "detects edge containment (small inside large sharing edge)", ->
+
+        A = build([[0,0],[5,0],[0,5]])
+        B = build([[1,0],[3,0],[1,2]])
+
+        expect(callEdge(A,B)).toBe true

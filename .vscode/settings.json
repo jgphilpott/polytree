@@ -1,6 +1,7 @@
 {
-  "cSpell.words": [
-    "octree",
-    "polytree"
-  ]
+    "githubPullRequests.codingAgent.uiIntegration": true,
+    "cSpell.words": [
+        "octree",
+        "polytree"
+    ]
 }
