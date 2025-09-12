@@ -1,4 +1,4 @@
-import OctreeCSG from './polytree.js'
+import Polytree from './polytree.js'
 import { Vector3, Plane, Line3, Sphere } from 'three'
 import { Capsule } from '../examples/js/Capsule.min.js'
 
@@ -14,7 +14,7 @@ _sphere = new Sphere()
 
 _capsule = new Capsule()
 
-class Octree extends OctreeCSG
+class PolytreeExtended extends Polytree
 
     constructor: (box, parent) ->
         super(box, parent)
@@ -173,8 +173,8 @@ class Octree extends OctreeCSG
         group.updateWorldMatrix(true, true)
         group.traverse (obj) ->
             if obj.isMesh is true
-                OctreeCSG.fromMesh(obj, undefined, this, false)
+                Polytree.fromMesh(obj, undefined, this, false)
         @buildTree()
         @
 
-export { Octree, OctreeCSG }
+export { PolytreeExtended, Polytree }

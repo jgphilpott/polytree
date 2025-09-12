@@ -19,7 +19,7 @@ BACK = 2
 SPANNING = 3
 _polygonID = 0
 
-class OctreeCSG
+class Polytree
 
     constructor: (box, parent) ->
         @polygons = []
@@ -31,7 +31,7 @@ class OctreeCSG
         @parent = parent
         @level = 0
         @polygonArrays = undefined
-        # @isOctree = true
+        # @isPolytree = true
         @addPolygonsArrayToRoot(@polygons)
 
     clone: ->
@@ -110,7 +110,7 @@ class OctreeCSG
 
         this
 
-    newOctree: (box, parent) ->
+    newPolytree: (box, parent) ->
 
         new @constructor(box, parent)
 
@@ -129,7 +129,7 @@ class OctreeCSG
                     box.min.copy(@box.min).add(v.multiply(halfsize))
                     box.max.copy(box.min).add(halfsize)
                     box.expandByScalar(EPSILON)
-                    subTrees.push(@newOctree(box, this))
+                    subTrees.push(@newPolytree(box, this))
 
         polygon = undefined
         while polygon = @polygons.pop()
@@ -147,7 +147,7 @@ class OctreeCSG
             len = subTrees[i].polygons.length
 
             # if (len !== 0) {
-            if len > OctreeCSG.polygonsPerTree and level < OctreeCSG.maxLevel
+            if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
                 subTrees[i].split(level + 1)
 
             @subTrees.push(subTrees[i])
@@ -225,7 +225,7 @@ class OctreeCSG
 
         for i in [0...polygons.length]
             result = undefined
-            if OctreeCSG.rayIntersectTriangleType is "regular"
+            if Polytree.rayIntersectTriangleType is "regular"
                 result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, _v1)
                 if result
                     _v1.applyMatrix4(matrixWorld)
@@ -445,18 +445,18 @@ class OctreeCSG
             return false
         return true
 
-    markIntesectingPolygons: (targetOctree) ->
+    markIntesectingPolygons: (targetPolytree) ->
 
         @polygonArrays.forEach (polygonsArray) ->
             if polygonsArray.length
                 polygonsArray.forEach (polygon) ->
-                    polygon.intersects = targetOctree.isPolygonIntersecting(polygon)
+                    polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
 
         # if @polygons.length > 0
         #     @polygons.forEach (polygon) ->
-        #         polygon.intersects = targetOctree.isPolygonIntersecting(polygon)
+        #         polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
         # for i in [0...@subTrees.length]
-        #     @subTrees[i].markIntesectingPolygons(targetOctree)
+        #     @subTrees[i].markIntesectingPolygons(targetPolytree)
 
     resetPolygons: (resetOriginal = true) ->
 
@@ -471,7 +471,7 @@ class OctreeCSG
         # for i in [0...@subTrees.length]
         #     @subTrees[i].resetPolygons(resetOriginal)
 
-    handleIntersectingPolygons: (targetOctree, targetOctreeBuffer) ->
+    handleIntersectingPolygons: (targetPolytree, targetPolytreeBuffer) ->
 
         # if @polygons.length > 0
         #     polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true) and (polygon.state == "undecided")
@@ -481,7 +481,7 @@ class OctreeCSG
         #             continue
         #         unless currentPolygon.valid
         #             continue
-        #         targetPolygons = targetOctree.getPolygonsIntersectingPolygon(currentPolygon)
+        #         targetPolygons = targetPolytree.getPolygonsIntersectingPolygon(currentPolygon)
         #         if targetPolygons.length > 0
         #             for j in [0...targetPolygons.length]
         #                 target = targetPolygons[j]
@@ -513,22 +513,22 @@ class OctreeCSG
         #         unless currentPolygon.valid
         #             continue
         #         inside = false
-        #         if targetOctree.box.containsPoint(currentPolygon.getMidpoint())
-        #             if OctreeCSG.useWindingNumber is true
-        #                 inside = polyInside_WindingNumber_buffer(targetOctreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
+        #         if targetPolytree.box.containsPoint(currentPolygon.getMidpoint())
+        #             if Polytree.useWindingNumber is true
+        #                 inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
         #             else
         #                 point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
-        #                 if OctreeCSG.useOctreeRay isnt true and targetOctree.mesh
+        #                 if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
         #                     _rayDirection.copy(currentPolygon.plane.normal)
         #                     _raycaster1.set(point, _rayDirection)
-        #                     intersects = _raycaster1.intersectObject(targetOctree.mesh)
+        #                     intersects = _raycaster1.intersectObject(targetPolytree.mesh)
         #                     if intersects.length
         #                         if _rayDirection.dot(intersects[0].face.normal) > 0
         #                             inside = true
         #                     unless inside or not currentPolygon.coplanar
         #                         for j in [0..._wP_EPS_ARR_COUNT]
         #                             _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             intersects = _raycaster1.intersectObject(targetOctree.mesh)
+        #                             intersects = _raycaster1.intersectObject(targetPolytree.mesh)
         #                             if intersects.length
         #                                 if _rayDirection.dot(intersects[0].face.normal) > 0
         #                                     inside = true
@@ -537,7 +537,7 @@ class OctreeCSG
         #                     _ray.origin.copy(point)
         #                     _rayDirection.copy(currentPolygon.plane.normal)
         #                     _ray.direction.copy(currentPolygon.plane.normal)
-        #                     intersects = targetOctree.rayIntersect(_ray, targetOctree.originalMatrixWorld)
+        #                     intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
         #                     if intersects.length
         #                         if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                             inside = true
@@ -546,7 +546,7 @@ class OctreeCSG
         #                             _ray.origin.copy(point).add(_wP_EPS_ARR[j])
         #                             _rayDirection.copy(currentPolygon.plane.normal)
         #                             _ray.direction.copy(currentPolygon.plane.normal)
-        #                             intersects = targetOctree.rayIntersect(_ray, targetOctree.originalMatrixWorld)
+        #                             intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
         #                             if intersects.length
         #                                 if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
         #                                     inside = true
@@ -557,7 +557,7 @@ class OctreeCSG
         #             currentPolygon.setState("outside")
         #         currentPolygon = polygonStack.pop()
         # for i in [0...@subTrees.length]
-        #     @subTrees[i].handleIntersectingPolygons(targetOctree, targetOctreeBuffer)
+        #     @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
         if @polygons.length > 0
             polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true) and (polygon.state == "undecided")
@@ -567,7 +567,7 @@ class OctreeCSG
                     continue
                 unless currentPolygon.valid
                     continue
-                targetPolygons = targetOctree.getPolygonsIntersectingPolygon(currentPolygon)
+                targetPolygons = targetPolytree.getPolygonsIntersectingPolygon(currentPolygon)
                 if targetPolygons.length > 0
                     for j in [0...targetPolygons.length]
                         target = targetPolygons[j]
@@ -599,22 +599,22 @@ class OctreeCSG
                 unless currentPolygon.valid
                     continue
                 inside = false
-                if targetOctree.box.containsPoint(currentPolygon.getMidpoint())
-                    if OctreeCSG.useWindingNumber is true
-                        inside = polyInside_WindingNumber_buffer(targetOctreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
+                if targetPolytree.box.containsPoint(currentPolygon.getMidpoint())
+                    if Polytree.useWindingNumber is true
+                        inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
                     else
                         point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
-                        if OctreeCSG.useOctreeRay isnt true and targetOctree.mesh
+                        if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
                             _rayDirection.copy(currentPolygon.plane.normal)
                             _raycaster1.set(point, _rayDirection)
-                            intersects = _raycaster1.intersectObject(targetOctree.mesh)
+                            intersects = _raycaster1.intersectObject(targetPolytree.mesh)
                             if intersects.length
                                 if _rayDirection.dot(intersects[0].face.normal) > 0
                                     inside = true
                             unless inside or not currentPolygon.coplanar
                                 for j in [0..._wP_EPS_ARR_COUNT]
                                     _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    intersects = _raycaster1.intersectObject(targetOctree.mesh)
+                                    intersects = _raycaster1.intersectObject(targetPolytree.mesh)
                                     if intersects.length
                                         if _rayDirection.dot(intersects[0].face.normal) > 0
                                             inside = true
@@ -623,7 +623,7 @@ class OctreeCSG
                             _ray.origin.copy(point)
                             _rayDirection.copy(currentPolygon.plane.normal)
                             _ray.direction.copy(currentPolygon.plane.normal)
-                            intersects = targetOctree.rayIntersect(_ray, targetOctree.originalMatrixWorld)
+                            intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
                             if intersects.length
                                 if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
                                     inside = true
@@ -632,7 +632,7 @@ class OctreeCSG
                                     _ray.origin.copy(point).add(_wP_EPS_ARR[j])
                                     _rayDirection.copy(currentPolygon.plane.normal)
                                     _ray.direction.copy(currentPolygon.plane.normal)
-                                    intersects = targetOctree.rayIntersect(_ray, targetOctree.originalMatrixWorld)
+                                    intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
                                     if intersects.length
                                         if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
                                             inside = true
@@ -643,7 +643,7 @@ class OctreeCSG
                     currentPolygon.setState("outside")
                 currentPolygon = polygonStack.pop()
         for i in [0...@subTrees.length]
-            @subTrees[i].handleIntersectingPolygons(targetOctree, targetOctreeBuffer)
+            @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
     delete: (deletePolygons = true) ->
 
@@ -730,7 +730,7 @@ class OctreeCSG
         # for i in [0...@subTrees.length]
         #     @subTrees[i].setPolygonIndex(index)
 
-OctreeCSG::isOctree = true
+Polytree::isPolytree = true
 
 raycastIntersectAscSort = (a, b) -> a.distance - b.distance
 
@@ -876,7 +876,7 @@ CSG_Rules =
       { array: false, rule: "outside" }
     ]
 
-# class OctreeCSG { };
+# class Polytree { };
 
 ###
 Union:
@@ -906,148 +906,148 @@ Intersect:
     e. outside
 ###
 
-OctreeCSG.union = (octreeA, octreeB, buildTargetOctree = true) ->
-  octree = new OctreeCSG()
+Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+  polytree = new Polytree()
   trianglesSet = new Set()
-  if octreeA.box.intersectsBox(octreeB.box)
+  if polytreeA.box.intersectsBox(polytreeB.box)
     currentMeshSideA = undefined
     currentMeshSideB = undefined
-    if octreeA.mesh
-      currentMeshSideA = octreeA.mesh.material.side
-      octreeA.mesh.material.side = DoubleSide
-    if octreeB.mesh
-      currentMeshSideB = octreeB.mesh.material.side
-      octreeB.mesh.material.side = DoubleSide
+    if polytreeA.mesh
+      currentMeshSideA = polytreeA.mesh.material.side
+      polytreeA.mesh.material.side = DoubleSide
+    if polytreeB.mesh
+      currentMeshSideB = polytreeB.mesh.material.side
+      polytreeB.mesh.material.side = DoubleSide
 
-    octreeA.resetPolygons(false)
-    octreeB.resetPolygons(false)
+    polytreeA.resetPolygons(false)
+    polytreeB.resetPolygons(false)
 
-    octreeA.markIntesectingPolygons(octreeB)
-    octreeB.markIntesectingPolygons(octreeA)
+    polytreeA.markIntesectingPolygons(polytreeB)
+    polytreeB.markIntesectingPolygons(polytreeA)
 
-    handleIntersectingOctrees(octreeA, octreeB)
-    octreeA.deleteReplacedPolygons()
-    octreeB.deleteReplacedPolygons()
+    handleIntersectingPolytrees(polytreeA, polytreeB)
+    polytreeA.deleteReplacedPolygons()
+    polytreeB.deleteReplacedPolygons()
 
-    octreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
-    octreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
+    polytreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
+    polytreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
 
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    if octreeA.mesh and octreeA.mesh.material.side isnt currentMeshSideA
-      octreeA.mesh.material.side = currentMeshSideA
-    if octreeB.mesh and octreeB.mesh.material.side isnt currentMeshSideB
-      octreeB.mesh.material.side = currentMeshSideB
+    if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+      polytreeA.mesh.material.side = currentMeshSideA
+    if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+      polytreeB.mesh.material.side = currentMeshSideB
   else
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
   trianglesSet.clear()
   trianglesSet = undefined
 
-  octree.markPolygonsAsOriginal()
-  buildTargetOctree and octree.buildTree()
-  octree
+  polytree.markPolygonsAsOriginal()
+  buildTargetPolytree and polytree.buildTree()
+  polytree
 
-OctreeCSG.subtract = (octreeA, octreeB, buildTargetOctree = true) ->
-  octree = new OctreeCSG()
+Polytree.subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+  polytree = new Polytree()
   trianglesSet = new Set()
-  if octreeA.box.intersectsBox(octreeB.box)
+  if polytreeA.box.intersectsBox(polytreeB.box)
     currentMeshSideA = undefined
     currentMeshSideB = undefined
-    if octreeA.mesh
-      currentMeshSideA = octreeA.mesh.material.side
-      octreeA.mesh.material.side = DoubleSide
-    if octreeB.mesh
-      currentMeshSideB = octreeB.mesh.material.side
-      octreeB.mesh.material.side = DoubleSide
+    if polytreeA.mesh
+      currentMeshSideA = polytreeA.mesh.material.side
+      polytreeA.mesh.material.side = DoubleSide
+    if polytreeB.mesh
+      currentMeshSideB = polytreeB.mesh.material.side
+      polytreeB.mesh.material.side = DoubleSide
 
-    octreeA.resetPolygons(false)
-    octreeB.resetPolygons(false)
-    octreeA.markIntesectingPolygons(octreeB)
-    octreeB.markIntesectingPolygons(octreeA)
+    polytreeA.resetPolygons(false)
+    polytreeB.resetPolygons(false)
+    polytreeA.markIntesectingPolygons(polytreeB)
+    polytreeB.markIntesectingPolygons(polytreeA)
 
-    handleIntersectingOctrees(octreeA, octreeB)
-    octreeA.deleteReplacedPolygons()
-    octreeB.deleteReplacedPolygons()
+    handleIntersectingPolytrees(polytreeA, polytreeB)
+    polytreeA.deleteReplacedPolygons()
+    polytreeB.deleteReplacedPolygons()
 
-    octreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
-    octreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
+    polytreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
+    polytreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
 
-    octreeB.deletePolygonsByIntersection(false)
-    octreeB.invert()
+    polytreeB.deletePolygonsByIntersection(false)
+    polytreeB.invert()
 
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    if octreeA.mesh and octreeA.mesh.material.side isnt currentMeshSideA
-      octreeA.mesh.material.side = currentMeshSideA
-    if octreeB.mesh and octreeB.mesh.material.side isnt currentMeshSideB
-      octreeB.mesh.material.side = currentMeshSideB
+    if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+      polytreeA.mesh.material.side = currentMeshSideA
+    if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+      polytreeB.mesh.material.side = currentMeshSideB
   else
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
   trianglesSet.clear()
   trianglesSet = undefined
 
-  octree.markPolygonsAsOriginal()
-  buildTargetOctree and octree.buildTree()
-  # octree.invert()
-  octree
+  polytree.markPolygonsAsOriginal()
+  buildTargetPolytree and polytree.buildTree()
+  # polytree.invert()
+  polytree
 
-OctreeCSG.intersect = (octreeA, octreeB, buildTargetOctree = true) ->
+Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
-  octree = new OctreeCSG()
+  polytree = new Polytree()
   trianglesSet = new Set()
 
-  if octreeA.box.intersectsBox(octreeB.box)
+  if polytreeA.box.intersectsBox(polytreeB.box)
 
     currentMeshSideA = undefined
     currentMeshSideB = undefined
 
-    if octreeA.mesh
+    if polytreeA.mesh
 
-      currentMeshSideA = octreeA.mesh.material.side
-      octreeA.mesh.material.side = DoubleSide
+      currentMeshSideA = polytreeA.mesh.material.side
+      polytreeA.mesh.material.side = DoubleSide
 
-    if octreeB.mesh
+    if polytreeB.mesh
 
-      currentMeshSideB = octreeB.mesh.material.side
-      octreeB.mesh.material.side = DoubleSide
+      currentMeshSideB = polytreeB.mesh.material.side
+      polytreeB.mesh.material.side = DoubleSide
 
-    octreeA.resetPolygons(false)
-    octreeB.resetPolygons(false)
+    polytreeA.resetPolygons(false)
+    polytreeB.resetPolygons(false)
 
-    octreeA.markIntesectingPolygons(octreeB)
-    octreeB.markIntesectingPolygons(octreeA)
+    polytreeA.markIntesectingPolygons(polytreeB)
+    polytreeB.markIntesectingPolygons(polytreeA)
 
-    handleIntersectingOctrees(octreeA, octreeB)
+    handleIntersectingPolytrees(polytreeA, polytreeB)
 
-    octreeA.deleteReplacedPolygons()
-    octreeB.deleteReplacedPolygons()
+    polytreeA.deleteReplacedPolygons()
+    polytreeB.deleteReplacedPolygons()
 
-    octreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
-    octreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
+    polytreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
+    polytreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
 
-    octreeA.deletePolygonsByIntersection(false)
-    octreeB.deletePolygonsByIntersection(false)
+    polytreeA.deletePolygonsByIntersection(false)
+    polytreeB.deletePolygonsByIntersection(false)
 
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    if octreeA.mesh and octreeA.mesh.material.side isnt currentMeshSideA
+    if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
 
-      octreeA.mesh.material.side = currentMeshSideA
+      polytreeA.mesh.material.side = currentMeshSideA
 
-    if octreeB.mesh and octreeB.mesh.material.side isnt currentMeshSideB
+    if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
 
-      octreeB.mesh.material.side = currentMeshSideB
+      polytreeB.mesh.material.side = currentMeshSideB
 
   trianglesSet.clear()
   trianglesSet = undefined
 
-  octree.markPolygons
+  polytree.markPolygons
 
 CSG_Rules =
   union:
@@ -1087,7 +1087,7 @@ CSG_Rules =
       { array: false, rule: "outside" }
     ]
 
-# class OctreeCSG { };
+# class Polytree { };
 
 ###
 Union:
@@ -1117,95 +1117,95 @@ Intersect:
     e. outside
 ###
 
-OctreeCSG.union = (octreeA, octreeB, buildTargetOctree = true) ->
-  octree = new OctreeCSG()
+Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+  polytree = new Polytree()
   trianglesSet = new Set()
-  if octreeA.box.intersectsBox(octreeB.box)
+  if polytreeA.box.intersectsBox(polytreeB.box)
     currentMeshSideA = undefined
     currentMeshSideB = undefined
-    if octreeA.mesh
-      currentMeshSideA = octreeA.mesh.material.side
-      octreeA.mesh.material.side = DoubleSide
-    if octreeB.mesh
-      currentMeshSideB = octreeB.mesh.material.side
-      octreeB.mesh.material.side = DoubleSide
+    if polytreeA.mesh
+      currentMeshSideA = polytreeA.mesh.material.side
+      polytreeA.mesh.material.side = DoubleSide
+    if polytreeB.mesh
+      currentMeshSideB = polytreeB.mesh.material.side
+      polytreeB.mesh.material.side = DoubleSide
 
-    octreeA.resetPolygons(false)
-    octreeB.resetPolygons(false)
+    polytreeA.resetPolygons(false)
+    polytreeB.resetPolygons(false)
 
-    octreeA.markIntesectingPolygons(octreeB)
-    octreeB.markIntesectingPolygons(octreeA)
+    polytreeA.markIntesectingPolygons(polytreeB)
+    polytreeB.markIntesectingPolygons(polytreeA)
 
-    handleIntersectingOctrees(octreeA, octreeB)
-    octreeA.deleteReplacedPolygons()
-    octreeB.deleteReplacedPolygons()
+    handleIntersectingPolytrees(polytreeA, polytreeB)
+    polytreeA.deleteReplacedPolygons()
+    polytreeB.deleteReplacedPolygons()
 
-    octreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
-    octreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
+    polytreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
+    polytreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
 
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    if octreeA.mesh and octreeA.mesh.material.side isnt currentMeshSideA
-      octreeA.mesh.material.side = currentMeshSideA
-    if octreeB.mesh and octreeB.mesh.material.side isnt currentMeshSideB
-      octreeB.mesh.material.side = currentMeshSideB
+    if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+      polytreeA.mesh.material.side = currentMeshSideA
+    if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+      polytreeB.mesh.material.side = currentMeshSideB
   else
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
   trianglesSet.clear()
   trianglesSet = undefined
 
-  octree.markPolygonsAsOriginal()
-  buildTargetOctree and octree.buildTree()
-  octree
+  polytree.markPolygonsAsOriginal()
+  buildTargetPolytree and polytree.buildTree()
+  polytree
 
-OctreeCSG.subtract = (octreeA, octreeB, buildTargetOctree = true) ->
-  octree = new OctreeCSG()
+Polytree.subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+  polytree = new Polytree()
   trianglesSet = new Set()
-  if octreeA.box.intersectsBox(octreeB.box)
+  if polytreeA.box.intersectsBox(polytreeB.box)
     currentMeshSideA = undefined
     currentMeshSideB = undefined
-    if octreeA.mesh
-      currentMeshSideA = octreeA.mesh.material.side
-      octreeA.mesh.material.side = DoubleSide
-    if octreeB.mesh
-      currentMeshSideB = octreeB.mesh.material.side
-      octreeB.mesh.material.side = DoubleSide
+    if polytreeA.mesh
+      currentMeshSideA = polytreeA.mesh.material.side
+      polytreeA.mesh.material.side = DoubleSide
+    if polytreeB.mesh
+      currentMeshSideB = polytreeB.mesh.material.side
+      polytreeB.mesh.material.side = DoubleSide
 
-    octreeA.resetPolygons(false)
-    octreeB.resetPolygons(false)
-    octreeA.markIntesectingPolygons(octreeB)
-    octreeB.markIntesectingPolygons(octreeA)
+    polytreeA.resetPolygons(false)
+    polytreeB.resetPolygons(false)
+    polytreeA.markIntesectingPolygons(polytreeB)
+    polytreeB.markIntesectingPolygons(polytreeA)
 
-    handleIntersectingOctrees(octreeA, octreeB)
-    octreeA.deleteReplacedPolygons()
-    octreeB.deleteReplacedPolygons()
+    handleIntersectingPolytrees(polytreeA, polytreeB)
+    polytreeA.deleteReplacedPolygons()
+    polytreeB.deleteReplacedPolygons()
 
-    octreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
-    octreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
+    polytreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
+    polytreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
 
-    octreeB.deletePolygonsByIntersection(false)
-    octreeB.invert()
+    polytreeB.deletePolygonsByIntersection(false)
+    polytreeB.invert()
 
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-    octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+    polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    if octreeA.mesh and octreeA.mesh.material.side isnt currentMeshSideA
-      octreeA.mesh.material.side = currentMeshSideA
-    if octreeB.mesh and octreeB.mesh.material.side isnt currentMeshSideB
-      octreeB.mesh.material.side = currentMeshSideB
+    if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+      polytreeA.mesh.material.side = currentMeshSideA
+    if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+      polytreeB.mesh.material.side = currentMeshSideB
   else
-    octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+    polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
   trianglesSet.clear()
   trianglesSet = undefined
 
-  octree.markPolygonsAsOriginal()
-  buildTargetOctree and octree.buildTree()
-  # octree.invert()
-  octree
+  polytree.markPolygonsAsOriginal()
+  buildTargetPolytree and polytree.buildTree()
+  # polytree.invert()
+  polytree
 
 ###
 Intersect:
@@ -1221,559 +1221,559 @@ Intersect:
     d. outside and coplanar-back
     e. outside
 ###
-OctreeCSG.intersect = (octreeA, octreeB, buildTargetOctree = true) ->
-    octree = new OctreeCSG()
+Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+    polytree = new Polytree()
     trianglesSet = new Set()
 
-    if octreeA.box.intersectsBox(octreeB.box)
+    if polytreeA.box.intersectsBox(polytreeB.box)
         currentMeshSideA = undefined
         currentMeshSideB = undefined
-        if octreeA.mesh
-            currentMeshSideA = octreeA.mesh.material.side
-            octreeA.mesh.material.side = DoubleSide
-        if octreeB.mesh
-            currentMeshSideB = octreeB.mesh.material.side
-            octreeB.mesh.material.side = DoubleSide
+        if polytreeA.mesh
+            currentMeshSideA = polytreeA.mesh.material.side
+            polytreeA.mesh.material.side = DoubleSide
+        if polytreeB.mesh
+            currentMeshSideB = polytreeB.mesh.material.side
+            polytreeB.mesh.material.side = DoubleSide
 
-        octreeA.resetPolygons(false)
-        octreeB.resetPolygons(false)
+        polytreeA.resetPolygons(false)
+        polytreeB.resetPolygons(false)
 
-        octreeA.markIntesectingPolygons(octreeB)
-        octreeB.markIntesectingPolygons(octreeA)
+        polytreeA.markIntesectingPolygons(polytreeB)
+        polytreeB.markIntesectingPolygons(polytreeA)
 
-        handleIntersectingOctrees(octreeA, octreeB)
-        octreeA.deleteReplacedPolygons()
-        octreeB.deleteReplacedPolygons()
+        handleIntersectingPolytrees(polytreeA, polytreeB)
+        polytreeA.deleteReplacedPolygons()
+        polytreeB.deleteReplacedPolygons()
 
-        octreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
-        octreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
+        polytreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
+        polytreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
 
-        octreeA.deletePolygonsByIntersection(false)
-        octreeB.deletePolygonsByIntersection(false)
+        polytreeA.deletePolygonsByIntersection(false)
+        polytreeB.deletePolygonsByIntersection(false)
 
-        octreeA.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
-        octreeB.getPolygonCloneCallback(octree.addPolygon.bind(octree), trianglesSet)
+        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-        if octreeA.mesh
-            if octreeA.mesh.material.side isnt currentMeshSideA
-                octreeA.mesh.material.side = currentMeshSideA
-        if octreeB.mesh
-            if octreeB.mesh.material.side isnt currentMeshSideB
-                octreeB.mesh.material.side = currentMeshSideB
+        if polytreeA.mesh
+            if polytreeA.mesh.material.side isnt currentMeshSideA
+                polytreeA.mesh.material.side = currentMeshSideA
+        if polytreeB.mesh
+            if polytreeB.mesh.material.side isnt currentMeshSideB
+                polytreeB.mesh.material.side = currentMeshSideB
 
     trianglesSet.clear()
     trianglesSet = undefined
 
-    octree.markPolygonsAsOriginal()
-    buildTargetOctree and octree.buildTree()
+    polytree.markPolygonsAsOriginal()
+    buildTargetPolytree and polytree.buildTree()
 
-    return octree
+    return polytree
 
-OctreeCSG.meshUnion = (mesh1, mesh2, targetMaterial) ->
-    octreeA = undefined
-    octreeB = undefined
+Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
+    polytreeA = undefined
+    polytreeB = undefined
     if targetMaterial and Array.isArray(targetMaterial)
-        octreeA = OctreeCSG.fromMesh(mesh1, 0)
-        octreeB = OctreeCSG.fromMesh(mesh2, 1)
+        polytreeA = Polytree.fromMesh(mesh1, 0)
+        polytreeB = Polytree.fromMesh(mesh2, 1)
     else
-        octreeA = OctreeCSG.fromMesh(mesh1)
-        octreeB = OctreeCSG.fromMesh(mesh2)
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-    resultOctree = OctreeCSG.union(octreeA, octreeB, false)
-    resultMesh = OctreeCSG.toMesh(resultOctree, targetMaterial)
-    disposeOctree(octreeA, octreeB, resultOctree)
+    resultPolytree = Polytree.union(polytreeA, polytreeB, false)
+    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+    disposePolytree(polytreeA, polytreeB, resultPolytree)
     return resultMesh
 
-OctreeCSG.meshSubtract = (mesh1, mesh2, targetMaterial) ->
-    octreeA = undefined
-    octreeB = undefined
+Polytree.meshSubtract = (mesh1, mesh2, targetMaterial) ->
+    polytreeA = undefined
+    polytreeB = undefined
     if targetMaterial and Array.isArray(targetMaterial)
-        octreeA = OctreeCSG.fromMesh(mesh1, 0)
-        octreeB = OctreeCSG.fromMesh(mesh2, 1)
+        polytreeA = Polytree.fromMesh(mesh1, 0)
+        polytreeB = Polytree.fromMesh(mesh2, 1)
     else
-        octreeA = OctreeCSG.fromMesh(mesh1)
-        octreeB = OctreeCSG.fromMesh(mesh2)
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-    resultOctree = OctreeCSG.subtract(octreeA, octreeB, false)
-    resultMesh = OctreeCSG.toMesh(resultOctree, targetMaterial)
-    disposeOctree(octreeA, octreeB, resultOctree)
+    resultPolytree = Polytree.subtract(polytreeA, polytreeB, false)
+    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+    disposePolytree(polytreeA, polytreeB, resultPolytree)
     return resultMesh
 
-OctreeCSG.meshIntersect = (mesh1, mesh2, targetMaterial) ->
-    octreeA = undefined
-    octreeB = undefined
+Polytree.meshIntersect = (mesh1, mesh2, targetMaterial) ->
+    polytreeA = undefined
+    polytreeB = undefined
     if targetMaterial and Array.isArray(targetMaterial)
-        octreeA = OctreeCSG.fromMesh(mesh1, 0)
-        octreeB = OctreeCSG.fromMesh(mesh2, 1)
+        polytreeA = Polytree.fromMesh(mesh1, 0)
+        polytreeB = Polytree.fromMesh(mesh2, 1)
     else
-        octreeA = OctreeCSG.fromMesh(mesh1)
-        octreeB = OctreeCSG.fromMesh(mesh2)
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-    resultOctree = OctreeCSG.intersect(octreeA, octreeB, false)
-    resultMesh = OctreeCSG.toMesh(resultOctree, targetMaterial)
-    disposeOctree(octreeA, octreeB, resultOctree)
+    resultPolytree = Polytree.intersect(polytreeA, polytreeB, false)
+    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+    disposePolytree(polytreeA, polytreeB, resultPolytree)
     return resultMesh
 
 _asyncUnionID = 0
 _asyncUnionArrayID = 0
-OctreeCSG.disposeOctree = true
+Polytree.disposePolytree = true
 
-OctreeCSG.async =
+Polytree.async =
     batchSize: 100
 
-    union: (octreeA, octreeB, buildTargetOctree = true) ->
+    union: (polytreeA, polytreeB, buildTargetPolytree = true) ->
         new Promise (resolve, reject) ->
             # const id = _asyncUnionID++
             # console.log("Promise Union ##{id} started")
             try
-                result = OctreeCSG.union(octreeA, octreeB, buildTargetOctree)
+                result = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposeOctree(octreeA, octreeB)
+                disposePolytree(polytreeA, polytreeB)
             catch e
                 reject(e)
 
-    subtract: (octreeA, octreeB, buildTargetOctree = true) ->
+    subtract: (polytreeA, polytreeB, buildTargetPolytree = true) ->
         new Promise (resolve, reject) ->
             try
-                result = OctreeCSG.subtract(octreeA, octreeB, buildTargetOctree)
+                result = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposeOctree(octreeA, octreeB)
+                disposePolytree(polytreeA, polytreeB)
             catch e
                 reject(e)
 
-    intersect: (octreeA, octreeB, buildTargetOctree = true) ->
+    intersect: (polytreeA, polytreeB, buildTargetPolytree = true) ->
         new Promise (resolve, reject) ->
             try
-                result = OctreeCSG.intersect(octreeA, octreeB, buildTargetOctree)
+                result = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposeOctree(octreeA, octreeB)
+                disposePolytree(polytreeA, polytreeB)
             catch e
                 reject(e)
 
     unionArray: (objArr, materialIndexMax = Infinity) ->
         new Promise (resolve, reject) ->
             try
-                usingBatches = OctreeCSG.async.batchSize > 4 and OctreeCSG.async.batchSize < objArr.length
+                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
                 # const id = _asyncUnionArrayID++
                 # console.log("Promise Union Array ##{id}", usingBatches)
-                mainOctree = undefined
-                mainOctreeUsed = false
+                mainPolytree = undefined
+                mainPolytreeUsed = false
                 promises = []
                 if usingBatches
                     batches = []
                     currentIndex = 0
                     while currentIndex < objArr.length
-                        batches.push objArr.slice(currentIndex, currentIndex + OctreeCSG.async.batchSize)
-                        currentIndex += OctreeCSG.async.batchSize
+                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
+                        currentIndex += Polytree.async.batchSize
 
                     batch = batches.shift()
                     while batch
-                        promise = OctreeCSG.async.unionArray(batch, 0)
+                        promise = Polytree.async.unionArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
                     usingBatches = true
-                    mainOctreeUsed = true
+                    mainPolytreeUsed = true
                     objArr.length = 0
                 else
-                    octreesArray = []
+                    polytreesArray = []
                     for i in [0...objArr.length]
                         materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempOctree = undefined
+                        tempPolytree = undefined
                         if objArr[i].isMesh
-                            tempOctree = OctreeCSG.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
+                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
                         else
-                            tempOctree = objArr[i]
+                            tempPolytree = objArr[i]
                             if materialIndexMax > -1
-                                tempOctree.setPolygonIndex(materialIndex)
-                        tempOctree.octreeIndex = i
-                        octreesArray.push(tempOctree)
-                    mainOctree = octreesArray.shift()
+                                tempPolytree.setPolygonIndex(materialIndex)
+                        tempPolytree.polytreeIndex = i
+                        polytreesArray.push(tempPolytree)
+                    mainPolytree = polytreesArray.shift()
                     result = undefined
                     hasLeftOver = false
-                    leftOverOctree = undefined
-                    for i in [0...octreesArray.length] by 2
-                        if i + 1 >= octreesArray.length
-                            leftOverOctree = octreesArray[i]
+                    leftOverPolytree = undefined
+                    for i in [0...polytreesArray.length] by 2
+                        if i + 1 >= polytreesArray.length
+                            leftOverPolytree = polytreesArray[i]
                             hasLeftOver = true
                             break
-                        promise = OctreeCSG.async.union(octreesArray[i], octreesArray[i + 1])
+                        promise = Polytree.async.union(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
-                    if leftOverOctree
-                        promise = OctreeCSG.async.union(mainOctree, leftOverOctree)
+                    if leftOverPolytree
+                        promise = Polytree.async.union(mainPolytree, leftOverPolytree)
                         promises.push(promise)
-                        mainOctreeUsed = true
+                        mainPolytreeUsed = true
 
                 Promise.allSettled(promises).then (results) ->
-                    octrees = []
+                    polytrees = []
                     results.forEach (r) ->
                         if r.status is "fulfilled"
-                            octrees.push(r.value)
-                    unless mainOctreeUsed
-                        octrees.unshift(mainOctree)
-                    if octrees.length > 0
-                        if octrees.length is 1
-                            resolve(octrees[0])
-                        else if octrees.length > 3
-                            OctreeCSG.async.unionArray(octrees, if usingBatches then 0 else -1).then (result) ->
+                            polytrees.push(r.value)
+                    unless mainPolytreeUsed
+                        polytrees.unshift(mainPolytree)
+                    if polytrees.length > 0
+                        if polytrees.length is 1
+                            resolve(polytrees[0])
+                        else if polytrees.length > 3
+                            Polytree.async.unionArray(polytrees, if usingBatches then 0 else -1).then (result) ->
                                 resolve(result)
                             .catch (e) -> reject(e)
                         else
-                            OctreeCSG.async.union(octrees[0], octrees[1]).then (result) ->
-                                if octrees.length is 3
-                                    OctreeCSG.async.union(result, octrees[2]).then (result) ->
+                            Polytree.async.union(polytrees[0], polytrees[1]).then (result) ->
+                                if polytrees.length is 3
+                                    Polytree.async.union(result, polytrees[2]).then (result) ->
                                         resolve(result)
                                     .catch (e) -> reject(e)
                                 else
                                     resolve(result)
                             .catch (e) -> reject(e)
                     else
-                        reject('Unable to find any result octree')
+                        reject('Unable to find any result polytree')
             catch e
                 reject(e)
 
     subtractArray: (objArr, materialIndexMax = Infinity) ->
         new Promise (resolve, reject) ->
             try
-                usingBatches = OctreeCSG.async.batchSize > 4 and OctreeCSG.async.batchSize < objArr.length
-                mainOctree = undefined
-                mainOctreeUsed = false
+                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
+                mainPolytree = undefined
+                mainPolytreeUsed = false
                 promises = []
                 if usingBatches
                     batches = []
                     currentIndex = 0
                     while currentIndex < objArr.length
-                        batches.push objArr.slice(currentIndex, currentIndex + OctreeCSG.async.batchSize)
-                        currentIndex += OctreeCSG.async.batchSize
+                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
+                        currentIndex += Polytree.async.batchSize
 
                     batch = batches.shift()
                     while batch
-                        promise = OctreeCSG.async.subtractArray(batch, 0)
+                        promise = Polytree.async.subtractArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
                     usingBatches = true
-                    mainOctreeUsed = true
+                    mainPolytreeUsed = true
                     objArr.length = 0
                 else
-                    octreesArray = []
+                    polytreesArray = []
                     for i in [0...objArr.length]
                         materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempOctree = undefined
+                        tempPolytree = undefined
                         if objArr[i].isMesh
-                            tempOctree = OctreeCSG.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
+                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
                         else
-                            tempOctree = objArr[i]
+                            tempPolytree = objArr[i]
                             if materialIndexMax > -1
-                                tempOctree.setPolygonIndex(materialIndex)
-                        tempOctree.octreeIndex = i
-                        octreesArray.push(tempOctree)
-                    mainOctree = octreesArray.shift()
+                                tempPolytree.setPolygonIndex(materialIndex)
+                        tempPolytree.polytreeIndex = i
+                        polytreesArray.push(tempPolytree)
+                    mainPolytree = polytreesArray.shift()
                     result = undefined
                     hasLeftOver = false
-                    leftOverOctree = undefined
-                    for i in [0...octreesArray.length] by 2
-                        if i + 1 >= octreesArray.length
-                            leftOverOctree = octreesArray[i]
+                    leftOverPolytree = undefined
+                    for i in [0...polytreesArray.length] by 2
+                        if i + 1 >= polytreesArray.length
+                            leftOverPolytree = polytreesArray[i]
                             hasLeftOver = true
                             break
-                        promise = OctreeCSG.async.subtract(octreesArray[i], octreesArray[i + 1])
+                        promise = Polytree.async.subtract(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
-                    if leftOverOctree
-                        promise = OctreeCSG.async.subtract(mainOctree, leftOverOctree)
+                    if leftOverPolytree
+                        promise = Polytree.async.subtract(mainPolytree, leftOverPolytree)
                         promises.push(promise)
-                        mainOctreeUsed = true
+                        mainPolytreeUsed = true
 
                 Promise.allSettled(promises).then (results) ->
-                    octrees = []
+                    polytrees = []
                     results.forEach (r) ->
                         if r.status is "fulfilled"
-                            octrees.push(r.value)
-                    unless mainOctreeUsed
-                        octrees.unshift(mainOctree)
-                    if octrees.length > 0
-                        if octrees.length is 1
-                            resolve(octrees[0])
-                        else if octrees.length > 3
-                            OctreeCSG.async.subtractArray(octrees, if usingBatches then 0 else -1).then (result) ->
+                            polytrees.push(r.value)
+                    unless mainPolytreeUsed
+                        polytrees.unshift(mainPolytree)
+                    if polytrees.length > 0
+                        if polytrees.length is 1
+                            resolve(polytrees[0])
+                        else if polytrees.length > 3
+                            Polytree.async.subtractArray(polytrees, if usingBatches then 0 else -1).then (result) ->
                                 resolve(result)
                             .catch (e) -> reject(e)
                         else
-                            OctreeCSG.async.subtract(octrees[0], octrees[1]).then (result) ->
-                                if octrees.length is 3
-                                    OctreeCSG.async.subtract(result, octrees[2]).then (result) ->
+                            Polytree.async.subtract(polytrees[0], polytrees[1]).then (result) ->
+                                if polytrees.length is 3
+                                    Polytree.async.subtract(result, polytrees[2]).then (result) ->
                                         resolve(result)
                                     .catch (e) -> reject(e)
                                 else
                                     resolve(result)
                             .catch (e) -> reject(e)
                     else
-                        reject('Unable to find any result octree')
+                        reject('Unable to find any result polytree')
             catch e
                 reject(e)
 
     intersectArray: (objArr, materialIndexMax = Infinity) ->
         new Promise (resolve, reject) ->
             try
-                usingBatches = OctreeCSG.async.batchSize > 4 and OctreeCSG.async.batchSize < objArr.length
-                mainOctree = undefined
-                mainOctreeUsed = false
+                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
+                mainPolytree = undefined
+                mainPolytreeUsed = false
                 promises = []
                 if usingBatches
                     batches = []
                     currentIndex = 0
                     while currentIndex < objArr.length
-                        batches.push objArr.slice(currentIndex, currentIndex + OctreeCSG.async.batchSize)
-                        currentIndex += OctreeCSG.async.batchSize
+                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
+                        currentIndex += Polytree.async.batchSize
 
                     batch = batches.shift()
                     while batch
-                        promise = OctreeCSG.async.intersectArray(batch, 0)
+                        promise = Polytree.async.intersectArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
                     usingBatches = true
-                    mainOctreeUsed = true
+                    mainPolytreeUsed = true
                     objArr.length = 0
                 else
-                    octreesArray = []
+                    polytreesArray = []
                     for i in [0...objArr.length]
                         materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempOctree = undefined
+                        tempPolytree = undefined
                         if objArr[i].isMesh
-                            tempOctree = OctreeCSG.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
+                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
                         else
-                            tempOctree = objArr[i]
+                            tempPolytree = objArr[i]
                             if materialIndexMax > -1
-                                tempOctree.setPolygonIndex(materialIndex)
-                        tempOctree.octreeIndex = i
-                        octreesArray.push(tempOctree)
-                    mainOctree = octreesArray.shift()
+                                tempPolytree.setPolygonIndex(materialIndex)
+                        tempPolytree.polytreeIndex = i
+                        polytreesArray.push(tempPolytree)
+                    mainPolytree = polytreesArray.shift()
                     result = undefined
                     hasLeftOver = false
-                    leftOverOctree = undefined
-                    for i in [0...octreesArray.length] by 2
-                        if i + 1 >= octreesArray.length
-                            leftOverOctree = octreesArray[i]
+                    leftOverPolytree = undefined
+                    for i in [0...polytreesArray.length] by 2
+                        if i + 1 >= polytreesArray.length
+                            leftOverPolytree = polytreesArray[i]
                             hasLeftOver = true
                             break
-                        promise = OctreeCSG.async.intersect(octreesArray[i], octreesArray[i + 1])
+                        promise = Polytree.async.intersect(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
-                    if leftOverOctree
-                        promise = OctreeCSG.async.intersect(mainOctree, leftOverOctree)
+                    if leftOverPolytree
+                        promise = Polytree.async.intersect(mainPolytree, leftOverPolytree)
                         promises.push(promise)
-                        mainOctreeUsed = true
+                        mainPolytreeUsed = true
 
                 Promise.allSettled(promises).then (results) ->
-                    octrees = []
+                    polytrees = []
                     results.forEach (r) ->
                         if r.status is "fulfilled"
-                            octrees.push(r.value)
-                    unless mainOctreeUsed
-                        octrees.unshift(mainOctree)
-                    if octrees.length > 0
-                        if octrees.length is 1
-                            resolve(octrees[0])
-                        else if octrees.length > 3
-                            OctreeCSG.async.intersectArray(octrees, if usingBatches then 0 else -1).then (result) ->
+                            polytrees.push(r.value)
+                    unless mainPolytreeUsed
+                        polytrees.unshift(mainPolytree)
+                    if polytrees.length > 0
+                        if polytrees.length is 1
+                            resolve(polytrees[0])
+                        else if polytrees.length > 3
+                            Polytree.async.intersectArray(polytrees, if usingBatches then 0 else -1).then (result) ->
                                 resolve(result)
                             .catch (e) -> reject(e)
                         else
-                            OctreeCSG.async.intersect(octrees[0], octrees[1]).then (result) ->
-                                if octrees.length is 3
-                                    OctreeCSG.async.intersect(result, octrees[2]).then (result) ->
+                            Polytree.async.intersect(polytrees[0], polytrees[1]).then (result) ->
+                                if polytrees.length is 3
+                                    Polytree.async.intersect(result, polytrees[2]).then (result) ->
                                         resolve(result)
                                     .catch (e) -> reject(e)
                                 else
                                     resolve(result)
                             .catch (e) -> reject(e)
                     else
-                        reject('Unable to find any result octree')
+                        reject('Unable to find any result polytree')
             catch e
                 reject(e)
 
-    operation: (obj, returnOctrees = false, buildTargetOctree = true, options = { objCounter: 0 }, firstRun = true) ->
+    operation: (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
         new Promise (resolve, reject) ->
             try
-                octreeA = undefined
-                octreeB = undefined
-                resultOctree = undefined
+                polytreeA = undefined
+                polytreeB = undefined
+                resultPolytree = undefined
                 material = undefined
                 if obj.material
                     material = obj.material
                 promises = []
                 if obj.objA
-                    promise = handleObjectForOp_async(obj.objA, returnOctrees, buildTargetOctree, options, 0)
+                    promise = handleObjectForOp_async(obj.objA, returnPolytrees, buildTargetPolytree, options, 0)
                     promises.push(promise)
                 if obj.objB
-                    promise = handleObjectForOp_async(obj.objB, returnOctrees, buildTargetOctree, options, 1)
+                    promise = handleObjectForOp_async(obj.objB, returnPolytrees, buildTargetPolytree, options, 1)
                     promises.push(promise)
                 Promise.allSettled(promises).then (results) ->
-                    octrees = []
+                    polytrees = []
                     results.forEach (r) ->
                         if r.status is "fulfilled"
                             if r.value.objIndex is 0
-                                octreeA = r.value
+                                polytreeA = r.value
                             else if r.value.objIndex is 1
-                                octreeB = r.value
-                    if returnOctrees is true
-                        obj.objA = octreeA.original
-                        octreeA = octreeA.result
-                        obj.objB = octreeB.original
-                        octreeB = octreeB.result
+                                polytreeB = r.value
+                    if returnPolytrees is true
+                        obj.objA = polytreeA.original
+                        polytreeA = polytreeA.result
+                        obj.objB = polytreeB.original
+                        polytreeB = polytreeB.result
                     resultPromise = undefined
                     switch obj.op
                         when 'union'
-                            resultPromise = OctreeCSG.async.union(octreeA, octreeB, buildTargetOctree)
+                            resultPromise = Polytree.async.union(polytreeA, polytreeB, buildTargetPolytree)
                         when 'subtract'
-                            resultPromise = OctreeCSG.async.subtract(octreeA, octreeB, buildTargetOctree)
+                            resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
                         when 'intersect'
-                            resultPromise = OctreeCSG.async.intersect(octreeA, octreeB, buildTargetOctree)
-                    resultPromise.then (resultOctree) ->
+                            resultPromise = Polytree.async.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                    resultPromise.then (resultPolytree) ->
                         if firstRun and material
-                            mesh = OctreeCSG.toMesh(resultOctree, material)
-                            unless returnOctrees
-                                disposeOctree(resultOctree)
-                            resolve(if returnOctrees then { result: mesh, operationTree: obj } else mesh)
-                        else if firstRun and returnOctrees
-                            resolve({ result: resultOctree, operationTree: obj })
+                            mesh = Polytree.toMesh(resultPolytree, material)
+                            unless returnPolytrees
+                                disposePolytree(resultPolytree)
+                            resolve(if returnPolytrees then { result: mesh, operationTree: obj } else mesh)
+                        else if firstRun and returnPolytrees
+                            resolve({ result: resultPolytree, operationTree: obj })
                         else
-                            resolve(resultOctree)
-                        unless returnOctrees
-                            disposeOctree(octreeA, octreeB)
+                            resolve(resultPolytree)
+                        unless returnPolytrees
+                            disposePolytree(polytreeA, polytreeB)
                     .catch (e) -> reject(e)
             catch e
                 reject(e)
 
-OctreeCSG.unionArray = (objArr, materialIndexMax = Infinity) ->
-    octreesArray = []
+Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
+    polytreesArray = []
     for i in [0...objArr.length]
         materialIndex = if i > materialIndexMax then materialIndexMax else i
-        tempOctree = undefined
+        tempPolytree = undefined
         if objArr[i].isMesh
-            tempOctree = OctreeCSG.fromMesh(objArr[i], materialIndex)
+            tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
         else
-            tempOctree = objArr[i]
-            tempOctree.setPolygonIndex(materialIndex)
-        tempOctree.octreeIndex = i
-        octreesArray.push(tempOctree)
-    octreeA = octreesArray.shift()
-    octreeB = octreesArray.shift()
-    while octreeA and octreeB
-        resultOctree = OctreeCSG.union(octreeA, octreeB)
-        disposeOctree(octreeA, octreeB)
-        octreeA = resultOctree
-        octreeB = octreesArray.shift()
-    octreeA
+            tempPolytree = objArr[i]
+            tempPolytree.setPolygonIndex(materialIndex)
+        tempPolytree.polytreeIndex = i
+        polytreesArray.push(tempPolytree)
+    polytreeA = polytreesArray.shift()
+    polytreeB = polytreesArray.shift()
+    while polytreeA and polytreeB
+        resultPolytree = Polytree.union(polytreeA, polytreeB)
+        disposePolytree(polytreeA, polytreeB)
+        polytreeA = resultPolytree
+        polytreeB = polytreesArray.shift()
+    polytreeA
 
-OctreeCSG.subtractArray = (objArr, materialIndexMax = Infinity) ->
-    octreesArray = []
+Polytree.subtractArray = (objArr, materialIndexMax = Infinity) ->
+    polytreesArray = []
     for i in [0...objArr.length]
         materialIndex = if i > materialIndexMax then materialIndexMax else i
-        tempOctree = undefined
+        tempPolytree = undefined
         if objArr[i].isMesh
-            tempOctree = OctreeCSG.fromMesh(objArr[i], materialIndex)
+            tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
         else
-            tempOctree = objArr[i]
-            tempOctree.setPolygonIndex(materialIndex)
-        tempOctree.octreeIndex = i
-        octreesArray.push(tempOctree)
-    octreeA = octreesArray.shift()
-    octreeB = octreesArray.shift()
-    while octreeA and octreeB
-        resultOctree = OctreeCSG.subtract(octreeA, octreeB)
-        disposeOctree(octreeA, octreeB)
-        octreeA = resultOctree
-        octreeB = octreesArray.shift()
-    octreeA
+            tempPolytree = objArr[i]
+            tempPolytree.setPolygonIndex(materialIndex)
+        tempPolytree.polytreeIndex = i
+        polytreesArray.push(tempPolytree)
+    polytreeA = polytreesArray.shift()
+    polytreeB = polytreesArray.shift()
+    while polytreeA and polytreeB
+        resultPolytree = Polytree.subtract(polytreeA, polytreeB)
+        disposePolytree(polytreeA, polytreeB)
+        polytreeA = resultPolytree
+        polytreeB = polytreesArray.shift()
+    polytreeA
 
-OctreeCSG.intersectArray = (objArr, materialIndexMax = Infinity) ->
-    octreesArray = []
+Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
+    polytreesArray = []
     for i in [0...objArr.length]
         materialIndex = if i > materialIndexMax then materialIndexMax else i
-        tempOctree = undefined
+        tempPolytree = undefined
         if objArr[i].isMesh
-            tempOctree = OctreeCSG.fromMesh(objArr[i], materialIndex)
+            tempPolytree = Polytree.fromMesh(objArr[i], materialIndex)
         else
-            tempOctree = objArr[i]
-            tempOctree.setPolygonIndex(materialIndex)
-        tempOctree.octreeIndex = i
-        octreesArray.push(tempOctree)
-    octreeA = octreesArray.shift()
-    octreeB = octreesArray.shift()
-    while octreeA and octreeB
-        resultOctree = OctreeCSG.intersect(octreeA, octreeB)
-        disposeOctree(octreeA, octreeB)
-        octreeA = resultOctree
-        octreeB = octreesArray.shift()
-    octreeA
+            tempPolytree = objArr[i]
+            tempPolytree.setPolygonIndex(materialIndex)
+        tempPolytree.polytreeIndex = i
+        polytreesArray.push(tempPolytree)
+    polytreeA = polytreesArray.shift()
+    polytreeB = polytreesArray.shift()
+    while polytreeA and polytreeB
+        resultPolytree = Polytree.intersect(polytreeA, polytreeB)
+        disposePolytree(polytreeA, polytreeB)
+        polytreeA = resultPolytree
+        polytreeB = polytreesArray.shift()
+    polytreeA
 
-OctreeCSG.operation = (obj, returnOctrees = false, buildTargetOctree = true, options = { objCounter: 0 }, firstRun = true) ->
-    octreeA = undefined
-    octreeB = undefined
-    resultOctree = undefined
+Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
+    polytreeA = undefined
+    polytreeB = undefined
+    resultPolytree = undefined
     material = undefined
     if obj.material
         material = obj.material
     if obj.objA
-        octreeA = handleObjectForOp(obj.objA, returnOctrees, buildTargetOctree, options)
-        if returnOctrees == true
-            obj.objA = octreeA.original
-            octreeA = octreeA.result
+        polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options)
+        if returnPolytrees == true
+            obj.objA = polytreeA.original
+            polytreeA = polytreeA.result
     if obj.objB
-        octreeB = handleObjectForOp(obj.objB, returnOctrees, buildTargetOctree, options)
-        if returnOctrees == true
-            obj.objB = octreeB.original
-            octreeB = octreeB.result
+        polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options)
+        if returnPolytrees == true
+            obj.objB = polytreeB.original
+            polytreeB = polytreeB.result
     switch obj.op
         when 'union'
-            resultOctree = OctreeCSG.union(octreeA, octreeB, buildTargetOctree)
+            resultPolytree = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
         when 'subtract'
-            resultOctree = OctreeCSG.subtract(octreeA, octreeB, buildTargetOctree)
+            resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
         when 'intersect'
-            resultOctree = OctreeCSG.intersect(octreeA, octreeB, buildTargetOctree)
-    unless returnOctrees
-        disposeOctree(octreeA, octreeB)
+            resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+    unless returnPolytrees
+        disposePolytree(polytreeA, polytreeB)
     if firstRun and material
-        mesh = OctreeCSG.toMesh(resultOctree, material)
-        disposeOctree(resultOctree)
-        return if returnOctrees then { result: mesh, operationTree: obj } else mesh
-    if firstRun and returnOctrees
-        return { result: resultOctree, operationTree: obj }
-    resultOctree
+        mesh = Polytree.toMesh(resultPolytree, material)
+        disposePolytree(resultPolytree)
+        return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
+    if firstRun and returnPolytrees
+        return { result: resultPolytree, operationTree: obj }
+    resultPolytree
 
-handleObjectForOp = (obj, returnOctrees, buildTargetOctree, options) ->
+handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options) ->
     returnObj = undefined
     if obj.isMesh
-        returnObj = OctreeCSG.fromMesh(obj, options.objCounter++)
-        if returnOctrees
+        returnObj = Polytree.fromMesh(obj, options.objCounter++)
+        if returnPolytrees
             returnObj = { result: returnObj, original: returnObj.clone() }
-    else if obj.isOctree
+    else if obj.isPolytree
         returnObj = obj
-        if returnOctrees
+        if returnPolytrees
             returnObj = { result: obj, original: obj.clone() }
     else if obj.op
-        returnObj = OctreeCSG.operation(obj, returnOctrees, buildTargetOctree, options, false)
-        if returnOctrees
+        returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false)
+        if returnPolytrees
             returnObj = { result: returnObj, original: obj }
     return returnObj
 
-handleObjectForOp_async = (obj, returnOctrees, buildTargetOctree, options, objIndex) ->
+handleObjectForOp_async = (obj, returnPolytrees, buildTargetPolytree, options, objIndex) ->
     new Promise (resolve, reject) ->
         try
             returnObj = undefined
             if obj.isMesh
-                returnObj = OctreeCSG.fromMesh(obj, options.objCounter++)
-                if returnOctrees
+                returnObj = Polytree.fromMesh(obj, options.objCounter++)
+                if returnPolytrees
                     returnObj = { result: returnObj, original: returnObj.clone() }
                 returnObj.objIndex = objIndex
                 resolve(returnObj)
-            else if obj.isOctree
+            else if obj.isPolytree
                 returnObj = obj
-                if returnOctrees
+                if returnPolytrees
                     returnObj = { result: obj, original: obj.clone() }
                 returnObj.objIndex = objIndex
                 resolve(returnObj)
             else if obj.op
-                OctreeCSG.async.operation(obj, returnOctrees, buildTargetOctree, options, false).then (returnObj) ->
-                    if returnOctrees
+                Polytree.async.operation(obj, returnPolytrees, buildTargetPolytree, options, false).then (returnObj) ->
+                    if returnPolytrees
                         returnObj = { result: returnObj, original: obj }
                     returnObj.objIndex = objIndex
                     resolve(returnObj)
@@ -1809,8 +1809,8 @@ _normal1 = new Vector3()
 tmpm3 = new Matrix3()
 ttvv0 = new Vector3()
 
-OctreeCSG.toGeometry = (octree) ->
-    polygons = octree.getPolygons()
+Polytree.toGeometry = (polytree) ->
+    polygons = polytree.getPolygons()
     triangleCount = polygons.length
     # let validPolygons = [];
     # let trianglesSet = new Set();
@@ -1883,14 +1883,14 @@ OctreeCSG.toGeometry = (octree) ->
 
     geometry
 
-OctreeCSG.toMesh = (octree, toMaterial) ->
-    geometry = OctreeCSG.toGeometry(octree)
+Polytree.toMesh = (polytree, toMaterial) ->
+    geometry = Polytree.toGeometry(polytree)
     new Mesh(geometry, toMaterial)
 
-OctreeCSG.fromMesh = (obj, objectIndex, octree = new OctreeCSG(), buildTargetOctree = true) ->
-    return obj if obj.isOctree
-    if OctreeCSG.rayIntersectTriangleType is "regular"
-        octree.originalMatrixWorld = obj.matrixWorld.clone()
+Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPolytree = true) ->
+    return obj if obj.isPolytree
+    if Polytree.rayIntersectTriangleType is "regular"
+        polytree.originalMatrixWorld = obj.matrixWorld.clone()
     obj.updateWorldMatrix(true, true)
     geometry = obj.geometry
     tmpm3.getNormalMatrix(obj.matrix)
@@ -1942,13 +1942,13 @@ OctreeCSG.fromMesh = (obj, objectIndex, octree = new OctreeCSG(), buildTargetOct
             polys.push(polygon)
     for i in [0...polys.length]
         if isValidTriangle(polys[i].triangle)
-            octree.addPolygon(polys[i])
+            polytree.addPolygon(polys[i])
         else
             polys[i].delete()
-    buildTargetOctree and octree.buildTree()
-    if OctreeCSG.useOctreeRay isnt true
-        octree.mesh = obj
-    return octree
+    buildTargetPolytree and polytree.buildTree()
+    if Polytree.usePolytreeRay isnt true
+        polytree.mesh = obj
+    return polytree
 
 isValidTriangle = (triangle) ->
 
@@ -2121,11 +2121,11 @@ class Polygon
         @shared = undefined
         @setInvalid()
 
-disposeOctree = (...octrees) ->
+disposePolytree = (...polytrees) ->
 
-    if OctreeCSG.disposeOctree
+    if Polytree.disposePolytree
 
-        octrees.forEach((octree) -> octree.delete())
+        polytrees.forEach((polytree) -> polytree.delete())
 
 # Winding Number algorithm adapted from https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/vega/libraries/windingNumber/windingNumber.cpp
 _wV1 = new Vector3()
@@ -2182,19 +2182,19 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
 # -----
 
-handleIntersectingOctrees = (octreeA, octreeB, bothOctrees = true) ->
-    octreeA_buffer = undefined
-    octreeB_buffer = undefined
-    if OctreeCSG.useWindingNumber is true
-        if bothOctrees
-            octreeA_buffer = prepareTriangleBuffer(octreeA.getPolygons())
-        octreeB_buffer = prepareTriangleBuffer(octreeB.getPolygons())
-    octreeA.handleIntersectingPolygons(octreeB, octreeB_buffer)
-    if bothOctrees
-        octreeB.handleIntersectingPolygons(octreeA, octreeA_buffer)
-    if octreeA_buffer isnt undefined
-        octreeA_buffer = undefined
-        octreeB_buffer = undefined
+handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
+    polytreeA_buffer = undefined
+    polytreeB_buffer = undefined
+    if Polytree.useWindingNumber is true
+        if bothPolytrees
+            polytreeA_buffer = prepareTriangleBuffer(polytreeA.getPolygons())
+        polytreeB_buffer = prepareTriangleBuffer(polytreeB.getPolygons())
+    polytreeA.handleIntersectingPolygons(polytreeB, polytreeB_buffer)
+    if bothPolytrees
+        polytreeB.handleIntersectingPolygons(polytreeA, polytreeA_buffer)
+    if polytreeA_buffer isnt undefined
+        polytreeA_buffer = undefined
+        polytreeB_buffer = undefined
 
 prepareTriangleBuffer = (polygons) ->
     numOfTriangles = polygons.length
@@ -2242,20 +2242,20 @@ rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
         return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
     null
 
-OctreeCSG.rayIntersectsTriangle = rayIntersectsTriangle
+Polytree.rayIntersectsTriangle = rayIntersectsTriangle
 
-OctreeCSG.useOctreeRay = true
-OctreeCSG.useWindingNumber = false
-OctreeCSG.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
-OctreeCSG.maxLevel = 16
-OctreeCSG.polygonsPerTree = 100
-# OctreeCSG.Octree = Octree
+Polytree.usePolytreeRay = true
+Polytree.useWindingNumber = false
+Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
+Polytree.maxLevel = 16
+Polytree.polygonsPerTree = 100
+# Polytree.PolytreeExtended = PolytreeExtended
 
 module.exports =
 
-    default: OctreeCSG
-    CSG: OctreeCSG
-    OctreeCSG: OctreeCSG
+    default: Polytree
+    CSG: Polytree
+    Polytree: Polytree
     Polygon: Polygon
     Plane: Plane
     Vertex: Vertex
