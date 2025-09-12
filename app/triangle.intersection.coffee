@@ -322,6 +322,7 @@ resolveTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3Triang
             else # All three B vertices are exactly on the plane (coplanar).
 
                 additions.coplanar = true # Mark coplanar.
+
                 resolveCoplanarTriangleIntersection(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, additions.normal1, additions.normal2)
 
 ### Resolves intersection between two coplanar triangles in 3D space.
