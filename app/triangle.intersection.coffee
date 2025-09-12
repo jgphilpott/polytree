@@ -618,12 +618,18 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleA, tempVector1)
 
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
 
@@ -635,12 +641,18 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleB, tempVector1)
 
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
 
@@ -670,12 +682,18 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
                 alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleB, tempVector1)
 
                 tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
                 tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
                 alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleB, tempVector1)
 
@@ -687,12 +705,18 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
                 alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.source.subVectors(vertex1TriangleA, tempVector1)
 
                 tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
                 tempVector2.subVectors(vertex1TriangleA, vertex2TriangleA)
                 alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+
+                return false unless isFinite(alpha)
+
                 tempVector1.copy(tempVector2).multiplyScalar(alpha)
                 additions.target.subVectors(vertex1TriangleA, tempVector1)
 

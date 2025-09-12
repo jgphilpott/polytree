@@ -647,3 +647,92 @@ describe "intersectionTestVertex2D (vertex containment / touch)", ->
         B = build([[0,0],[3,0],[0,3]])
 
         expect(callVertex(A,B)).toBe true
+
+describe "constructIntersection (direct invocation)", ->
+
+    v = (x, y, z) -> new Vector3(x, y, z)
+
+    makeNormals = (a1, a2, a3, b1, b2, b3) ->
+
+        n1 = new Vector3().copy(a2).sub(a1).cross(new Vector3().copy(a3).sub(a1))
+        n2 = new Vector3().copy(b1).sub(b3).cross(new Vector3().copy(b2).sub(b3))
+
+        return { n1, n2 }
+
+    samePoint = (p, q, eps = 1e-9) ->
+
+        return Math.abs(p.x - q.x) < eps and Math.abs(p.y - q.y) < eps and Math.abs(p.z - q.z) < eps
+
+    unorderedSegmentEquals = (s1a, s1b, s2a, s2b, eps = 1e-9) ->
+
+        return (samePoint(s1a, s2a, eps) and samePoint(s1b, s2b, eps)) or (samePoint(s1a, s2b, eps) and samePoint(s1b, s2a, eps))
+
+    it "computes expected segment for a simple skew intersection (ordering via resolveTriangleIntersection)", ->
+
+        a1 = v(0,0,0); a2 = v(4,0,0); a3 = v(0,4,0)
+        bBelow = v(1,1,-1); bUp1 = v(1,1,1); bUp2 = v(3,0,1)
+
+        expected1 = v(1,1,0)
+        expected2 = v(2,0.5,0)
+
+        { n1, n2 } = makeNormals(a1, a2, a3, bBelow, bUp1, bUp2)
+
+        # Distances of B vertices to plane of A (z=0 plane normal n1)
+        d1 = bBelow.clone().sub(a1).dot(n1)
+        d2 = bUp1.clone().sub(a1).dot(n1)
+        d3 = bUp2.clone().sub(a1).dot(n1)
+
+        additions = normal1: n1, normal2: n2, source: new Vector3(), target: new Vector3(), coplanar: false
+
+        # This call performs the necessary reordering then invokes constructIntersection internally.
+        ok = resolveTriangleIntersection(a1, a2, a3, bBelow, bUp1, bUp2, d1, d2, d3, additions)
+
+        expect(ok).toBe true
+        expect(unorderedSegmentEquals(additions.source, additions.target, expected1, expected2)).toBe true
+
+    it "computes same segment with alternate B ordering input (resolveTriangleIntersection handles reordering)", ->
+
+        a1 = v(0,0,0); a2 = v(4,0,0); a3 = v(0,4,0)
+        bBelow = v(1,1,-1); bUp1 = v(3,0,1); bUp2 = v(1,1,1)
+
+        expected1 = v(1,1,0)
+        expected2 = v(2,0.5,0)
+
+        { n1, n2 } = makeNormals(a1, a2, a3, bBelow, bUp1, bUp2)
+
+        d1 = bBelow.clone().sub(a1).dot(n1)
+        d2 = bUp1.clone().sub(a1).dot(n1)
+        d3 = bUp2.clone().sub(a1).dot(n1)
+
+        additions = normal1: n1, normal2: n2, source: new Vector3(), target: new Vector3(), coplanar: false
+
+        ok = resolveTriangleIntersection(a1, a2, a3, bBelow, bUp1, bUp2, d1, d2, d3, additions)
+
+        expect(ok).toBe true
+        expect(unorderedSegmentEquals(additions.source, additions.target, expected1, expected2)).toBe true
+
+    it "returns false for separated triangles (no segment)", ->
+
+        a1 = v(0,0,0); a2 = v(4,0,0); a3 = v(0,4,0)
+        b1 = v(1,1,1); b2 = v(2,1,1); b3 = v(1,2,1) # Entirely above
+
+        { n1, n2 } = makeNormals(a1, a2, a3, b1, b2, b3)
+        additions = normal1: n1, normal2: n2, source: new Vector3(), target: new Vector3(), coplanar: false
+
+        ok = constructIntersection(a1, a2, a3, b1, b2, b3, additions)
+
+        expect(ok).toBe false
+
+    it "guards against zero denominator producing NaN (returns false)", ->
+
+        # Craft a degenerate scenario where an edge direction is parallel to the other plane normal.
+        # Use coincident points so tempVector2 becomes zero leading to 0 denominator.
+        a1 = v(0,0,0); a2 = v(1,0,0); a3 = v(0,1,0)
+        b1 = v(0,0,0); b2 = v(0,0,0); b3 = v(0,0,1) # Degenerate edge for B
+
+        { n1, n2 } = makeNormals(a1, a2, a3, b1, b2, b3)
+        additions = normal1: n1, normal2: n2, source: new Vector3(), target: new Vector3(), coplanar: false
+
+        ok = constructIntersection(a1, a2, a3, b1, b2, b3, additions)
+
+        expect(ok).toBe false
