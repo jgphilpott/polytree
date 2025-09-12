@@ -1,16 +1,16 @@
 { Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } = require "three"
 
-_v1 = new Vector3()
-_v2 = new Vector3()
+tempVector1 = new Vector3()
+tempVector2 = new Vector3()
 
-_box3$1 = new Box3()
+tempBox3 = new Box3()
 
-tv0 = new Vector3()
-tv1 = new Vector3()
+triangleVertex0 = new Vector3()
+triangleVertex1 = new Vector3()
 
-_raycaster1 = new Raycaster()
-_ray = new Ray()
-_rayDirection = new Vector3(0, 0, 1)
+tempRaycaster = new Raycaster()
+tempRay = new Ray()
+tempRayDirection = new Vector3(0, 0, 1)
 
 EPSILON = 1e-5
 COPLANAR = 0
@@ -143,7 +143,7 @@ class Polytree
         return unless @box
 
         subTrees = []
-        halfsize = _v2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
+        halfsize = tempVector2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
         for x in [0..1]
 
@@ -152,9 +152,9 @@ class Polytree
                 for z in [0..1]
 
                     box = new Box3()
-                    v = _v1.set(x, y, z)
+                    vectorPosition = tempVector1.set(x, y, z)
 
-                    box.min.copy(@box.min).add(v.multiply(halfsize))
+                    box.min.copy(@box.min).add(vectorPosition.multiply(halfsize))
                     box.max.copy(box.min).add(halfsize)
                     box.expandByScalar(EPSILON)
                     subTrees.push(@newPolytree(box, this))
@@ -203,7 +203,7 @@ class Polytree
 
         unless @isEmpty()
 
-            _box3$1.copy(@box)
+            tempBox3.copy(@box)
 
             for i in [0...@polygons.length]
 
@@ -294,12 +294,12 @@ class Polytree
 
             if Polytree.rayIntersectTriangleType is "regular"
 
-                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, _v1)
+                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, tempVector1)
 
                 if result
 
-                    _v1.applyMatrix4(matrixWorld)
-                    distance = _v1.distanceTo(ray.origin)
+                    tempVector1.applyMatrix4(matrixWorld)
+                    distance = tempVector1.distanceTo(ray.origin)
 
                     if distance < 0 or distance > Infinity
 
@@ -307,11 +307,11 @@ class Polytree
 
                     else
 
-                        intersects.push({ distance: distance, polygon: polygons[i], position: _v1.clone() })
+                        intersects.push({ distance: distance, polygon: polygons[i], position: tempVector1.clone() })
 
             else
 
-                result = rayIntersectsTriangle(ray, polygons[i].triangle, _v1)
+                result = rayIntersectsTriangle(ray, polygons[i].triangle, tempVector1)
 
                 if result
 
@@ -788,17 +788,17 @@ class Polytree
 
                     else
 
-                        point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
+                        point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
 
                         if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
 
-                            _rayDirection.copy(currentPolygon.plane.normal)
-                            _raycaster1.set(point, _rayDirection)
-                            intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+                            tempRayDirection.copy(currentPolygon.plane.normal)
+                            tempRaycaster.set(point, tempRayDirection)
+                            intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
 
                             if intersects.length
 
-                                if _rayDirection.dot(intersects[0].face.normal) > 0
+                                if tempRayDirection.dot(intersects[0].face.normal) > 0
 
                                     inside = true
 
@@ -806,26 +806,26 @@ class Polytree
 
                                 for j in [0..._wP_EPS_ARR_COUNT]
 
-                                    _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+                                    tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
+                                    intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
 
                                     if intersects.length
 
-                                        if _rayDirection.dot(intersects[0].face.normal) > 0
+                                        if tempRayDirection.dot(intersects[0].face.normal) > 0
 
                                             inside = true
                                             break
 
                         else
 
-                            _ray.origin.copy(point)
-                            _rayDirection.copy(currentPolygon.plane.normal)
-                            _ray.direction.copy(currentPolygon.plane.normal)
-                            intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+                            tempRay.origin.copy(point)
+                            tempRayDirection.copy(currentPolygon.plane.normal)
+                            tempRay.direction.copy(currentPolygon.plane.normal)
+                            intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
 
                             if intersects.length
 
-                                if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                     inside = true
 
@@ -833,14 +833,14 @@ class Polytree
 
                                 for j in [0..._wP_EPS_ARR_COUNT]
 
-                                    _ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    _rayDirection.copy(currentPolygon.plane.normal)
-                                    _ray.direction.copy(currentPolygon.plane.normal)
-                                    intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+                                    tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
+                                    tempRayDirection.copy(currentPolygon.plane.normal)
+                                    tempRay.direction.copy(currentPolygon.plane.normal)
+                                    intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
 
                                     if intersects.length
 
-                                        if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                        if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                             inside = true
                                             break
@@ -1044,10 +1044,10 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
                 if (ti | tj) == SPANNING
 
-                    t = (plane.w - plane.normal.dot(vi.pos)) / plane.normal.dot(tv0.copy(vj.pos).sub(vi.pos))
-                    v = vi.interpolate(vj, t)
-                    f.push(v)
-                    b.push(v.clone())
+                    intersectionParameter = (plane.w - plane.normal.dot(vi.pos)) / plane.normal.dot(triangleVertex0.copy(vj.pos).sub(vi.pos))
+                    vertexParameter = vi.interpolate(vj, intersectionParameter)
+                    f.push(vertexParameter)
+                    b.push(vertexParameter.clone())
 
             if f.length >= 3
 
@@ -2568,8 +2568,8 @@ class Plane
 
 Plane.fromPoints = (a, b, c) ->
 
-    n = tv0.copy(b).sub(a).cross(tv1.copy(c).sub(a)).normalize().clone()
-    new Plane(n, n.dot(a))
+    planeNormal = triangleVertex0.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
+    new Plane(planeNormal, planeNormal.dot(a))
 
 # class Polygon
 class Polygon
