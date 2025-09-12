@@ -771,69 +771,116 @@ class Polytree
             polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
             currentPolygon = polygonStack.pop()
             inside = false
+
             while currentPolygon
+
                 unless currentPolygon.valid
+
                     continue
+
                 inside = false
+
                 if targetPolytree.box.containsPoint(currentPolygon.getMidpoint())
+
                     if Polytree.useWindingNumber is true
+
                         inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
+
                     else
+
                         point = pointRounding(_v2.copy(currentPolygon.getMidpoint()))
+
                         if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
+
                             _rayDirection.copy(currentPolygon.plane.normal)
                             _raycaster1.set(point, _rayDirection)
                             intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+
                             if intersects.length
+
                                 if _rayDirection.dot(intersects[0].face.normal) > 0
+
                                     inside = true
+
                             unless inside or not currentPolygon.coplanar
+
                                 for j in [0..._wP_EPS_ARR_COUNT]
+
                                     _raycaster1.ray.origin.copy(point).add(_wP_EPS_ARR[j])
                                     intersects = _raycaster1.intersectObject(targetPolytree.mesh)
+
                                     if intersects.length
+
                                         if _rayDirection.dot(intersects[0].face.normal) > 0
+
                                             inside = true
                                             break
+
                         else
+
                             _ray.origin.copy(point)
                             _rayDirection.copy(currentPolygon.plane.normal)
                             _ray.direction.copy(currentPolygon.plane.normal)
                             intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+
                             if intersects.length
+
                                 if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+
                                     inside = true
+
                             unless inside or not currentPolygon.coplanar
+
                                 for j in [0..._wP_EPS_ARR_COUNT]
+
                                     _ray.origin.copy(point).add(_wP_EPS_ARR[j])
                                     _rayDirection.copy(currentPolygon.plane.normal)
                                     _ray.direction.copy(currentPolygon.plane.normal)
                                     intersects = targetPolytree.rayIntersect(_ray, targetPolytree.originalMatrixWorld)
+
                                     if intersects.length
+
                                         if _rayDirection.dot(intersects[0].polygon.plane.normal) > 0
+
                                             inside = true
                                             break
+
                 if inside is true
+
                     currentPolygon.setState("inside")
+
                 else
+
                     currentPolygon.setState("outside")
+
                 currentPolygon = polygonStack.pop()
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
     delete: (deletePolygons = true) ->
 
         if @polygons.length > 0 and deletePolygons
+
             @polygons.forEach (p) -> p.delete()
             @polygons.length = 0
+
         if @replacedPolygons.length > 0 and deletePolygons
+
             @replacedPolygons.forEach (p) -> p.delete()
             @replacedPolygons.length = 0
+
         if @polygonArrays
+
             @polygonArrays.length = 0
+
         if @subTrees.length
+
             for i in [0...@subTrees.length]
+
                 @subTrees[i].delete(deletePolygons)
+
             @subTrees.length = 0
 
         @mesh = undefined
@@ -849,9 +896,13 @@ class Polytree
     getPolygonCloneCallback: (cbFunc, trianglesSet) ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 for i in [0...polygonsArray.length]
+
                     if polygonsArray[i].valid
+
                         cbFunc(polygonsArray[i].clone(), trianglesSet)
 
     # if @polygons.length > 0
@@ -864,15 +915,20 @@ class Polytree
     deleteReplacedPolygons: ->
 
         if @replacedPolygons.length > 0
+
             @replacedPolygons.forEach (p) -> p.delete()
             @replacedPolygons.length = 0
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].deleteReplacedPolygons()
 
     markPolygonsAsOriginal: ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonsArray.forEach (p) -> p.originalValid = true
 
     # if @polygons.length > 0
@@ -881,24 +937,39 @@ class Polytree
     #     @subTrees[i].markPolygonsAsOriginal()
 
     applyMatrix: (matrix, normalMatrix, firstRun = true) ->
+
         if matrix.isMesh
+
             matrix.updateMatrix()
             matrix = matrix.matrix
+
         @box.makeEmpty()
         normalMatrix = normalMatrix or tmpm3.getNormalMatrix(matrix)
+
         if @polygons.length > 0
+
             for i in [0...@polygons.length]
+
                 if @polygons[i].valid
+
                     @polygons[i].applyMatrix(matrix, normalMatrix)
+
         for i in [0...@subTrees.length]
+
             @subTrees[i].applyMatrix(matrix, normalMatrix, false)
+
         if firstRun
+
             @processTree()
 
     setPolygonIndex: (index) ->
+
         return if index is undefined
+
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonsArray.forEach (p) -> p.shared = index
 
         # if @polygons.length > 0
@@ -911,78 +982,117 @@ Polytree::isPolytree = true
 raycastIntersectAscSort = (a, b) -> a.distance - b.distance
 
 pointRounding = (point, num = 15) ->
+
     point.x = +point.x.toFixed(num)
     point.y = +point.y.toFixed(num)
     point.z = +point.z.toFixed(num)
     point
 
 splitPolygonByPlane = (polygon, plane, result = []) ->
+
     returnPolygon =
         polygon: polygon
         type: "undecided"
+
     polygonType = 0
     types = []
+
     for i in [0...polygon.vertices.length]
+
         t = plane.normal.dot(polygon.vertices[i].pos) - plane.w
         type = if t < -EPSILON then BACK else if t > EPSILON then FRONT else COPLANAR
         polygonType |= type
         types.push(type)
+
     switch polygonType
+
         when COPLANAR
+
             returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
             result.push(returnPolygon)
+
         when FRONT
+
             returnPolygon.type = "front"
             result.push(returnPolygon)
+
         when BACK
+
             returnPolygon.type = "back"
             result.push(returnPolygon)
+
         when SPANNING
+
             f = []
             b = []
+
             for i in [0...polygon.vertices.length]
+
                 j = (i + 1) % polygon.vertices.length
                 ti = types[i]
                 tj = types[j]
                 vi = polygon.vertices[i]
                 vj = polygon.vertices[j]
+
                 if ti != BACK
+
                     f.push(vi)
+
                 if ti != FRONT
+
                     b.push(if ti != BACK then vi.clone() else vi)
+
                 if (ti | tj) == SPANNING
+
                     t = (plane.w - plane.normal.dot(vi.pos)) / plane.normal.dot(tv0.copy(vj.pos).sub(vi.pos))
                     v = vi.interpolate(vj, t)
                     f.push(v)
                     b.push(v.clone())
+
             if f.length >= 3
+
                 if f.length > 3
+
                     newPolys = splitPolygonArr(f)
+
                     for npI in [0...newPolys.length]
+
                         result.push(
                             polygon: new Polygon(newPolys[npI], polygon.shared)
                             type: "front"
                         )
+
                 else
+
                     result.push(
                         polygon: new Polygon(f, polygon.shared)
                         type: "front"
                     )
+
             if b.length >= 3
+
                 if b.length > 3
+
                     newPolys = splitPolygonArr(b)
+
                     for npI in [0...newPolys.length]
+
                         result.push(
                             polygon: new Polygon(newPolys[npI], polygon.shared)
                             type: "back"
                         )
+
                 else
+
                     result.push(
                         polygon: new Polygon(b, polygon.shared)
                         type: "back"
                     )
+
     if result.length == 0
+
         result.push(returnPolygon)
+
     return result
 
 splitPolygonArr = (arr) ->
