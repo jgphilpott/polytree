@@ -1096,23 +1096,35 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
     return result
 
 splitPolygonArr = (arr) ->
+
     resultArr = []
+
     if arr.length > 4
+
         console.warn("[splitPolygonArr] arr.length > 4", arr.length)
+
         for j in [3..arr.length]
+
             result = []
             result.push(arr[0].clone())
             result.push(arr[j - 2].clone())
             result.push(arr[j - 1].clone())
             resultArr.push(result)
+
     else
+
         if arr[0].pos.distanceTo(arr[2].pos) <= arr[1].pos.distanceTo(arr[3].pos)
+
             resultArr.push([arr[0].clone(), arr[1].clone(), arr[2].clone()],
                 [arr[0].clone(), arr[2].clone(), arr[3].clone()])
+
         else
+
             resultArr.push([arr[0].clone(), arr[1].clone(), arr[3].clone()],
                 [arr[1].clone(), arr[2].clone(), arr[3].clone()])
+
         return resultArr
+
     return resultArr
 
 CSG_Rules =
