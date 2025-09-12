@@ -51,7 +51,7 @@
             import { TransformControls } from 'TransformControls';
             import { GUI } from 'lil-gui';
             import { STLExporter } from 'STLExporter';
-            import OctreeCSG from 'OctreeCSG';
+            import Polytree from 'OctreeCSG';
 
             const renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -115,7 +115,7 @@
                 saveLink.style.display = "none";
                 document.body.appendChild(saveLink);
                 saveLink.href = URL.createObjectURL(blob);
-                saveLink.download = "OctreeCSG Example - Basic.stl";
+                saveLink.download = "Polytree Example - Basic.stl";
                 saveLink.click();
                 document.body.removeChild(saveLink);
             }
@@ -187,9 +187,9 @@
             gui.add(params, 'object1', geometryNames).name('Object 1').onChange(value => {
                 try {
                     object1_bg.geometry = geometries[value];
-                    object1Octree.delete();
-                    object1Octree = OctreeCSG.fromMesh(object1_bg);
-                    object1Octree.setPolygonIndex(0);
+                    object1Polytree.delete();
+                    object1Polytree = Polytree.fromMesh(object1_bg);
+                    object1Polytree.setPolygonIndex(0);
                     objectMoved = true;
                 }
                 catch (e) {
@@ -200,9 +200,9 @@
             gui.add(params, 'object2', geometryNames).name('Object 2').onChange(value => {
                 try {
                     object2_bg.geometry = geometries[value];
-                    object2Octree.delete();
-                    object2Octree = OctreeCSG.fromMesh(object2_bg);
-                    object2Octree.setPolygonIndex(1);
+                    object2Polytree.delete();
+                    object2Polytree = Polytree.fromMesh(object2_bg);
+                    object2Polytree.setPolygonIndex(1);
                     objectMoved = true;
                 }
                 catch (e) {
@@ -246,12 +246,12 @@
             const resultObject = new THREE.Mesh(object1Geometry, object1Material);
 
             const object1_bg = new THREE.Mesh(object1Geometry, object1Material_bg);
-            let object1Octree = OctreeCSG.fromMesh(object1_bg);
-            object1Octree.setPolygonIndex(0);
+            let object1Polytree = Polytree.fromMesh(object1_bg);
+            object1Polytree.setPolygonIndex(0);
             const object2_bg = new THREE.Mesh(object2Geometry, object2Material_bg);
             object2_bg.position.set(5, 2, 1);
-            let object2Octree = OctreeCSG.fromMesh(object2_bg);
-            object2Octree.setPolygonIndex(1);
+            let object2Polytree = Polytree.fromMesh(object2_bg);
+            object2Polytree.setPolygonIndex(1);
 
             scene.add(object1_bg, object2_bg);
             transformControls.attach(object2_bg);
@@ -262,7 +262,7 @@
             let firstCSG = true;
             let isRendering = false;
 
-            trianglesStat.innerText = `${object1Octree.getPolygons().length}`;
+            trianglesStat.innerText = `${object1Polytree.getPolygons().length}`;
 
             render();
 
@@ -282,13 +282,13 @@
                         startTime = performance.now();
 
                         let newTransformedMatrix = calcTransformMatrix(originalMatrix, object2_bg.matrix);
-                        object2Octree.applyMatrix(newTransformedMatrix);
+                        object2Polytree.applyMatrix(newTransformedMatrix);
                         originalMatrix = object2_bg.matrix.clone();
 
-                        let resultOctree = OctreeCSG[csgOp](object1Octree.clone(), object2Octree.clone(), false);
+                        let resultPolytree = Polytree[csgOp](object1Polytree.clone(), object2Polytree.clone(), false);
                         resultObject.geometry.dispose();
 
-                        resultObject.geometry = OctreeCSG.toGeometry(resultOctree);
+                        resultObject.geometry = Polytree.toGeometry(resultPolytree);
 
                         if (firstCSG) {
                             firstCSG = false;
@@ -298,9 +298,9 @@
                         deltaTime = performance.now() - startTime;
 
                         runtimeStat.innerText = `${Math.round(deltaTime)}ms`;
-                        trianglesStat.innerText = `${resultOctree.getPolygons().length}`;
+                        trianglesStat.innerText = `${resultPolytree.getPolygons().length}`;
 
-                        resultOctree.delete();
+                        resultPolytree.delete();
 
                     }
 

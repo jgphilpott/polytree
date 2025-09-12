@@ -42,8 +42,8 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Octree spatial data structures for high-performance and scalable 3D geometric modeling. It is designed for Node.js/JavaScript and integrates closely with [three.js](https://threejs.org/).
 
 ### Architecture
-- **Core Data Structure: OctreeCSG**
-  - CSG operations and geometry management are implemented through custom Octree-backed data structures (`OctreeCSG`, `Octree`, extensions).
+- **Core Data Structure: Polytree**
+  - CSG operations and geometry management are implemented through custom Octree-backed data structures (`Polytree`, `PolytreeExtended`, extensions).
   - Octrees allow highly efficient spatial queries, intersection tests, and partitioning for complex 3D models.
 - **Integration with three.js**
   - The library expects three.js primitives for most geometry operations (Triangle, Vector3, Plane, etc.).
@@ -53,7 +53,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
 
 ### Extensibility & Contributing
 - While the package is generic, it is designed as a core engine for advanced 3D modeling, spatial-analysis, or use as a backend for other tools (such as Polyslice, see README Applications).
-- Contributions should follow idiomatic CoffeeScript and aim to extend OctreeCSG without breaking three.js compatibility.
+- Contributions should follow idiomatic CoffeeScript and aim to extend Polytree without breaking three.js compatibility.
 
 ## Project Entry and Examples
 - Main package entry: `polytree.bundle.js` (compiled from `polytree.coffee`).
