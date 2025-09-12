@@ -436,43 +436,72 @@ class Polytree
     deletePolygonsByStateRules: (rulesArr, firstRun = true) ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonArr = polygonsArray.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
+
                 polygonArr.forEach (polygon) ->
+
                     found = false
+
                     for j in [0...rulesArr.length]
+
                         if rulesArr[j].array
+
                             states = rulesArr[j].rule
+
                             if (states.includes(polygon.state)) and (((polygon.previousState isnt "undecided") and (states.includes(polygon.previousState))) or (polygon.previousState is "undecided"))
+
                                 found = true
                                 statesObj = {}
                                 mainStatesObj = {}
                                 states.forEach (state) -> statesObj[state] = false
                                 states.forEach (state) -> mainStatesObj[state] = false
                                 statesObj[polygon.state] = true
+
                                 for i in [0...polygon.previousStates.length]
+
                                     unless states.includes(polygon.previousStates[i])
+
                                         found = false
                                         break
+
                                     else
+
                                         statesObj[polygon.previousStates[i]] = true
+
                                 if found
+
                                     for state of statesObj
+
                                         if statesObj[state] is false
+
                                             found = false
                                             break
+
                                     if found
+
                                         break
+
                         else
+
                             if polygon.checkAllStates(rulesArr[j].rule)
+
                                 found = true
                                 break
+
                     if found
+
                         polygonIndex = polygonsArray.indexOf(polygon)
+
                         if polygonIndex > -1
+
                             polygon.setInvalid()
                             polygonsArray.splice(polygonIndex, 1)
+
                         if firstRun
+
                             polygon.delete()
 
         # if @polygons.length > 0
@@ -519,17 +548,28 @@ class Polytree
     deletePolygonsByIntersection: (intersects, firstRun = true) ->
 
         return if intersects == undefined
+
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonArr = polygonsArray.slice()
+
                 polygonArr.forEach (polygon) ->
+
                     if polygon.valid
+
                         if polygon.intersects == intersects
+
                             polygonIndex = polygonsArray.indexOf(polygon)
+
                             if polygonIndex > -1
+
                                 polygon.setInvalid()
                                 polygonsArray.splice(polygonIndex, 1)
+
                             if firstRun
+
                                 polygon.delete()
 
         # if @polygons.length > 0
@@ -549,14 +589,19 @@ class Polytree
     isPolygonIntersecting: (polygon) ->
 
         unless @box.intersectsTriangle(polygon.triangle)
+
             return false
+
         return true
 
     markIntesectingPolygons: (targetPolytree) ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonsArray.forEach (polygon) ->
+
                     polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
 
         # if @polygons.length > 0
@@ -568,8 +613,11 @@ class Polytree
     resetPolygons: (resetOriginal = true) ->
 
         @polygonArrays.forEach (polygonsArray) ->
+
             if polygonsArray.length
+
                 polygonsArray.forEach (polygon) ->
+
                     polygon.reset(resetOriginal)
 
         # if @polygons.length > 0
@@ -667,37 +715,58 @@ class Polytree
         #     @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
         if @polygons.length > 0
+
             polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true) and (polygon.state == "undecided")
             currentPolygon = polygonStack.pop()
+
             while currentPolygon
+
                 if currentPolygon.state isnt "undecided"
+
                     continue
+
                 unless currentPolygon.valid
+
                     continue
+
                 targetPolygons = targetPolytree.getPolygonsIntersectingPolygon(currentPolygon)
+
                 if targetPolygons.length > 0
+
                     for j in [0...targetPolygons.length]
+
                         target = targetPolygons[j]
                         splitResults = splitPolygonByPlane(currentPolygon, target.plane)
+
                         if splitResults.length > 1
+
                             for i in [0...splitResults.length]
+
                                 polygon = splitResults[i].polygon
                                 polygon.intersects = currentPolygon.intersects
                                 polygon.newPolygon = true
                                 polygonStack.push(polygon)
+
                             @replacePolygon(currentPolygon, splitResults.map((result) -> result.polygon))
                             break
+
                         else
+
                             if currentPolygon.id isnt splitResults[0].polygon.id
+
                                 splitResults[0].polygon.intersects = currentPolygon.intersects
                                 splitResults[0].polygon.newPolygon = true
                                 polygonStack.push(splitResults[0].polygon)
                                 @replacePolygon(currentPolygon, splitResults[0].polygon)
                                 break
+
                             else
+
                                 if (splitResults[0].type == "coplanar-front") or (splitResults[0].type == "coplanar-back")
+
                                     currentPolygon.setState(splitResults[0].type)
                                     currentPolygon.coplanar = true
+
                 currentPolygon = polygonStack.pop()
             polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
             currentPolygon = polygonStack.pop()
