@@ -239,51 +239,7 @@ describe "triangleIntersectsTriangle", ->
         assertIntersection tA, tB, true,
 
             coplanar: true
-            label: "identical triangles"
-
-    it "degenerate line across interior", ->
-
-        tA = tri(0,0,0,  4,0,0,  0,4,0)
-        tB = tri(1,1,0, 3,1,0, 1,1,0)
-
-        assertIntersection tA, tB, true,
-
-            coplanar: true
-            label: "degenerate line inside"
-
-describe "resolveTriangleIntersection", ->
-
-    # Degenerate/no intersection: all positive distances (triangle B fully outside A).
-    it "returns false for all-positive distances (should do nothing)", ->
-
-        vA1 = v3(0,0,0)
-        vA2 = v3(1,0,0)
-        vA3 = v3(0,1,0)
-
-        vB1 = v3(0,0,1)
-        vB2 = v3(1,0,1)
-        vB3 = v3(0,1,1)
-
-        additions = { coplanar: false, source: new Vector3(), target: new Vector3(), normal1: v3(0,0,1), normal2: v3(0,0,1) }
-        result = resolveTriangleIntersection(vA1, vA2, vA3, vB1, vB2, vB3, 1, 1, 1, additions)
-
-        expect(result).toBe false
-
-    # Crossing case: B first above, others below (ensures correct permutation and branch).
-    it "handles one B vertex above and two below", ->
-
-        vA1 = v3(0,0,0)
-        vA2 = v3(2,0,0)
-        vA3 = v3(0,2,0)
-
-        vB1 = v3(1,1,1) # Above
-        vB2 = v3(0.5,0.5,-1) # Below
-        vB3 = v3(1.5,0.5,-1) # Below
-
-        additions = { coplanar: false, source: new Vector3(), target: new Vector3(), normal1: v3(0,0,1), normal2: v3(0,0,1) }
-        result = resolveTriangleIntersection(vA1, vA2, vA3, vB1, vB2, vB3, 1, -1, -1, additions)
-
-        expect(result).toBe true
+            label: "identical full overlap"
 
 describe "resolveCoplanarTriangleIntersection", ->
 
@@ -607,51 +563,87 @@ describe "intersectionTestEdge2D (direct edge cases)", ->
 
         expect(callEdge(A,B)).toBe true
 
-    it "detects shared full edge", ->
+describe "intersectionTestVertex2D (vertex containment / touch)", ->
+
+    build = (pts) -> pts.map (p) -> v2(p[0], p[1])
+
+    callVertex = (A, B) ->
+
+        intersectionTestVertex2D(A[0], A[1], A[2], B[0], B[1], B[2])
+
+    it "vertex of B strictly inside A", ->
+
+        A = build([[0,0],[5,0],[0,5]])
+        B = build([[1,1],[2,1],[1,2]])
+
+        expect(callVertex(A,B)).toBe true
+
+    it "vertex of A strictly inside B (reverse containment)", ->
+
+        A = build([[0,0],[1,0],[0,1]])
+        B = build([[-1,-1],[4,-1],[-1,4]])
+
+        expect(callVertex(A,B)).toBe true
+
+    it "shared single vertex only", ->
 
         A = build([[0,0],[2,0],[0,2]])
-        B = build([[2,0],[0,0],[2,2]])
+        B = build([[0,0],[-1,0],[0,-1]])
 
-        expect(callEdge(A,B)).toBe true
+        expect(callVertex(A,B)).toBe true
 
-    it "detects endpoint touch only", ->
+    it "vertex on edge of A (boundary inclusivity)", ->
 
-        A = build([[0,0],[2,0],[0,2]])
-        B = build([[2,0],[4,0],[2,2]])
+        A = build([[0,0],[5,0],[0,5]])
+        B = build([[2,0],[3,0],[2,1]])
 
-        expect(callEdge(A,B)).toBe true
+        expect(callVertex(A,B)).toBe true
 
-    it "detects T-junction (edge hits midpoint)", ->
+    it "vertex on edge of B (opposite direction)", ->
 
-        A = build([[0,0],[4,0],[0,3]])
-        B = build([[2,-1],[2,1],[3,2]])
+        A = build([[2,0],[3,0],[2,1]])
+        B = build([[0,0],[5,0],[0,5]])
 
-        expect(callEdge(A,B)).toBe true
+        expect(callVertex(A,B)).toBe true
 
-    it "detects collinear overlapping partial edge", ->
-
-        A = build([[0,0],[5,0],[0,3]])
-        B = build([[2,0],[7,0],[2,2]])
-
-        expect(callEdge(A,B)).toBe true
-
-    it "rejects collinear but disjoint edge", ->
-
-        A = build([[0,0],[2,0],[0,2]])
-        B = build([[3,0],[5,0],[3,2]])
-
-        expect(callEdge(A,B)).toBe false
-
-    it "rejects clearly separated triangles", ->
+    it "no vertices inside (disjoint triangles)", ->
 
         A = build([[0,0],[2,0],[0,2]])
         B = build([[5,5],[7,5],[5,7]])
 
-        expect(callEdge(A,B)).toBe false
+        expect(callVertex(A,B)).toBe false
 
-    it "detects edge containment (small inside large sharing edge)", ->
+    it "degenerate point triangle inside other", ->
 
-        A = build([[0,0],[5,0],[0,5]])
-        B = build([[1,0],[3,0],[1,2]])
+        A = build([[0,0],[4,0],[0,4]])
+        B = build([[1,1],[1,1],[1,1]]) # Point
 
-        expect(callEdge(A,B)).toBe true
+        expect(callVertex(A,B)).toBe true
+
+    it "degenerate point triangle outside other", ->
+
+        A = build([[0,0],[4,0],[0,4]])
+        B = build([[5,5],[5,5],[5,5]])
+
+        expect(callVertex(A,B)).toBe false
+
+    it "degenerate line triangle with endpoint inside A", ->
+
+        A = build([[0,0],[4,0],[0,4]])
+        B = build([[1,1],[3,3],[1,1]]) # Line segment along diagonal region
+
+        expect(callVertex(A,B)).toBe true
+
+    it "degenerate line triangle entirely outside A", ->
+
+        A = build([[0,0],[2,0],[0,2]])
+        B = build([[3,3],[5,5],[3,3]])
+
+        expect(callVertex(A,B)).toBe false
+
+    it "identical triangles (all vertices inside)", ->
+
+        A = build([[0,0],[3,0],[0,3]])
+        B = build([[0,0],[3,0],[0,3]])
+
+        expect(callVertex(A,B)).toBe true

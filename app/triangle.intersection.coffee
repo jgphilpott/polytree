@@ -552,7 +552,7 @@ intersectionTestEdge2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
 
             return true if segmentIntersectsInclusive(a1, a2, b1, b2)
 
-    false
+    return false
 
 ### Checks for vertex intersection between two triangles in 2D.
 
@@ -562,90 +562,17 @@ intersectionTestEdge2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
 @return {Boolean} True if a vertex intersection is found, false otherwise. ###
 intersectionTestVertex2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB) ->
 
-    # If vertex3TriangleB is on or to the left of edge vertex1TriangleB-vertex2TriangleA.
-    if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex2TriangleA) >= 0
+    # Returns true if any vertex of triangle B lies inside (or on) triangle A OR any vertex of triangle A lies inside (or on) triangle B.
 
-        # If vertex3TriangleB is on or to the right of edge vertex2TriangleB-vertex2TriangleA.
-        if triangleOrientation2D(vertex3TriangleB, vertex2TriangleB, vertex2TriangleA) <= 0
+    return true if pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex2TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex3TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
 
-            # If vertex1TriangleA is on the right of edge vertex1TriangleB-vertex2TriangleA.
-            if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleA) > 0
+    return true if pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
 
-                # If vertex1TriangleA is on or to the left of edge vertex2TriangleB-vertex2TriangleA.
-                if triangleOrientation2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
-                    return true
-                else # Then vertex1TriangleA is outside edge vertex2TriangleB-vertex2TriangleA.
-                    return false
-
-            else # Then vertex1TriangleA is on or to the left of edge vertex1TriangleB-vertex2TriangleA.
-
-                # If vertex1TriangleA is on or to the left of edge vertex1TriangleB-vertex3TriangleA.
-                if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
-
-                    # If vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex1TriangleB.
-                    if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex1TriangleB) >= 0
-                        return true
-                    else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex1TriangleB.
-                        return false
-
-                else # Then vertex1TriangleA is outside edge vertex1TriangleB-vertex3TriangleA.
-
-                    return false
-
-        else # Then vertex3TriangleB is on the left of edge vertex2TriangleB-vertex2TriangleA.
-
-            # If vertex1TriangleA is on or to the left of edge vertex2TriangleB-vertex2TriangleA.
-            if triangleOrientation2D(vertex1TriangleA, vertex2TriangleB, vertex2TriangleA) <= 0
-
-                # If vertex3TriangleB is on or to the left of edge vertex2TriangleB-vertex3TriangleA.
-                if triangleOrientation2D(vertex3TriangleB, vertex2TriangleB, vertex3TriangleA) <= 0
-
-                    # If vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex2TriangleB.
-                    if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
-                        return true
-                    else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex2TriangleB.
-                        return false
-
-                else # Then vertex3TriangleB is outside edge vertex2TriangleB-vertex3TriangleA.
-
-                    return false
-
-            else # Then vertex1TriangleA is outside edge vertex2TriangleB-vertex2TriangleA.
-
-                return false
-
-    else # Then vertex3TriangleB is outside edge vertex1TriangleB-vertex2TriangleA.
-
-        # If vertex3TriangleB is on or to the left of edge vertex1TriangleB-vertex3TriangleA.
-        if triangleOrientation2D(vertex3TriangleB, vertex1TriangleB, vertex3TriangleA) >= 0
-
-            # If vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex3TriangleB.
-            if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex3TriangleB) >= 0
-
-                # If vertex1TriangleA is on or to the left of edge vertex1TriangleB-vertex3TriangleA.
-                if triangleOrientation2D(vertex1TriangleA, vertex1TriangleB, vertex3TriangleA) >= 0
-                    return true
-                else # Then vertex1TriangleA is outside edge vertex1TriangleB-vertex3TriangleA.
-                    return false
-
-            else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex3TriangleB.
-
-                # If vertex2TriangleA is on or to the left of edge vertex3TriangleA-vertex2TriangleB.
-                if triangleOrientation2D(vertex2TriangleA, vertex3TriangleA, vertex2TriangleB) >= 0
-
-                    # If vertex3TriangleB is on or to the left of edge vertex3TriangleA-vertex2TriangleB.
-                    if triangleOrientation2D(vertex3TriangleB, vertex3TriangleA, vertex2TriangleB) >= 0
-                        return true
-                    else # Then vertex3TriangleB is outside edge vertex3TriangleA-vertex2TriangleB.
-                        return false
-
-                else # Then vertex2TriangleA is outside edge vertex3TriangleA-vertex2TriangleB.
-
-                    return false
-
-        else # Then vertex3TriangleB is outside edge vertex1TriangleB-vertex3TriangleA.
-
-            return false
+    return false
 
 ### Determines the intersection segment (if any) between two triangles in 3D space.
     If an intersection segment exists, its endpoints are written to `additions.source` and `additions.target`.
