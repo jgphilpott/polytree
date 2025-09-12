@@ -42,6 +42,22 @@ triCW = (aX, aY, bX, bY, cX, cY) ->
     b: v2(cX, cY)
     c: v2(bX, bY)
 
+ccw = (a, b, c) ->
+
+    o = triangleOrientation2D(a, b, c)
+
+    if o > 0 then [a, b, c] else if o < 0 then [a, c, b] else [a, b, c]
+
+callCCW = (A, B) -> triangleIntersectionCCW2D(A[0], A[1], A[2], B[0], B[1], B[2])
+
+assertBool = (label, expected, fn) ->
+
+    result = fn()
+
+    unless result is expected
+
+        throw new Error "triangleIntersectionCCW2D #{label}: expected #{expected} got #{result}"
+
 assertIntersection = (tA, tB, expected, { coplanar: expectedCoplanar = undefined, intersection: expectSegment = false, approx = 1e-6, label } = {}) ->
 
     additions =
@@ -503,3 +519,75 @@ describe "triangleOrientation2D", ->
         val = triangleOrientation2D(a, b, c)
 
         expect(sign(val)).toBe 1
+
+describe "triangleIntersectionCCW2D (embedded subset)", ->
+
+    baseA = ccw(v2(0,0), v2(4,0), v2(0,4))
+    smallInside = ccw(v2(1,1), v2(2,1), v2(1,2))
+    shifted = ccw(v2(5,5), v2(6,5), v2(5,6))
+    edgeShare = ccw(v2(0,0), v2(4,0), v2(2,2))
+    vertexShare = ccw(v2(0,0), v2(-1,0), v2(0,-1))
+    overlapPartial = ccw(v2(2,-1), v2(5,0), v2(2,2))
+    containAInsideB = ccw(v2(-1,-1), v2(6,-1), v2(-1,6))
+    edgeTouch = ccw(v2(0,4), v2(2,2), v2(4,0))
+    lineDegenerate = ccw(v2(1,1), v2(2,2), v2(3,3))
+    pointTouch = ccw(v2(4,0), v2(4,0.000001), v2(4.000001,0))
+
+    it "identical triangles", ->
+
+        assertBool "identical", true, -> callCCW(baseA, baseA)
+
+    it "containment small inside large", ->
+
+        assertBool "containment small", true, -> callCCW(baseA, smallInside)
+
+    it "reverse containment (A inside B)", ->
+
+        assertBool "reverse containment", true, -> callCCW(baseA, containAInsideB)
+
+    it "separated triangles", ->
+
+        assertBool "separated", false, -> callCCW(baseA, shifted)
+
+    it "partial overlap", ->
+
+        assertBool "partial overlap", true, -> callCCW(baseA, overlapPartial)
+
+    it "shared edge", ->
+
+        assertBool "shared edge", true, -> callCCW(baseA, edgeShare)
+
+    it "shared vertex only", ->
+
+        assertBool "shared vertex", true, -> callCCW(baseA, vertexShare)
+
+    it "edge touch (hypotenuse)", ->
+
+        assertBool "edge touch hypotenuse", true, -> callCCW(baseA, edgeTouch)
+
+    it "degenerate line inside", ->
+
+        assertBool "degenerate line", true, -> callCCW(baseA, lineDegenerate)
+
+    it "point-like micro triangle at boundary", ->
+
+        assertBool "micro point boundary", true, -> callCCW(baseA, pointTouch)
+
+    it "random CCW pairs do not throw", ->
+
+        for i in [0...20]
+
+            aX = Math.random()*10; aY = Math.random()*10
+            bX = aX + Math.random()*2 + 0.01; bY = aY + Math.random()*2 + 0.01
+            cX = aX + Math.random()*2 + 0.01; cY = aY + Math.random()*2 + 0.01
+
+            dX = Math.random()*10; dY = Math.random()*10
+            eX = dX + Math.random()*2 + 0.01; eY = dY + Math.random()*2 + 0.01
+            fX = dX + Math.random()*2 + 0.01; fY = dY + Math.random()*2 + 0.01
+
+            A = ccw(v2(aX,aY), v2(bX,bY), v2(cX,cY))
+            B = ccw(v2(dX,dY), v2(eX,eY), v2(fX,fY))
+
+            _ = callCCW(A, B)
+
+        expect(true).toBe true
