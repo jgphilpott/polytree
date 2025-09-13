@@ -1,5 +1,3 @@
-import * as THREE from '../threejs/three.module.js'
-
 # console.log("GOT HERE");
 
 onmessage = (e) ->
@@ -75,14 +73,17 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
         _wV1.subVectors(returnXYZ(trianglesArr, i), point)
         _wV2.subVectors(returnXYZ(trianglesArr, i + 3), point)
         _wV3.subVectors(returnXYZ(trianglesArr, i + 6), point)
+
         lenA = _wV1.length()
         lenB = _wV2.length()
         lenC = _wV3.length()
+
         _matrix3.set(_wV1.x, _wV1.y, _wV1.z, _wV2.x, _wV2.y, _wV2.z, _wV3.x, _wV3.y, _wV3.z)
         omega = 2 * Math.atan2(_matrix3.determinant(), (lenA * lenB * lenC + _wV1.dot(_wV2) * lenC + _wV2.dot(_wV3) * lenA + _wV3.dot(_wV1) * lenB))
         wN += omega
 
     wN = Math.round(wN / wNPI)
+
     return wN
 
 polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
@@ -117,6 +118,5 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
     # if (result && polygon.coplanar) {
     #     console.log(`[polyInside_WindingNumber] coplanar polygon found ${coplanarFound ? "IN" : "NOT IN"} coplanar test`);
     # }
-    return result
 
-# export {}
+    return result
