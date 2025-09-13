@@ -1,5 +1,3 @@
-{ Vector2, Vector3, Box3, DoubleSide, Matrix3, Ray, Triangle, BufferGeometry, BufferAttribute, Mesh, Raycaster } = require "three"
-
 tempVector1 = new Vector3()
 tempVector2 = new Vector3()
 
@@ -2838,14 +2836,3 @@ Polytree.useWindingNumber = false
 Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
 Polytree.maxLevel = 16
 Polytree.polygonsPerTree = 100
-# Polytree.PolytreeExtended = PolytreeExtended
-
-module.exports =
-
-    default: Polytree
-    CSG: Polytree
-    Polytree: Polytree
-    Polygon: Polygon
-    Plane: Plane
-    Vertex: Vertex
-    rayIntersectsTriangle: rayIntersectsTriangle

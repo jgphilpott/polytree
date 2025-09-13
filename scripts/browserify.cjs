@@ -48,35 +48,21 @@ if (threeIdListMatch) {
 
 // 2. Remove imported identifiers from the first giant CoffeeScript var declaration line to avoid redeclaration.
 if (threeIdentifiers.length) {
-
     const lines = content.split('\n');
     const idSet = new Set(threeIdentifiers);
-
     for (let i = 0; i < lines.length; i++) {
-
         if (lines[i].startsWith('var ')) {
-
-            // Extract after 'var ' then split by ',' retaining order.
-            const before = lines[i];
-            let parts = before.substring(4).split(',');
-            parts = parts.map(p => p.trim());
-
-            // Rebuild excluding three identifiers.
+            // Support multiple consecutive CoffeeScript generated var lines.
+            const decl = lines[i].slice(4).replace(/;$/, '');
+            let parts = decl.split(',').map(p => p.trim()).filter(Boolean);
             const filtered = parts.filter(p => !idSet.has(p));
-
-            // If something changed, rewrite line.
             if (filtered.length !== parts.length) {
-                lines[i] = 'var ' + filtered.join(', ') + ';';
+                lines[i] = filtered.length ? ('var ' + filtered.join(', ') + ';') : '';
             }
-
-            break; // Only the first var line is CoffeeScript's mega declaration.
-
         }
-
     }
-
-    content = lines.join('\n');
-
+    // Remove any blank lines created by eliminating entire var declarations.
+    content = lines.filter(l => l !== '').join('\n');
 }
 
 // Find all module.exports assignments and collect them.

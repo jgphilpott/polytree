@@ -771,13 +771,3 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
                 return true
 
     return false # If none of the above, no intersection found.
-
-module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
-module.exports.resolveTriangleIntersection = resolveTriangleIntersection
-module.exports.resolveCoplanarTriangleIntersection = resolveCoplanarTriangleIntersection
-module.exports.trianglesOverlap2D = trianglesOverlap2D
-module.exports.triangleOrientation2D = triangleOrientation2D
-module.exports.triangleIntersectionCCW2D = triangleIntersectionCCW2D
-module.exports.intersectionTestEdge2D = intersectionTestEdge2D
-module.exports.intersectionTestVertex2D = intersectionTestVertex2D
-module.exports.constructIntersection = constructIntersection
