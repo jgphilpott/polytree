@@ -10,12 +10,12 @@
     }
   },
   "files": [
+    "LICENSE",
+    "README.md",
     "polytree.bundle.js",
     "polytree.bundle.min.js",
     "polytree.bundle.browser.js",
-    "polytree.bundle.browser.min.js",
-    "README.md",
-    "LICENSE"
+    "polytree.bundle.browser.min.js"
   ],
   "directories": {
     "example": "examples"
@@ -27,7 +27,7 @@
     "compile:watch": "coffee -cbw . &",
     "build": "npm run compile && npm run build:node && npm run build:browser && npm run minify",
     "build:node": "cat app/polytree.js app/triangle.intersection.js > polytree.bundle.js",
-    "build:browser": "node scripts/create-browser-bundle.cjs",
+    "build:browser": "node scripts/browserify.cjs",
     "minify": "uglifyjs polytree.bundle.js --compress --mangle -o polytree.bundle.min.js && uglifyjs polytree.bundle.browser.js --compress --mangle -o polytree.bundle.browser.min.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
@@ -42,7 +42,7 @@
   "bugs": { "url": "https://github.com/jgphilpott/polytree/issues" },
   "homepage": "https://github.com/jgphilpott/polytree#readme",
   "devDependencies": {
-    "browserify": "^17.0.0",
+    "browserify": "^17.0.1",
     "coffeescript": "^2.7.0",
     "jest": "^30.1.3",
     "uglify-js": "^3.19.3"

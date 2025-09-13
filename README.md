@@ -10,9 +10,13 @@
 
 ### Node.js
 
+##### Install
+
 ```bash
 npm install polytree
 ```
+
+##### Import
 
 ```js
 import * as THREE from 'three';
@@ -39,7 +43,7 @@ For browser usage, use the ES module-compatible bundle:
 import * as THREE from 'three';
 import Polytree from 'polytree';
 
-// Your CSG operations here
+// Example usage coming soon!
 </script>
 ```
 
