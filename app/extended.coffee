@@ -24,13 +24,15 @@ class PolytreeExtended extends Polytree
 
         polygons = @getPolygons()
         polygons.forEach (p) -> triangles.push(p.triangle)
-        triangles
+
+        return triangles
 
     getRayTriangles: (ray, triangles = []) ->
 
         polygons = @getRayPolygons(ray)
         polygons.forEach (p) -> triangles.push(p.triangle)
-        triangles
+
+        return triangles
 
     triangleCapsuleIntersect: (capsule, triangle) ->
 
@@ -49,6 +51,7 @@ class PolytreeExtended extends Polytree
         if triangle.containsPoint(intersectPoint)
 
             return
+
                 normal: _plane.normal.clone()
                 point: intersectPoint.clone()
                 depth: Math.abs(Math.min(d1, d2))
@@ -71,11 +74,12 @@ class PolytreeExtended extends Polytree
             if point1.distanceToSquared(point2) < r2
 
                 return
+
                     normal: point1.clone().sub(point2).normalize()
                     point: point2.clone()
                     depth: capsule.radius - point1.distanceTo(point2)
 
-        false
+        return false
 
     triangleSphereIntersect: (sphere, triangle) ->
 
@@ -91,6 +95,7 @@ class PolytreeExtended extends Polytree
         if triangle.containsPoint(sphere.center)
 
             return
+
                 normal: _plane.normal.clone()
                 point: plainPoint.clone()
                 depth: Math.abs(_plane.distanceToSphere(sphere))
@@ -110,11 +115,12 @@ class PolytreeExtended extends Polytree
             if d < r2
 
                 return
+
                     normal: sphere.center.clone().sub(_v2).normalize()
                     point: _v2.clone()
                     depth: sphere.radius - Math.sqrt(d)
 
-        false
+        return false
 
     getSphereTriangles: (sphere, triangles) ->
 
@@ -180,10 +186,11 @@ class PolytreeExtended extends Polytree
             depth = collisionVector.length()
 
             return
+
                 normal: collisionVector.normalize()
                 depth: depth
 
-        false
+        return false
 
     capsuleIntersect: (capsule) ->
 
@@ -207,10 +214,11 @@ class PolytreeExtended extends Polytree
             depth = collisionVector.length()
 
             return
+
                 normal: collisionVector.normalize()
                 depth: depth
 
-        false
+        return false
 
     fromGraphNode: (group) ->
 
@@ -223,7 +231,6 @@ class PolytreeExtended extends Polytree
                 Polytree.fromMesh(obj, undefined, this, false)
 
         @buildTree()
-        @
 
 module.exports =
 
