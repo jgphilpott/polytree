@@ -11,6 +11,7 @@
   },
   "files": [
     "polytree.bundle.js",
+    "polytree.bundle.browser.js",
     "README.md",
     "LICENSE"
   ],
@@ -22,7 +23,7 @@
     "pretest": "npm run build",
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &",
-    "build": "npm run compile && cat app/polytree.js app/triangle.intersection.js > polytree.bundle.js",
+    "build": "npm run compile && cat app/polytree.js app/triangle.intersection.js > polytree.bundle.js && node scripts/build-browser-bundle.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },

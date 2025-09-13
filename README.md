@@ -8,6 +8,8 @@
 
 ## Getting Started
 
+### Node.js
+
 ```bash
 npm install polytree
 ```
@@ -18,6 +20,30 @@ import { Polytree } from 'polytree';
 
 // Example usage coming soon!
 ```
+
+### Browser
+
+For browser usage, use the ES module-compatible bundle:
+
+```html
+<script type="importmap">
+{
+    "imports": {
+        "three": "./path/to/three.module.min.js",
+        "polytree": "./path/to/polytree.bundle.browser.js"
+    }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import Polytree from 'polytree';
+
+// Your CSG operations here
+</script>
+```
+
+The browser bundle (`polytree.bundle.browser.js`) is specifically designed for ES module imports in browsers, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
 
 ## Applications
 
