@@ -1142,7 +1142,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1156,7 +1156,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1170,7 +1170,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1550,7 +1550,7 @@ Polytree.uniteArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.unite(polytreeA, polytreeB)
+        resultPolytree = Polytree.uniteCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -1583,7 +1583,7 @@ Polytree.subtractArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.subtract(polytreeA, polytreeB)
+        resultPolytree = Polytree.subtractCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -1616,7 +1616,7 @@ Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.intersect(polytreeA, polytreeB)
+        resultPolytree = Polytree.intersectCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()

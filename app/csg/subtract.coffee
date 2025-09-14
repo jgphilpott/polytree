@@ -17,6 +17,65 @@ subtractRules =
         { array: false, rule: "outside" }
     ]
 
+# Core subtract algorithm for polytree-to-polytree operations
+subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+
+    polytree = new Polytree()
+    trianglesSet = new Set()
+
+    if polytreeA.box.intersectsBox(polytreeB.box)
+
+        currentMeshSideA = undefined
+        currentMeshSideB = undefined
+
+        if polytreeA.mesh
+
+            currentMeshSideA = polytreeA.mesh.material.side
+            polytreeA.mesh.material.side = DoubleSide
+
+        if polytreeB.mesh
+
+            currentMeshSideB = polytreeB.mesh.material.side
+            polytreeB.mesh.material.side = DoubleSide
+
+        polytreeA.resetPolygons(false)
+        polytreeB.resetPolygons(false)
+        polytreeA.markIntesectingPolygons(polytreeB)
+        polytreeB.markIntesectingPolygons(polytreeA)
+
+        handleIntersectingPolytrees(polytreeA, polytreeB)
+        polytreeA.deleteReplacedPolygons()
+        polytreeB.deleteReplacedPolygons()
+
+        polytreeA.deletePolygonsByStateRules(subtractRules.a)
+        polytreeB.deletePolygonsByStateRules(subtractRules.b)
+
+        polytreeB.deletePolygonsByIntersection(false)
+        polytreeB.invert()
+
+        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+
+        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+
+            polytreeA.mesh.material.side = currentMeshSideA
+
+        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+
+            polytreeB.mesh.material.side = currentMeshSideB
+
+    else
+
+        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+
+    trianglesSet.clear()
+    trianglesSet = undefined
+
+    polytree.markPolygonsAsOriginal()
+    buildTargetPolytree and polytree.buildTree()
+    
+    return polytree
+
 Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
 
     # Handle both mesh and polytree inputs for backward compatibility
@@ -27,61 +86,7 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
         polytreeB = mesh2
         buildTargetPolytree = if targetMaterial is null then true else false
 
-        polytree = new Polytree()
-        trianglesSet = new Set()
-
-        if polytreeA.box.intersectsBox(polytreeB.box)
-
-            currentMeshSideA = undefined
-            currentMeshSideB = undefined
-
-            if polytreeA.mesh
-
-                currentMeshSideA = polytreeA.mesh.material.side
-                polytreeA.mesh.material.side = DoubleSide
-
-            if polytreeB.mesh
-
-                currentMeshSideB = polytreeB.mesh.material.side
-                polytreeB.mesh.material.side = DoubleSide
-
-            polytreeA.resetPolygons(false)
-            polytreeB.resetPolygons(false)
-            polytreeA.markIntesectingPolygons(polytreeB)
-            polytreeB.markIntesectingPolygons(polytreeA)
-
-            handleIntersectingPolytrees(polytreeA, polytreeB)
-            polytreeA.deleteReplacedPolygons()
-            polytreeB.deleteReplacedPolygons()
-
-            polytreeA.deletePolygonsByStateRules(subtractRules.a)
-            polytreeB.deletePolygonsByStateRules(subtractRules.b)
-
-            polytreeB.deletePolygonsByIntersection(false)
-            polytreeB.invert()
-
-            polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-            polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-            if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-
-                polytreeA.mesh.material.side = currentMeshSideA
-
-            if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-
-                polytreeB.mesh.material.side = currentMeshSideB
-
-        else
-
-            polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        trianglesSet.clear()
-        trianglesSet = undefined
-
-        polytree.markPolygonsAsOriginal()
-        buildTargetPolytree and polytree.buildTree()
-
-        return polytree
+        return subtractCore(polytreeA, polytreeB, buildTargetPolytree)
 
     else
 
@@ -100,8 +105,11 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
             polytreeB = Polytree.fromMesh(mesh2)
             targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
 
-        resultPolytree = Polytree.subtract(polytreeA, polytreeB, false)
+        resultPolytree = subtractCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
         disposePolytree(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh
+
+# Export core function for internal use
+Polytree.subtractCore = subtractCore
