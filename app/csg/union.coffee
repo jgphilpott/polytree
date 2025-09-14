@@ -16,7 +16,7 @@ unionRules =
         { array: false, rule: "inside" }
     ]
 
-union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree = new Polytree()
     trianglesSet = new Set()
@@ -70,4 +70,27 @@ union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree.markPolygonsAsOriginal()
     buildTargetPolytree and polytree.buildTree()
-    polytree
+
+    return polytree
+
+Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
+
+    polytreeA = undefined
+    polytreeB = undefined
+
+    if targetMaterial and Array.isArray(targetMaterial)
+
+        polytreeA = Polytree.fromMesh(mesh1, 0)
+        polytreeB = Polytree.fromMesh(mesh2, 1)
+
+    else
+
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
+        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
+    resultPolytree = Polytree.union(polytreeA, polytreeB, false)
+    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+    disposePolytree(polytreeA, polytreeB, resultPolytree)
+
+    return resultMesh

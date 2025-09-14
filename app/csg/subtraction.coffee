@@ -17,7 +17,7 @@ subtractRules =
         { array: false, rule: "outside" }
     ]
 
-subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree = new Polytree()
     trianglesSet = new Set()
@@ -72,4 +72,27 @@ subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree.markPolygonsAsOriginal()
     buildTargetPolytree and polytree.buildTree()
-    polytree
+
+    return polytree
+
+Polytree.meshSubtract = (mesh1, mesh2, targetMaterial) ->
+
+    polytreeA = undefined
+    polytreeB = undefined
+
+    if targetMaterial and Array.isArray(targetMaterial)
+
+        polytreeA = Polytree.fromMesh(mesh1, 0)
+        polytreeB = Polytree.fromMesh(mesh2, 1)
+
+    else
+
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
+        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
+    resultPolytree = Polytree.subtract(polytreeA, polytreeB, false)
+    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+    disposePolytree(polytreeA, polytreeB, resultPolytree)
+
+    return resultMesh
