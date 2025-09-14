@@ -17,8 +17,42 @@ subtractRules =
         { array: false, rule: "outside" }
     ]
 
-# Core subtract algorithm for polytree-to-polytree operations
-subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
+
+    # Handle both mesh and polytree inputs for backward compatibility
+    if mesh1.isPolytree and mesh2.isPolytree
+
+        # Original polytree-to-polytree operation
+        polytreeA = mesh1
+        polytreeB = mesh2
+        buildTargetPolytree = if targetMaterial is null then true else false
+
+        return this.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
+
+    else
+
+        # New mesh-to-mesh operation (default behavior)
+        polytreeA = undefined
+        polytreeB = undefined
+
+        if targetMaterial and Array.isArray(targetMaterial)
+
+            polytreeA = Polytree.fromMesh(mesh1, 0)
+            polytreeB = Polytree.fromMesh(mesh2, 1)
+
+        else
+
+            polytreeA = Polytree.fromMesh(mesh1)
+            polytreeB = Polytree.fromMesh(mesh2)
+            targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
+        resultPolytree = this.subtractCore(polytreeA, polytreeB, false)
+        resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+        disposePolytree(polytreeA, polytreeB, resultPolytree)
+
+        return resultMesh
+
+Polytree.subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree = new Polytree()
     trianglesSet = new Set()
@@ -73,43 +107,5 @@ subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree.markPolygonsAsOriginal()
     buildTargetPolytree and polytree.buildTree()
-    
+
     return polytree
-
-Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
-
-    # Handle both mesh and polytree inputs for backward compatibility
-    if mesh1.isPolytree and mesh2.isPolytree
-
-        # Original polytree-to-polytree operation
-        polytreeA = mesh1
-        polytreeB = mesh2
-        buildTargetPolytree = if targetMaterial is null then true else false
-
-        return subtractCore(polytreeA, polytreeB, buildTargetPolytree)
-
-    else
-
-        # New mesh-to-mesh operation (default behavior)
-        polytreeA = undefined
-        polytreeB = undefined
-
-        if targetMaterial and Array.isArray(targetMaterial)
-
-            polytreeA = Polytree.fromMesh(mesh1, 0)
-            polytreeB = Polytree.fromMesh(mesh2, 1)
-
-        else
-
-            polytreeA = Polytree.fromMesh(mesh1)
-            polytreeB = Polytree.fromMesh(mesh2)
-            targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-
-        resultPolytree = subtractCore(polytreeA, polytreeB, false)
-        resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-        disposePolytree(polytreeA, polytreeB, resultPolytree)
-
-        return resultMesh
-
-# Export core function for internal use
-Polytree.subtractCore = subtractCore

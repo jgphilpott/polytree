@@ -16,8 +16,42 @@ uniteRules =
         { array: false, rule: "inside" }
     ]
 
-# Core unite algorithm for polytree-to-polytree operations
-uniteCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
+
+    # Handle both mesh and polytree inputs for backward compatibility
+    if mesh1.isPolytree and mesh2.isPolytree
+
+        # Original polytree-to-polytree operation
+        polytreeA = mesh1
+        polytreeB = mesh2
+        buildTargetPolytree = if targetMaterial is null then true else false
+
+        return this.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
+
+    else
+
+        # New mesh-to-mesh operation (default behavior)
+        polytreeA = undefined
+        polytreeB = undefined
+
+        if targetMaterial and Array.isArray(targetMaterial)
+
+            polytreeA = Polytree.fromMesh(mesh1, 0)
+            polytreeB = Polytree.fromMesh(mesh2, 1)
+
+        else
+
+            polytreeA = Polytree.fromMesh(mesh1)
+            polytreeB = Polytree.fromMesh(mesh2)
+            targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
+        resultPolytree = this.uniteCore(polytreeA, polytreeB, false)
+        resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+        disposePolytree(polytreeA, polytreeB, resultPolytree)
+
+        return resultMesh
+
+Polytree.uniteCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree = new Polytree()
     trianglesSet = new Set()
@@ -73,41 +107,3 @@ uniteCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
     buildTargetPolytree and polytree.buildTree()
 
     return polytree
-
-Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
-
-    # Handle both mesh and polytree inputs for backward compatibility
-    if mesh1.isPolytree and mesh2.isPolytree
-
-        # Original polytree-to-polytree operation
-        polytreeA = mesh1
-        polytreeB = mesh2
-        buildTargetPolytree = if targetMaterial is null then true else false
-
-        return uniteCore(polytreeA, polytreeB, buildTargetPolytree)
-
-    else
-
-        # New mesh-to-mesh operation (default behavior)
-        polytreeA = undefined
-        polytreeB = undefined
-
-        if targetMaterial and Array.isArray(targetMaterial)
-
-            polytreeA = Polytree.fromMesh(mesh1, 0)
-            polytreeB = Polytree.fromMesh(mesh2, 1)
-
-        else
-
-            polytreeA = Polytree.fromMesh(mesh1)
-            polytreeB = Polytree.fromMesh(mesh2)
-            targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-
-        resultPolytree = uniteCore(polytreeA, polytreeB, false)
-        resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-        disposePolytree(polytreeA, polytreeB, resultPolytree)
-
-        return resultMesh
-
-# Export core function for internal use
-Polytree.uniteCore = uniteCore

@@ -26,7 +26,7 @@
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &",
     "build": "npm run compile && npm run build:node && npm run build:browser && npm run minify",
-    "build:node": "cat app/imports.js app/polytree.js app/csg/intersect.js app/csg/subtract.js app/csg/unite.js app/triangles.js app/exports.js > polytree.bundle.js",
+    "build:node": "cat app/imports.js app/polytree.js app/csg/unite.js app/csg/subtract.js app/csg/intersect.js app/triangles.js app/exports.js > polytree.bundle.js",
     "build:browser": "node scripts/browserify.cjs",
     "minify": "uglifyjs polytree.bundle.js --compress --mangle -o polytree.bundle.min.js && uglifyjs polytree.bundle.browser.js --compress --mangle -o polytree.bundle.browser.min.js",
     "prepare": "npm run build",
