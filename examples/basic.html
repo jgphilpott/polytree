@@ -17,7 +17,7 @@
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "lil-gui": "./js/lil-gui.module.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "Polytree": "../polytree.bundle.browser.min.js",
+                    "Polytree": "../polytree.bundle.browser.js",
                     "Capsule": "./js/Capsule.min.js",
                     "STLExporter": "./js/STLExporter.min.js"
                 }
@@ -141,7 +141,7 @@
 
             window.addEventListener('resize', onWindowResize);
 
-            const csgOperations = ["Union", "Subtract", "Intersect"];
+            const csgOperations = ["Unite", "Subtract", "Intersect"];
 
             const geometries = {
                 Box: new THREE.BoxGeometry(5, 5, 5),

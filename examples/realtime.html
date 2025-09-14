@@ -16,7 +16,7 @@
                     "three": "./js/three.module.min.js",
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "Polytree": "../polytree.bundle.browser.min.js",
+                    "Polytree": "../polytree.bundle.browser.js",
                     "STLLoader": "./js/STLLoader.min.js",
                     "Stats": "./js/stats.module.min.js"
                 }
@@ -166,7 +166,7 @@
                 horizontalWallMesh3.position.y = 9;
                 horizontalWallMesh4.position.y = 19;
 
-                let resultPolytree = Polytree.unionArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
+                let resultPolytree = Polytree.uniteArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
 
                 return Polytree.toMesh(resultPolytree, baseMaterial);
 
@@ -187,7 +187,7 @@
             let outerWall = new THREE.Mesh(outerWallGeometry, wallMaterial);
             let innerWall = new THREE.Mesh(innerWallGeometry, wallMaterial);
 
-            let wall = Polytree.meshSubtract(outerWall, innerWall);
+            let wall = Polytree.subtract(outerWall, innerWall);
 
             scene.add(wall);
 
@@ -228,7 +228,7 @@
 
             var towerWithWindowMesh;
             Polytree.async.operation({
-                op: "union",
+                op: "unite",
                 material: [wall.material, windowMesh.material],
                 objA: {
                     op: "subtract",
@@ -282,7 +282,7 @@
                         originalMatrix.copy(windowMesh.matrix);
 
                         Polytree.async.operation({
-                            op: "union",
+                            op: "unite",
                             material: [wall.material, windowMesh.material],
                             objA: {
                                 op: "subtract",

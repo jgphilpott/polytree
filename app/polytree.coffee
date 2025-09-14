@@ -1125,532 +1125,24 @@ splitPolygonArr = (arr) ->
 
     return resultArr
 
-CSG_Rules =
-
-    union:
-
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: false, rule: "inside" }
-        ]
-
-        b: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "inside" }
-        ]
-
-    subtract:
-
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "inside" }
-        ]
-
-        b: [
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "outside" }
-        ]
-
-    intersect:
-
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: false, rule: "outside" }
-        ]
-
-        b: [
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: false, rule: "outside" }
-        ]
-
-# class Polytree { };
-
-###
-Union:
-- Combine all polygons from A and B, except:
-    - Polygons in A that are inside B or coplanar-back with B
-    - Polygons in B that are inside A or coplanar-back/front with A
-###
-
-###
-Subtract:
-- Keep polygons from A that are outside B or coplanar-front with B
-- Keep polygons from B that are inside A and coplanar-front with A
-###
-
-###
-Intersect:
-1. Delete all polygons in A that are:
-    a. inside and coplanar-back
-    b. outside and coplanar-front
-    c. outside and coplanar-back
-    d. outside
-2. Delete all polygons in B that are:
-    a. inside and coplanar-front
-    b. inside and coplanar-back
-    c. outside and coplanar-front
-    d. outside and coplanar-back
-    e. outside
-###
-
-Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-    polytree = new Polytree()
-    trianglesSet = new Set()
-    if polytreeA.box.intersectsBox(polytreeB.box)
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
-        if polytreeA.mesh
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
-        if polytreeB.mesh
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
-
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
-
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
-
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
-
-        polytreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
-        polytreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
-
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-            polytreeA.mesh.material.side = currentMeshSideA
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-            polytreeB.mesh.material.side = currentMeshSideB
-    else
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-    trianglesSet.clear()
-    trianglesSet = undefined
-
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
-    polytree
-
-Polytree.subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-    polytree = new Polytree()
-    trianglesSet = new Set()
-    if polytreeA.box.intersectsBox(polytreeB.box)
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
-        if polytreeA.mesh
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
-        if polytreeB.mesh
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
-
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
-
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
-
-        polytreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
-        polytreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
-
-        polytreeB.deletePolygonsByIntersection(false)
-        polytreeB.invert()
-
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-            polytreeA.mesh.material.side = currentMeshSideA
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-            polytreeB.mesh.material.side = currentMeshSideB
-    else
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-    trianglesSet.clear()
-    trianglesSet = undefined
-
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
-  # polytree.invert()
-    polytree
-
-Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-
-    polytree = new Polytree()
-    trianglesSet = new Set()
-
-    if polytreeA.box.intersectsBox(polytreeB.box)
-
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
-
-        if polytreeA.mesh
-
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
-
-        if polytreeB.mesh
-
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
-
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
-
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
-
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
-
-        polytreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
-        polytreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
-
-        polytreeA.deletePolygonsByIntersection(false)
-        polytreeB.deletePolygonsByIntersection(false)
-
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-
-            polytreeA.mesh.material.side = currentMeshSideA
-
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-
-            polytreeB.mesh.material.side = currentMeshSideB
-
-    trianglesSet.clear()
-    trianglesSet = undefined
-
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
-    polytree
-
-CSG_Rules =
-    union:
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: false, rule: "inside" }
-        ]
-        b: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "inside" }
-        ]
-    subtract:
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "inside" }
-        ]
-        b: [
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: false, rule: "outside" }
-        ]
-    intersect:
-        a: [
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: false, rule: "outside" }
-        ]
-        b: [
-            { array: true, rule: ["inside", "coplanar-front"] }
-            { array: true, rule: ["inside", "coplanar-back"] }
-            { array: true, rule: ["outside", "coplanar-front"] }
-            { array: true, rule: ["outside", "coplanar-back"] }
-            { array: false, rule: "outside" }
-        ]
-
-# class Polytree { };
-
-###
-Union:
-- Combine all polygons from A and B, except:
-    - Polygons in A that are inside B or coplanar-back with B
-    - Polygons in B that are inside A or coplanar-back/front with A
-###
-
-###
-Subtract:
-- Keep polygons from A that are outside B or coplanar-front with B
-- Keep polygons from B that are inside A and coplanar-front with A
-###
-
-###
-Intersect:
-1. Delete all polygons in A that are:
-    a. inside and coplanar-back
-    b. outside and coplanar-front
-    c. outside and coplanar-back
-    d. outside
-2. Delete all polygons in B that are:
-    a. inside and coplanar-front
-    b. inside and coplanar-back
-    c. outside and coplanar-front
-    d. outside and coplanar-back
-    e. outside
-###
-
-Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-    polytree = new Polytree()
-    trianglesSet = new Set()
-    if polytreeA.box.intersectsBox(polytreeB.box)
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
-        if polytreeA.mesh
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
-        if polytreeB.mesh
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
-
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
-
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
-
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
-
-        polytreeA.deletePolygonsByStateRules(CSG_Rules.union.a)
-        polytreeB.deletePolygonsByStateRules(CSG_Rules.union.b)
-
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-            polytreeA.mesh.material.side = currentMeshSideA
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-            polytreeB.mesh.material.side = currentMeshSideB
-    else
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-    trianglesSet.clear()
-    trianglesSet = undefined
-
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
-    polytree
-
-Polytree.subtract = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-    polytree = new Polytree()
-    trianglesSet = new Set()
-    if polytreeA.box.intersectsBox(polytreeB.box)
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
-        if polytreeA.mesh
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
-        if polytreeB.mesh
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
-
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
-
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
-
-        polytreeA.deletePolygonsByStateRules(CSG_Rules.subtract.a)
-        polytreeB.deletePolygonsByStateRules(CSG_Rules.subtract.b)
-
-        polytreeB.deletePolygonsByIntersection(false)
-        polytreeB.invert()
-
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
-            polytreeA.mesh.material.side = currentMeshSideA
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
-            polytreeB.mesh.material.side = currentMeshSideB
-    else
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-    trianglesSet.clear()
-    trianglesSet = undefined
-
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
-  # polytree.invert()
-    polytree
-
-###
-Intersect:
-1. Delete all polygons in A that are:
-        a. inside and coplanar-back
-        b. outside and coplanar-front
-        c. outside and coplanar-back
-        d. outside
-2. Delete all polygons in B that are:
-        a. inside and coplanar-front
-        b. inside and coplanar-back
-        c. outside and coplanar-front
-        d. outside and coplanar-back
-        e. outside
-###
-Polytree.intersect = (polytreeA, polytreeB, buildTargetPolytree = true) ->
-        polytree = new Polytree()
-        trianglesSet = new Set()
-
-        if polytreeA.box.intersectsBox(polytreeB.box)
-                currentMeshSideA = undefined
-                currentMeshSideB = undefined
-                if polytreeA.mesh
-                        currentMeshSideA = polytreeA.mesh.material.side
-                        polytreeA.mesh.material.side = DoubleSide
-                if polytreeB.mesh
-                        currentMeshSideB = polytreeB.mesh.material.side
-                        polytreeB.mesh.material.side = DoubleSide
-
-                polytreeA.resetPolygons(false)
-                polytreeB.resetPolygons(false)
-
-                polytreeA.markIntesectingPolygons(polytreeB)
-                polytreeB.markIntesectingPolygons(polytreeA)
-
-                handleIntersectingPolytrees(polytreeA, polytreeB)
-                polytreeA.deleteReplacedPolygons()
-                polytreeB.deleteReplacedPolygons()
-
-                polytreeA.deletePolygonsByStateRules(CSG_Rules.intersect.a)
-                polytreeB.deletePolygonsByStateRules(CSG_Rules.intersect.b)
-
-                polytreeA.deletePolygonsByIntersection(false)
-                polytreeB.deletePolygonsByIntersection(false)
-
-                polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-                polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-
-                if polytreeA.mesh
-                        if polytreeA.mesh.material.side isnt currentMeshSideA
-                                polytreeA.mesh.material.side = currentMeshSideA
-                if polytreeB.mesh
-                        if polytreeB.mesh.material.side isnt currentMeshSideB
-                                polytreeB.mesh.material.side = currentMeshSideB
-
-        trianglesSet.clear()
-        trianglesSet = undefined
-
-        polytree.markPolygonsAsOriginal()
-        buildTargetPolytree and polytree.buildTree()
-
-        return polytree
-
-Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
-
-    polytreeA = undefined
-    polytreeB = undefined
-
-    if targetMaterial and Array.isArray(targetMaterial)
-
-        polytreeA = Polytree.fromMesh(mesh1, 0)
-        polytreeB = Polytree.fromMesh(mesh2, 1)
-
-    else
-
-        polytreeA = Polytree.fromMesh(mesh1)
-        polytreeB = Polytree.fromMesh(mesh2)
-        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-
-    resultPolytree = Polytree.union(polytreeA, polytreeB, false)
-    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-    disposePolytree(polytreeA, polytreeB, resultPolytree)
-
-    return resultMesh
-
-Polytree.meshSubtract = (mesh1, mesh2, targetMaterial) ->
-
-    polytreeA = undefined
-    polytreeB = undefined
-
-    if targetMaterial and Array.isArray(targetMaterial)
-
-        polytreeA = Polytree.fromMesh(mesh1, 0)
-        polytreeB = Polytree.fromMesh(mesh2, 1)
-
-    else
-
-        polytreeA = Polytree.fromMesh(mesh1)
-        polytreeB = Polytree.fromMesh(mesh2)
-        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-
-    resultPolytree = Polytree.subtract(polytreeA, polytreeB, false)
-    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-    disposePolytree(polytreeA, polytreeB, resultPolytree)
-
-    return resultMesh
-
-Polytree.meshIntersect = (mesh1, mesh2, targetMaterial) ->
-
-    polytreeA = undefined
-    polytreeB = undefined
-
-    if targetMaterial and Array.isArray(targetMaterial)
-
-        polytreeA = Polytree.fromMesh(mesh1, 0)
-        polytreeB = Polytree.fromMesh(mesh2, 1)
-
-    else
-
-        polytreeA = Polytree.fromMesh(mesh1)
-        polytreeB = Polytree.fromMesh(mesh2)
-        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
-
-    resultPolytree = Polytree.intersect(polytreeA, polytreeB, false)
-    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-    disposePolytree(polytreeA, polytreeB, resultPolytree)
-
-    return resultMesh
-
-_asyncUnionID = 0
-_asyncUnionArrayID = 0
+_asyncUniteID = 0
+_asyncUniteArrayID = 0
 Polytree.disposePolytree = true
 
 Polytree.async =
 
     batchSize: 100
 
-    union: (polytreeA, polytreeB, buildTargetPolytree = true) ->
+    unite: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
 
-            # const id = _asyncUnionID++
-            # console.log("Promise Union ##{id} started")
+            # const id = _asyncUniteID++
+            # console.log("Promise Unite ##{id} started")
 
             try
 
-                result = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1664,7 +1156,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1678,7 +1170,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1686,15 +1178,15 @@ Polytree.async =
 
                 reject(e)
 
-    unionArray: (objArr, materialIndexMax = Infinity) ->
+    uniteArray: (objArr, materialIndexMax = Infinity) ->
 
         new Promise (resolve, reject) ->
 
             try
 
                 usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
-                # const id = _asyncUnionArrayID++
-                # console.log("Promise Union Array ##{id}", usingBatches)
+                # const id = _asyncUniteArrayID++
+                # console.log("Promise Unite Array ##{id}", usingBatches)
                 mainPolytree = undefined
                 mainPolytreeUsed = false
                 promises = []
@@ -1713,7 +1205,7 @@ Polytree.async =
 
                     while batch
 
-                        promise = Polytree.async.unionArray(batch, 0)
+                        promise = Polytree.async.uniteArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
 
@@ -1758,12 +1250,12 @@ Polytree.async =
                             hasLeftOver = true
                             break
 
-                        promise = Polytree.async.union(polytreesArray[i], polytreesArray[i + 1])
+                        promise = Polytree.async.unite(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
 
                     if leftOverPolytree
 
-                        promise = Polytree.async.union(mainPolytree, leftOverPolytree)
+                        promise = Polytree.async.unite(mainPolytree, leftOverPolytree)
                         promises.push(promise)
                         mainPolytreeUsed = true
 
@@ -1789,7 +1281,7 @@ Polytree.async =
 
                         else if polytrees.length > 3
 
-                            Polytree.async.unionArray(polytrees, if usingBatches then 0 else -1).then (result) ->
+                            Polytree.async.uniteArray(polytrees, if usingBatches then 0 else -1).then (result) ->
 
                                 resolve(result)
 
@@ -1797,11 +1289,11 @@ Polytree.async =
 
                         else
 
-                            Polytree.async.union(polytrees[0], polytrees[1]).then (result) ->
+                            Polytree.async.unite(polytrees[0], polytrees[1]).then (result) ->
 
                                 if polytrees.length is 3
 
-                                    Polytree.async.union(result, polytrees[2]).then (result) ->
+                                    Polytree.async.unite(result, polytrees[2]).then (result) ->
 
                                         resolve(result)
 
@@ -2010,8 +1502,8 @@ Polytree.async =
                         polytreeB = polytreeB.result
                     resultPromise = undefined
                     switch obj.op
-                        when 'union'
-                            resultPromise = Polytree.async.union(polytreeA, polytreeB, buildTargetPolytree)
+                        when 'unite'
+                            resultPromise = Polytree.async.unite(polytreeA, polytreeB, buildTargetPolytree)
                         when 'subtract'
                             resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
                         when 'intersect'
@@ -2032,7 +1524,7 @@ Polytree.async =
             catch e
                 reject(e)
 
-Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
+Polytree.uniteArray = (objArr, materialIndexMax = Infinity) ->
 
     polytreesArray = []
 
@@ -2058,7 +1550,7 @@ Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.union(polytreeA, polytreeB)
+        resultPolytree = Polytree.uniteCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -2091,7 +1583,7 @@ Polytree.subtractArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.subtract(polytreeA, polytreeB)
+        resultPolytree = Polytree.subtractCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -2124,7 +1616,7 @@ Polytree.intersectArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.intersect(polytreeA, polytreeB)
+        resultPolytree = Polytree.intersectCore(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -2162,9 +1654,9 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
 
     switch obj.op
 
-        when 'union'
+        when 'unite'
 
-            resultPolytree = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
+            resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
 
         when 'subtract'
 
