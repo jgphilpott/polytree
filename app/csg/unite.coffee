@@ -16,81 +16,90 @@ uniteRules =
         { array: false, rule: "inside" }
     ]
 
-Polytree.unite = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
 
-    polytree = new Polytree()
-    trianglesSet = new Set()
+    # Handle both mesh and polytree inputs for backward compatibility
+    if mesh1.isPolytree and mesh2.isPolytree
 
-    if polytreeA.box.intersectsBox(polytreeB.box)
+        # Original polytree-to-polytree operation
+        polytreeA = mesh1
+        polytreeB = mesh2
+        buildTargetPolytree = if targetMaterial is null then true else false
 
-        currentMeshSideA = undefined
-        currentMeshSideB = undefined
+        polytree = new Polytree()
+        trianglesSet = new Set()
 
-        if polytreeA.mesh
+        if polytreeA.box.intersectsBox(polytreeB.box)
 
-            currentMeshSideA = polytreeA.mesh.material.side
-            polytreeA.mesh.material.side = DoubleSide
+            currentMeshSideA = undefined
+            currentMeshSideB = undefined
 
-        if polytreeB.mesh
+            if polytreeA.mesh
 
-            currentMeshSideB = polytreeB.mesh.material.side
-            polytreeB.mesh.material.side = DoubleSide
+                currentMeshSideA = polytreeA.mesh.material.side
+                polytreeA.mesh.material.side = DoubleSide
 
-        polytreeA.resetPolygons(false)
-        polytreeB.resetPolygons(false)
+            if polytreeB.mesh
 
-        polytreeA.markIntesectingPolygons(polytreeB)
-        polytreeB.markIntesectingPolygons(polytreeA)
+                currentMeshSideB = polytreeB.mesh.material.side
+                polytreeB.mesh.material.side = DoubleSide
 
-        handleIntersectingPolytrees(polytreeA, polytreeB)
-        polytreeA.deleteReplacedPolygons()
-        polytreeB.deleteReplacedPolygons()
+            polytreeA.resetPolygons(false)
+            polytreeB.resetPolygons(false)
 
-        polytreeA.deletePolygonsByStateRules(uniteRules.a)
-        polytreeB.deletePolygonsByStateRules(uniteRules.b)
+            polytreeA.markIntesectingPolygons(polytreeB)
+            polytreeB.markIntesectingPolygons(polytreeA)
 
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+            handleIntersectingPolytrees(polytreeA, polytreeB)
+            polytreeA.deleteReplacedPolygons()
+            polytreeB.deleteReplacedPolygons()
 
-        if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
+            polytreeA.deletePolygonsByStateRules(uniteRules.a)
+            polytreeB.deletePolygonsByStateRules(uniteRules.b)
 
-            polytreeA.mesh.material.side = currentMeshSideA
+            polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+            polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-        if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
+            if polytreeA.mesh and polytreeA.mesh.material.side isnt currentMeshSideA
 
-            polytreeB.mesh.material.side = currentMeshSideB
+                polytreeA.mesh.material.side = currentMeshSideA
 
-    else
+            if polytreeB.mesh and polytreeB.mesh.material.side isnt currentMeshSideB
 
-        polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
-        polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+                polytreeB.mesh.material.side = currentMeshSideB
 
-    trianglesSet.clear()
-    trianglesSet = undefined
+        else
 
-    polytree.markPolygonsAsOriginal()
-    buildTargetPolytree and polytree.buildTree()
+            polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
+            polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
 
-    return polytree
+        trianglesSet.clear()
+        trianglesSet = undefined
 
-Polytree.meshUnite = (mesh1, mesh2, targetMaterial) ->
+        polytree.markPolygonsAsOriginal()
+        buildTargetPolytree and polytree.buildTree()
 
-    polytreeA = undefined
-    polytreeB = undefined
-
-    if targetMaterial and Array.isArray(targetMaterial)
-
-        polytreeA = Polytree.fromMesh(mesh1, 0)
-        polytreeB = Polytree.fromMesh(mesh2, 1)
+        return polytree
 
     else
 
-        polytreeA = Polytree.fromMesh(mesh1)
-        polytreeB = Polytree.fromMesh(mesh2)
-        targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+        # New mesh-to-mesh operation (default behavior)
+        polytreeA = undefined
+        polytreeB = undefined
 
-    resultPolytree = Polytree.unite(polytreeA, polytreeB, false)
-    resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
-    disposePolytree(polytreeA, polytreeB, resultPolytree)
+        if targetMaterial and Array.isArray(targetMaterial)
 
-    return resultMesh
+            polytreeA = Polytree.fromMesh(mesh1, 0)
+            polytreeB = Polytree.fromMesh(mesh2, 1)
+
+        else
+
+            polytreeA = Polytree.fromMesh(mesh1)
+            polytreeB = Polytree.fromMesh(mesh2)
+            targetMaterial = if targetMaterial isnt null then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
+
+        resultPolytree = Polytree.unite(polytreeA, polytreeB, false)
+        resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+        disposePolytree(polytreeA, polytreeB, resultPolytree)
+
+        return resultMesh
