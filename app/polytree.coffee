@@ -1125,20 +1125,20 @@ splitPolygonArr = (arr) ->
 
     return resultArr
 
-_asyncUnionID = 0
-_asyncUnionArrayID = 0
+_asyncUniteID = 0
+_asyncUniteArrayID = 0
 Polytree.disposePolytree = true
 
 Polytree.async =
 
     batchSize: 100
 
-    union: (polytreeA, polytreeB, buildTargetPolytree = true) ->
+    unite: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
 
-            # const id = _asyncUnionID++
-            # console.log("Promise Union ##{id} started")
+            # const id = _asyncUniteID++
+            # console.log("Promise Unite ##{id} started")
 
             try
 
@@ -1178,15 +1178,15 @@ Polytree.async =
 
                 reject(e)
 
-    unionArray: (objArr, materialIndexMax = Infinity) ->
+    uniteArray: (objArr, materialIndexMax = Infinity) ->
 
         new Promise (resolve, reject) ->
 
             try
 
                 usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
-                # const id = _asyncUnionArrayID++
-                # console.log("Promise Union Array ##{id}", usingBatches)
+                # const id = _asyncUniteArrayID++
+                # console.log("Promise Unite Array ##{id}", usingBatches)
                 mainPolytree = undefined
                 mainPolytreeUsed = false
                 promises = []
@@ -1205,7 +1205,7 @@ Polytree.async =
 
                     while batch
 
-                        promise = Polytree.async.unionArray(batch, 0)
+                        promise = Polytree.async.uniteArray(batch, 0)
                         promises.push(promise)
                         batch = batches.shift()
 
@@ -1250,12 +1250,12 @@ Polytree.async =
                             hasLeftOver = true
                             break
 
-                        promise = Polytree.async.union(polytreesArray[i], polytreesArray[i + 1])
+                        promise = Polytree.async.unite(polytreesArray[i], polytreesArray[i + 1])
                         promises.push(promise)
 
                     if leftOverPolytree
 
-                        promise = Polytree.async.union(mainPolytree, leftOverPolytree)
+                        promise = Polytree.async.unite(mainPolytree, leftOverPolytree)
                         promises.push(promise)
                         mainPolytreeUsed = true
 
@@ -1281,7 +1281,7 @@ Polytree.async =
 
                         else if polytrees.length > 3
 
-                            Polytree.async.unionArray(polytrees, if usingBatches then 0 else -1).then (result) ->
+                            Polytree.async.uniteArray(polytrees, if usingBatches then 0 else -1).then (result) ->
 
                                 resolve(result)
 
@@ -1289,11 +1289,11 @@ Polytree.async =
 
                         else
 
-                            Polytree.async.union(polytrees[0], polytrees[1]).then (result) ->
+                            Polytree.async.unite(polytrees[0], polytrees[1]).then (result) ->
 
                                 if polytrees.length is 3
 
-                                    Polytree.async.union(result, polytrees[2]).then (result) ->
+                                    Polytree.async.unite(result, polytrees[2]).then (result) ->
 
                                         resolve(result)
 
@@ -1502,8 +1502,8 @@ Polytree.async =
                         polytreeB = polytreeB.result
                     resultPromise = undefined
                     switch obj.op
-                        when 'union'
-                            resultPromise = Polytree.async.union(polytreeA, polytreeB, buildTargetPolytree)
+                        when 'unite'
+                            resultPromise = Polytree.async.unite(polytreeA, polytreeB, buildTargetPolytree)
                         when 'subtract'
                             resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
                         when 'intersect'
@@ -1524,7 +1524,7 @@ Polytree.async =
             catch e
                 reject(e)
 
-Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
+Polytree.uniteArray = (objArr, materialIndexMax = Infinity) ->
 
     polytreesArray = []
 
@@ -1654,7 +1654,7 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
 
     switch obj.op
 
-        when 'union'
+        when 'unite'
 
             resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
 

@@ -17,7 +17,7 @@
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "lil-gui": "./js/lil-gui.module.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "Polytree": "../polytree.bundle.browser.min.js",
+                    "Polytree": "../polytree.bundle.browser.js",
                     "Capsule": "./js/Capsule.min.js",
                     "STLExporter": "./js/STLExporter.min.js"
                 }
@@ -141,7 +141,6 @@
 
             window.addEventListener('resize', onWindowResize);
 
-            // Updated CSG operation names to verbs; 'Unite' replaces legacy 'Union'
             const csgOperations = ["Unite", "Subtract", "Intersect"];
 
             const geometries = {
@@ -166,8 +165,7 @@
                 export: exportSTL
             }
 
-            // Map UI selection to Polytree method name (unite, subtract, intersect)
-            let csgOp = params.operation.toLowerCase() === 'unite' ? 'unite' : params.operation.toLowerCase();
+            let csgOp = params.operation.toLowerCase();
 
             transformControls.setSize(0.5);
 
@@ -182,7 +180,7 @@
             const gui = new GUI();
 
             gui.add(params, 'operation', csgOperations).name('Operation').onChange(value => {
-                csgOp = value.toLowerCase() === 'unite' ? 'unite' : value.toLowerCase();
+                csgOp = value.toLowerCase();
                 objectMoved = true;
             });
 
@@ -287,10 +285,6 @@
                         object2Polytree.applyMatrix(newTransformedMatrix);
                         originalMatrix = object2_bg.matrix.clone();
 
-                        // Backward compat: if code or plugins still request 'union', alias to 'unite'
-                        if (!Polytree.unite && Polytree.union) {
-                            Polytree.unite = Polytree.union;
-                        }
                         let resultPolytree = Polytree[csgOp](object1Polytree.clone(), object2Polytree.clone(), false);
                         resultObject.geometry.dispose();
 

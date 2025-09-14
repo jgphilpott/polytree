@@ -16,7 +16,7 @@
                     "three": "./js/three.module.min.js",
                     "OrbitControls": "./js/OrbitControls.min.js",
                     "TransformControls": "./js/TransformControls.min.js",
-                    "Polytree": "../polytree.bundle.browser.min.js",
+                    "Polytree": "../polytree.bundle.browser.js",
                     "STLLoader": "./js/STLLoader.min.js",
                     "Stats": "./js/stats.module.min.js"
                 }
@@ -166,7 +166,7 @@
                 horizontalWallMesh3.position.y = 9;
                 horizontalWallMesh4.position.y = 19;
 
-                let resultPolytree = Polytree.unionArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
+                let resultPolytree = Polytree.uniteArray([verticalWallMesh, verticalWallMesh2, verticalWallMesh3, horizontalWallMesh, horizontalWallMesh2, horizontalWallMesh3, horizontalWallMesh4], 0);
 
                 return Polytree.toMesh(resultPolytree, baseMaterial);
 
@@ -210,10 +210,6 @@
             });
 
             let windowMesh = createWindow();
-            // Backward compatibility: ensure Polytree.unite exists if only Polytree.union present
-            if (!Polytree.unite && Polytree.union) {
-                Polytree.unite = Polytree.union;
-            }
             let windowDimensions = getDimensions(windowMesh.geometry);
             let hollowWindowGeometry = new THREE.BoxGeometry(windowDimensions.width - 0.1, windowDimensions.height - 0.1, windowDimensions.depth + 2);
             let baseWindowMaterial = new THREE.MeshStandardMaterial({ color: 0x3c3c3c });
@@ -235,7 +231,7 @@
                 op: "unite",
                 material: [wall.material, windowMesh.material],
                 objA: {
-                            op: "subtract",
+                    op: "subtract",
                     objA: towerPolytree.clone(),
                     objB: hollowWindowPolytree.clone()
                 },
