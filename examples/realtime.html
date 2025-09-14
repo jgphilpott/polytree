@@ -210,6 +210,10 @@
             });
 
             let windowMesh = createWindow();
+            // Backward compatibility: ensure Polytree.unite exists if only Polytree.union present
+            if (!Polytree.unite && Polytree.union) {
+                Polytree.unite = Polytree.union;
+            }
             let windowDimensions = getDimensions(windowMesh.geometry);
             let hollowWindowGeometry = new THREE.BoxGeometry(windowDimensions.width - 0.1, windowDimensions.height - 0.1, windowDimensions.depth + 2);
             let baseWindowMaterial = new THREE.MeshStandardMaterial({ color: 0x3c3c3c });
@@ -228,10 +232,10 @@
 
             var towerWithWindowMesh;
             Polytree.async.operation({
-                op: "union",
+                op: "unite",
                 material: [wall.material, windowMesh.material],
                 objA: {
-                    op: "subtract",
+                            op: "subtract",
                     objA: towerPolytree.clone(),
                     objB: hollowWindowPolytree.clone()
                 },
@@ -282,7 +286,7 @@
                         originalMatrix.copy(windowMesh.matrix);
 
                         Polytree.async.operation({
-                            op: "union",
+                            op: "unite",
                             material: [wall.material, windowMesh.material],
                             objA: {
                                 op: "subtract",

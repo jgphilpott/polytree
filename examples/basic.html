@@ -141,7 +141,8 @@
 
             window.addEventListener('resize', onWindowResize);
 
-            const csgOperations = ["Union", "Subtract", "Intersect"];
+            // Updated CSG operation names to verbs; 'Unite' replaces legacy 'Union'
+            const csgOperations = ["Unite", "Subtract", "Intersect"];
 
             const geometries = {
                 Box: new THREE.BoxGeometry(5, 5, 5),
@@ -165,7 +166,8 @@
                 export: exportSTL
             }
 
-            let csgOp = params.operation.toLowerCase();
+            // Map UI selection to Polytree method name (unite, subtract, intersect)
+            let csgOp = params.operation.toLowerCase() === 'unite' ? 'unite' : params.operation.toLowerCase();
 
             transformControls.setSize(0.5);
 
@@ -180,7 +182,7 @@
             const gui = new GUI();
 
             gui.add(params, 'operation', csgOperations).name('Operation').onChange(value => {
-                csgOp = value.toLowerCase();
+                csgOp = value.toLowerCase() === 'unite' ? 'unite' : value.toLowerCase();
                 objectMoved = true;
             });
 
@@ -285,6 +287,10 @@
                         object2Polytree.applyMatrix(newTransformedMatrix);
                         originalMatrix = object2_bg.matrix.clone();
 
+                        // Backward compat: if code or plugins still request 'union', alias to 'unite'
+                        if (!Polytree.unite && Polytree.union) {
+                            Polytree.unite = Polytree.union;
+                        }
                         let resultPolytree = Polytree[csgOp](object1Polytree.clone(), object2Polytree.clone(), false);
                         resultObject.geometry.dispose();
 

@@ -1,9 +1,9 @@
-# Union CSG operation for Polytree
+# Unite CSG operation for Polytree
 # Combines all polygons from A and B, except:
 # - Polygons in A that are inside B or coplanar-back with B
 # - Polygons in B that are inside A or coplanar-back/front with A
 
-unionRules =
+uniteRules =
 
     a: [
         { array: true, rule: ["inside", "coplanar-back"] }
@@ -16,7 +16,7 @@ unionRules =
         { array: false, rule: "inside" }
     ]
 
-Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
+Polytree.unite = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     polytree = new Polytree()
     trianglesSet = new Set()
@@ -46,8 +46,8 @@ Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
         polytreeA.deleteReplacedPolygons()
         polytreeB.deleteReplacedPolygons()
 
-        polytreeA.deletePolygonsByStateRules(unionRules.a)
-        polytreeB.deletePolygonsByStateRules(unionRules.b)
+        polytreeA.deletePolygonsByStateRules(uniteRules.a)
+        polytreeB.deletePolygonsByStateRules(uniteRules.b)
 
         polytreeA.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
         polytreeB.getPolygonCloneCallback(polytree.addPolygon.bind(polytree), trianglesSet)
@@ -73,7 +73,7 @@ Polytree.union = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
     return polytree
 
-Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
+Polytree.meshUnite = (mesh1, mesh2, targetMaterial) ->
 
     polytreeA = undefined
     polytreeB = undefined
@@ -89,7 +89,7 @@ Polytree.meshUnion = (mesh1, mesh2, targetMaterial) ->
         polytreeB = Polytree.fromMesh(mesh2)
         targetMaterial = if targetMaterial isnt undefined then targetMaterial else (if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material).clone()
 
-    resultPolytree = Polytree.union(polytreeA, polytreeB, false)
+    resultPolytree = Polytree.unite(polytreeA, polytreeB, false)
     resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
     disposePolytree(polytreeA, polytreeB, resultPolytree)
 

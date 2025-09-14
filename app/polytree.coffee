@@ -1142,7 +1142,7 @@ Polytree.async =
 
             try
 
-                result = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
+                result = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
                 disposePolytree(polytreeA, polytreeB)
 
@@ -1550,7 +1550,7 @@ Polytree.unionArray = (objArr, materialIndexMax = Infinity) ->
 
     while polytreeA and polytreeB
 
-        resultPolytree = Polytree.union(polytreeA, polytreeB)
+        resultPolytree = Polytree.unite(polytreeA, polytreeB)
         disposePolytree(polytreeA, polytreeB)
         polytreeA = resultPolytree
         polytreeB = polytreesArray.shift()
@@ -1656,7 +1656,7 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
 
         when 'union'
 
-            resultPolytree = Polytree.union(polytreeA, polytreeB, buildTargetPolytree)
+            resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
 
         when 'subtract'
 
