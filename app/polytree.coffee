@@ -1125,8 +1125,6 @@ splitPolygonArr = (arr) ->
 
     return resultArr
 
-_asyncUniteID = 0
-_asyncUniteArrayID = 0
 Polytree.disposePolytree = true
 
 Polytree.async =
@@ -1136,9 +1134,6 @@ Polytree.async =
     unite: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
-
-            # const id = _asyncUniteID++
-            # console.log("Promise Unite ##{id} started")
 
             try
 
@@ -1185,8 +1180,6 @@ Polytree.async =
             try
 
                 usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
-                # const id = _asyncUniteArrayID++
-                # console.log("Promise Unite Array ##{id}", usingBatches)
                 mainPolytree = undefined
                 mainPolytreeUsed = false
                 promises = []
