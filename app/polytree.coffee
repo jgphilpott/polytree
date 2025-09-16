@@ -3,9 +3,6 @@ tempVector2 = new Vector3()
 
 tempBox3 = new Box3()
 
-triangleVertex0 = new Vector3()
-triangleVertex1 = new Vector3()
-
 tempRaycaster = new Raycaster()
 tempRay = new Ray()
 tempRayDirection = new Vector3(0, 0, 1)
@@ -15,7 +12,6 @@ COPLANAR = 0
 FRONT = 1
 BACK = 2
 SPANNING = 3
-_polygonID = 0
 
 class Polytree
 
@@ -1621,169 +1617,6 @@ isValidTriangle = (triangle) ->
     return false if triangle.b.equals(triangle.c)
 
     return true
-
-# class Vertex
-class Vertex
-
-    constructor: (pos, normal, uv, color) ->
-
-        @pos = new Vector3().copy(pos)
-        @normal = new Vector3().copy(normal)
-        uv and (@uv = new Vector2().copy(uv))
-        color and (@color = new Vector3().copy(color))
-
-    clone: ->
-
-        new Vertex(@pos.clone(), @normal.clone(), @uv and @uv.clone(), @color and @color.clone())
-
-    flip: ->
-
-        @normal.negate()
-
-    delete: ->
-
-        @pos = undefined
-        @normal = undefined
-        @uv and (@uv = undefined)
-        @color and (@color = undefined)
-
-    interpolate: (other, t) ->
-
-        new Vertex(
-            @pos.clone().lerp(other.pos, t),
-            @normal.clone().lerp(other.normal, t),
-            @uv and other.uv and @uv.clone().lerp(other.uv, t),
-            @color and other.color and @color.clone().lerp(other.color, t)
-        )
-
-# class Plane
-class Plane
-
-    constructor: (normal, w) ->
-
-        @normal = normal
-        @w = w
-
-    clone: ->
-
-        new Plane(@normal.clone(), @w)
-
-    flip: ->
-
-        @normal.negate()
-        @w = -@w
-
-    delete: ->
-
-        @normal = undefined
-        @w = undefined
-
-    equals: (p) ->
-
-        @normal.equals(p.normal) and @w is p.w
-
-Plane.fromPoints = (a, b, c) ->
-
-    planeNormal = triangleVertex0.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
-    new Plane(planeNormal, planeNormal.dot(a))
-
-# class Polygon
-class Polygon
-
-    constructor: (vertices, shared) ->
-
-        @id = _polygonID++
-        @vertices = vertices.map((v) -> v.clone())
-        @shared = shared
-        @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
-        @triangle = new Triangle(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
-        @intersects = false
-        @state = "undecided"
-        @previousState = "undecided"
-        @previousStates = []
-        @valid = true
-        @coplanar = false
-        @originalValid = false
-        @newPolygon = false
-
-    getMidpoint: ->
-
-        if @triangle.midPoint then @triangle.midPoint else @triangle.midPoint = @triangle.getMidpoint(new Vector3())
-
-    applyMatrix: (matrix, normalMatrix) ->
-
-        normalMatrix = normalMatrix or tmpm3.getNormalMatrix(matrix)
-        @vertices.forEach (v) ->
-            v.pos.applyMatrix4(matrix)
-            v.normal.applyMatrix3(normalMatrix)
-        @plane.delete()
-        @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
-        @triangle.set(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
-        if @triangle.midPoint
-            @triangle.getMidpoint(@triangle.midPoint)
-
-    reset: (resetOriginal = true) ->
-
-        @intersects = false
-        @state = "undecided"
-        @previousState = "undecided"
-        @previousStates.length = 0
-        @valid = true
-        @coplanar = false
-        resetOriginal and (@originalValid = false)
-        @newPolygon = false
-
-    setState: (state, keepState) ->
-
-        return if @state is keepState
-        @previousState = @state
-        @state isnt "undecided" and @previousStates.push(@state)
-        @state = state
-
-    checkAllStates: (state) ->
-
-        return false if (@state isnt state) or ((@previousState isnt state) and (@previousState isnt "undecided"))
-        for s in @previousStates
-            return false if s isnt state
-        return true
-
-    setInvalid: -> @valid = false
-
-    setValid: -> @valid = true
-
-    clone: ->
-
-        polygon = new Polygon(@vertices.map((v) -> v.clone()), @shared)
-        polygon.intersects = @intersects
-        polygon.valid = @valid
-        polygon.coplanar = @coplanar
-        polygon.state = @state
-        polygon.originalValid = @originalValid
-        polygon.newPolygon = @newPolygon
-        polygon.previousState = @previousState
-        polygon.previousStates = @previousStates.slice()
-        if @triangle.midPoint
-            polygon.triangle.midPoint = @triangle.midPoint.clone()
-        return polygon
-
-    flip: ->
-
-        @vertices.reverse().forEach((v) -> v.flip())
-        tmp = @triangle.a
-        @triangle.a = @triangle.c
-        @triangle.c = tmp
-        @plane.flip()
-
-    delete: ->
-
-        @vertices.forEach((v) -> v.delete())
-        @vertices.length = 0
-        if @plane
-            @plane.delete()
-            @plane = undefined
-        @triangle = undefined
-        @shared = undefined
-        @setInvalid()
 
 disposePolytree = (...polytrees) ->
 
