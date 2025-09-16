@@ -320,13 +320,6 @@ class Polytree
 
                         polygons.push(polygonsArray[i])
 
-    # if (@polygons.length)
-    #     for i in [0...@polygons.length]
-    #         if @polygons[i].valid and @polygons[i].intersects
-    #             polygons.push(@polygons[i])
-    # for i in [0...@subTrees.length]
-    #     @subTrees[i].getIntersectingPolygons(polygons)
-
         return polygons
 
     getPolygons: (polygons = []) ->
@@ -342,14 +335,6 @@ class Polytree
 
                             polygons.push(polygonsArray[i])
 
-    # if @polygons.length > 0
-    #     for i in [0...@polygons.length]
-    #         if @polygons[i].valid
-    #             if polygons.indexOf(@polygons[i]) is -1
-    #                 polygons.push(@polygons[i])
-    # for i in [0...@subTrees.length]
-    #     @subTrees[i].getPolygons(polygons)
-
         return polygons
 
     invert: ->
@@ -359,11 +344,6 @@ class Polytree
             if polygonsArray.length
 
                 polygonsArray.forEach (p) -> p.flip()
-
-    # if @polygons.length > 0
-    #     @polygons.forEach (p) -> p.flip()
-    # for i in [0...@subTrees.length]
-    #     @subTrees[i].invert()
 
     getMesh: ->
 
@@ -380,17 +360,6 @@ class Polytree
         unless Array.isArray(newPolygons)
 
             newPolygons = [newPolygons]
-
-        # if @polygons.length > 0
-        #     polygonIndex = @polygons.indexOf(polygon)
-        #     if polygonIndex > -1
-        #         if polygon.originalValid is true
-        #             @replacedPolygons.push(polygon)
-        #         else
-        #             polygon.setInvalid()
-        #         @polygons.splice(polygonIndex, 1, ...newPolygons)
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].replacePolygon(polygon, newPolygons)
 
         if @polygons.length > 0
 
@@ -483,47 +452,6 @@ class Polytree
 
                             polygon.delete()
 
-        # if @polygons.length > 0
-        #     polygonArr = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
-        #     polygonArr.forEach (polygon) ->
-        #         found = false
-        #         for j in [0...rulesArr.length]
-        #             if rulesArr[j].array
-        #                 states = rulesArr[j].rule
-        #                 if (states.includes(polygon.state)) and (((polygon.previousState isnt "undecided") and (states.includes(polygon.previousState))) or (polygon.previousState is "undecided"))
-        #                     found = true
-        #                     statesObj = {}
-        #                     mainStatesObj = {}
-        #                     states.forEach (state) -> statesObj[state] = false
-        #                     states.forEach (state) -> mainStatesObj[state] = false
-        #                     statesObj[polygon.state] = true
-        #                     for i in [0...polygon.previousStates.length]
-        #                         unless states.includes(polygon.previousStates[i])
-        #                             found = false
-        #                             break
-        #                         else
-        #                             statesObj[polygon.previousStates[i]] = true
-        #                     if found
-        #                         for state of statesObj
-        #                             if statesObj[state] is false
-        #                                 found = false
-        #                                 break
-        #                         if found
-        #                             break
-        #             else
-        #                 if polygon.checkAllStates(rulesArr[j].rule)
-        #                     found = true
-        #                     break
-        #         if found
-        #             polygonIndex = @polygons.indexOf(polygon)
-        #             if polygonIndex > -1
-        #                 polygon.setInvalid()
-        #                 @polygons.splice(polygonIndex, 1)
-        #             if firstRun
-        #                 polygon.delete()
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].deletePolygonsByStateRules(rulesArr, false)
-
     deletePolygonsByIntersection: (intersects, firstRun = true) ->
 
         return if intersects == undefined
@@ -551,20 +479,6 @@ class Polytree
 
                                 polygon.delete()
 
-        # if @polygons.length > 0
-        #     polygonArr = @polygons.slice()
-        #     polygonArr.forEach (polygon) ->
-        #         if polygon.valid
-        #             if polygon.intersects == intersects
-        #                 polygonIndex = @polygons.indexOf(polygon)
-        #                 if polygonIndex > -1
-        #                     polygon.setInvalid()
-        #                     @polygons.splice(polygonIndex, 1)
-        #                 if firstRun
-        #                     polygon.delete()
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].deletePolygonsByIntersection(intersects, false)
-
     isPolygonIntersecting: (polygon) ->
 
         unless @box.intersectsTriangle(polygon.triangle)
@@ -583,12 +497,6 @@ class Polytree
 
                     polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
 
-        # if @polygons.length > 0
-        #     @polygons.forEach (polygon) ->
-        #         polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].markIntesectingPolygons(targetPolytree)
-
     resetPolygons: (resetOriginal = true) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -599,99 +507,7 @@ class Polytree
 
                     polygon.reset(resetOriginal)
 
-        # if @polygons.length > 0
-        #     @polygons.forEach (polygon) ->
-        #         polygon.reset(resetOriginal)
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].resetPolygons(resetOriginal)
-
     handleIntersectingPolygons: (targetPolytree, targetPolytreeBuffer) ->
-
-        # if @polygons.length > 0
-        #     polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true) and (polygon.state == "undecided")
-        #     currentPolygon = polygonStack.pop()
-        #     while currentPolygon
-        #         if currentPolygon.state isnt "undecided"
-        #             continue
-        #         unless currentPolygon.valid
-        #             continue
-        #         targetPolygons = targetPolytree.getPolygonsIntersectingPolygon(currentPolygon)
-        #         if targetPolygons.length > 0
-        #             for j in [0...targetPolygons.length]
-        #                 target = targetPolygons[j]
-        #                 splitResults = splitPolygonByPlane(currentPolygon, target.plane)
-        #                 if splitResults.length > 1
-        #                     for i in [0...splitResults.length]
-        #                         polygon = splitResults[i].polygon
-        #                         polygon.intersects = currentPolygon.intersects
-        #                         polygon.newPolygon = true
-        #                         polygonStack.push(polygon)
-        #                     @replacePolygon(currentPolygon, splitResults.map((result) -> result.polygon))
-        #                     break
-        #                 else
-        #                     if currentPolygon.id isnt splitResults[0].polygon.id
-        #                         splitResults[0].polygon.intersects = currentPolygon.intersects
-        #                         splitResults[0].polygon.newPolygon = true
-        #                         polygonStack.push(splitResults[0].polygon)
-        #                         @replacePolygon(currentPolygon, splitResults[0].polygon)
-        #                         break
-        #                     else
-        #                         if (splitResults[0].type == "coplanar-front") or (splitResults[0].type == "coplanar-back")
-        #                             currentPolygon.setState(splitResults[0].type)
-        #                             currentPolygon.coplanar = true
-        #         currentPolygon = polygonStack.pop()
-        #     polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
-        #     currentPolygon = polygonStack.pop()
-        #     inside = false
-        #     while currentPolygon
-        #         unless currentPolygon.valid
-        #             continue
-        #         inside = false
-        #         if targetPolytree.box.containsPoint(currentPolygon.getMidpoint())
-        #             if Polytree.useWindingNumber is true
-        #                 inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
-        #             else
-        #                 point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
-        #                 if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
-        #                     tempRayDirection.copy(currentPolygon.plane.normal)
-        #                     tempRaycaster.set(point, tempRayDirection)
-        #                     intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
-        #                     if intersects.length
-        #                         if tempRayDirection.dot(intersects[0].face.normal) > 0
-        #                             inside = true
-        #                     unless inside or not currentPolygon.coplanar
-        #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
-        #                             if intersects.length
-        #                                 if tempRayDirection.dot(intersects[0].face.normal) > 0
-        #                                     inside = true
-        #                                     break
-        #                 else
-        #                     tempRay.origin.copy(point)
-        #                     tempRayDirection.copy(currentPolygon.plane.normal)
-        #                     tempRay.direction.copy(currentPolygon.plane.normal)
-        #                     intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
-        #                     if intersects.length
-        #                         if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
-        #                             inside = true
-        #                     unless inside or not currentPolygon.coplanar
-        #                         for j in [0..._wP_EPS_ARR_COUNT]
-        #                             tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
-        #                             tempRayDirection.copy(currentPolygon.plane.normal)
-        #                             tempRay.direction.copy(currentPolygon.plane.normal)
-        #                             intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
-        #                             if intersects.length
-        #                                 if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
-        #                                     inside = true
-        #                                     break
-        #         if inside is true
-        #             currentPolygon.setState("inside")
-        #         else
-        #             currentPolygon.setState("outside")
-        #         currentPolygon = polygonStack.pop()
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
         if @polygons.length > 0
 
@@ -884,13 +700,6 @@ class Polytree
 
                         cbFunc(polygonsArray[i].clone(), trianglesSet)
 
-    # if @polygons.length > 0
-    #     for i in [0...@polygons.length]
-    #         if @polygons[i].valid
-    #             cbFunc(@polygons[i].clone(), trianglesSet)
-    # for i in [0...@subTrees.length]
-    #     @subTrees[i].getPolygonCloneCallback(cbFunc, trianglesSet)
-
     deleteReplacedPolygons: ->
 
         if @replacedPolygons.length > 0
@@ -909,11 +718,6 @@ class Polytree
             if polygonsArray.length
 
                 polygonsArray.forEach (p) -> p.originalValid = true
-
-    # if @polygons.length > 0
-    #     @polygons.forEach (p) -> p.originalValid = true
-    # for i in [0...@subTrees.length]
-    #     @subTrees[i].markPolygonsAsOriginal()
 
     applyMatrix: (matrix, normalMatrix, firstRun = true) ->
 
@@ -951,163 +755,21 @@ class Polytree
 
                 polygonsArray.forEach (p) -> p.shared = index
 
-        # if @polygons.length > 0
-        #     @polygons.forEach (p) -> p.shared = index
-        # for i in [0...@subTrees.length]
-        #     @subTrees[i].setPolygonIndex(index)
-
+# Set prototype property
 Polytree::isPolytree = true
 
-raycastIntersectAscSort = (a, b) -> a.distance - b.distance
-
-pointRounding = (point, num = 15) ->
-
-    point.x = +point.x.toFixed(num)
-    point.y = +point.y.toFixed(num)
-    point.z = +point.z.toFixed(num)
-    point
-
-splitPolygonByPlane = (polygon, plane, result = []) ->
-
-    returnPolygon =
-        polygon: polygon
-        type: "undecided"
-
-    polygonType = 0
-    types = []
-
-    for i in [0...polygon.vertices.length]
-
-        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.w
-        type = if distanceToPlane < -EPSILON then BACK else if distanceToPlane > EPSILON then FRONT else COPLANAR
-        polygonType |= type
-        types.push(type)
-
-    switch polygonType
-
-        when COPLANAR
-
-            returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
-            result.push(returnPolygon)
-
-        when FRONT
-
-            returnPolygon.type = "front"
-            result.push(returnPolygon)
-
-        when BACK
-
-            returnPolygon.type = "back"
-            result.push(returnPolygon)
-
-        when SPANNING
-
-            frontVertices = []
-            backVertices = []
-
-            for i in [0...polygon.vertices.length]
-
-                nextIndex = (i + 1) % polygon.vertices.length
-                currentType = types[i]
-                nextType = types[nextIndex]
-                currentVertex = polygon.vertices[i]
-                nextVertex = polygon.vertices[nextIndex]
-
-                if currentType != BACK
-
-                    frontVertices.push(currentVertex)
-
-                if currentType != FRONT
-
-                    backVertices.push(if currentType != BACK then currentVertex.clone() else currentVertex)
-
-                if (currentType | nextType) == SPANNING
-
-                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(triangleVertex0.copy(nextVertex.pos).sub(currentVertex.pos))
-                    vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
-                    frontVertices.push(vertexParameter)
-                    backVertices.push(vertexParameter.clone())
-
-            if frontVertices.length >= 3
-
-                if frontVertices.length > 3
-
-                    newPolygons = splitPolygonArr(frontVertices)
-
-                    for polygonIndex in [0...newPolygons.length]
-
-                        result.push(
-                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
-                            type: "front"
-                        )
-
-                else
-
-                    result.push(
-                        polygon: new Polygon(frontVertices, polygon.shared)
-                        type: "front"
-                    )
-
-            if backVertices.length >= 3
-
-                if backVertices.length > 3
-
-                    newPolygons = splitPolygonArr(backVertices)
-
-                    for polygonIndex in [0...newPolygons.length]
-
-                        result.push(
-                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
-                            type: "back"
-                        )
-
-                else
-
-                    result.push(
-                        polygon: new Polygon(backVertices, polygon.shared)
-                        type: "back"
-                    )
-
-    if result.length == 0
-
-        result.push(returnPolygon)
-
-    return result
-
-splitPolygonArr = (arr) ->
-
-    resultArr = []
-
-    if arr.length > 4
-
-        console.warn("[splitPolygonArr] arr.length > 4", arr.length)
-
-        for j in [3..arr.length]
-
-            result = []
-            result.push(arr[0].clone())
-            result.push(arr[j - 2].clone())
-            result.push(arr[j - 1].clone())
-            resultArr.push(result)
-
-    else
-
-        if arr[0].pos.distanceTo(arr[2].pos) <= arr[1].pos.distanceTo(arr[3].pos)
-
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[2].clone()],
-                [arr[0].clone(), arr[2].clone(), arr[3].clone()])
-
-        else
-
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[3].clone()],
-                [arr[1].clone(), arr[2].clone(), arr[3].clone()])
-
-        return resultArr
-
-    return resultArr
-
+# Static properties
 Polytree.disposePolytree = true
+Polytree.usePolytreeRay = true
+Polytree.useWindingNumber = false
+Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
+Polytree.maxLevel = 16
+Polytree.polygonsPerTree = 100
 
+# Static method
+Polytree.rayIntersectsTriangle = rayIntersectsTriangle
+
+# Main operation method
 Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
 
     if async
@@ -1129,408 +791,3 @@ Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, 
     else
 
         _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async)
-
-_handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun, async) ->
-
-    if async
-
-        new Promise (resolve, reject) ->
-
-            try
-
-                polytreeA = undefined
-                polytreeB = undefined
-                resultPolytree = undefined
-                material = undefined
-
-                if obj.material
-
-                    material = obj.material
-
-                promises = []
-
-                if obj.objA
-
-                    promise = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, 0, async)
-                    promises.push(promise)
-
-                if obj.objB
-
-                    promise = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, 1, async)
-                    promises.push(promise)
-
-                Promise.allSettled(promises).then (results) ->
-
-                    polytrees = []
-
-                    results.forEach (r) ->
-
-                        if r.status is "fulfilled"
-
-                            if r.value.objIndex is 0
-
-                                polytreeA = r.value
-
-                            else if r.value.objIndex is 1
-
-                                polytreeB = r.value
-
-                    if returnPolytrees is true
-
-                        obj.objA = polytreeA.original
-                        polytreeA = polytreeA.result
-                        obj.objB = polytreeB.original
-                        polytreeB = polytreeB.result
-
-                    resultPromise = undefined
-
-                    switch obj.op
-
-                        when 'unite'
-
-                            resultPromise = Polytree.async.unite(polytreeA, polytreeB, buildTargetPolytree)
-
-                        when 'subtract'
-
-                            resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
-
-                        when 'intersect'
-
-                            resultPromise = Polytree.async.intersect(polytreeA, polytreeB, buildTargetPolytree)
-
-                    resultPromise.then (resultPolytree) ->
-
-                        if firstRun and material
-
-                            mesh = Polytree.toMesh(resultPolytree, material)
-
-                            unless returnPolytrees
-
-                                disposePolytree(resultPolytree)
-
-                            resolve(if returnPolytrees then { result: mesh, operationTree: obj } else mesh)
-
-                        else if firstRun and returnPolytrees
-
-                            resolve({ result: resultPolytree, operationTree: obj })
-
-                        else
-
-                            resolve(resultPolytree)
-
-                        unless returnPolytrees
-
-                            disposePolytree(polytreeA, polytreeB)
-
-                    .catch (e) -> reject(e)
-
-            catch e
-
-                reject(e)
-
-    else
-
-        polytreeA = undefined
-        polytreeB = undefined
-        resultPolytree = undefined
-        material = undefined
-
-        if obj.material
-
-            material = obj.material
-
-        if obj.objA
-
-            polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, undefined, async)
-
-            if returnPolytrees == true
-
-                obj.objA = polytreeA.original
-                polytreeA = polytreeA.result
-
-        if obj.objB
-
-            polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, undefined, async)
-
-            if returnPolytrees == true
-
-                obj.objB = polytreeB.original
-                polytreeB = polytreeB.result
-
-        switch obj.op
-
-            when 'unite'
-
-                resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
-
-            when 'subtract'
-
-                resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
-
-            when 'intersect'
-
-                resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
-
-        unless returnPolytrees
-
-            disposePolytree(polytreeA, polytreeB)
-
-        if firstRun and material
-
-            mesh = Polytree.toMesh(resultPolytree, material)
-            disposePolytree(resultPolytree)
-
-            return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
-
-        if firstRun and returnPolytrees
-
-            return { result: resultPolytree, operationTree: obj }
-
-        return resultPolytree
-
-handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = true) ->
-
-    if async
-
-        new Promise (resolve, reject) ->
-
-            try
-
-                returnObj = undefined
-
-                if obj.isMesh
-
-                    returnObj = Polytree.fromMesh(obj, options.objCounter++)
-
-                    if returnPolytrees
-
-                        returnObj = { result: returnObj, original: returnObj.clone() }
-
-                    returnObj.objIndex = objIndex
-                    resolve(returnObj)
-
-                else if obj.isPolytree
-
-                    returnObj = obj
-
-                    if returnPolytrees
-
-                        returnObj = { result: obj, original: obj.clone() }
-
-                    returnObj.objIndex = objIndex
-                    resolve(returnObj)
-
-                else if obj.op
-
-                    Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async).then (returnObj) ->
-
-                        if returnPolytrees
-
-                            returnObj = { result: returnObj, original: obj }
-
-                        returnObj.objIndex = objIndex
-                        resolve(returnObj)
-
-            catch e
-
-                reject(e)
-
-    else
-
-        returnObj = undefined
-
-        if obj.isMesh
-
-            returnObj = Polytree.fromMesh(obj, options.objCounter++)
-
-            if returnPolytrees
-
-                returnObj = { result: returnObj, original: returnObj.clone() }
-
-        else if obj.isPolytree
-
-            returnObj = obj
-
-            if returnPolytrees
-
-                returnObj = { result: obj, original: obj.clone() }
-
-        else if obj.op
-
-            returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async)
-
-            if returnPolytrees
-
-                returnObj = { result: returnObj, original: obj }
-
-        return returnObj
-
-disposePolytree = (...polytrees) ->
-
-    if Polytree.disposePolytree
-
-        polytrees.forEach((polytree) -> polytree.delete())
-
-# Winding Number algorithm adapted from https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/vega/libraries/windingNumber/windingNumber.cpp
-_wV1 = new Vector3()
-_wV2 = new Vector3()
-_wV3 = new Vector3()
-_wP = new Vector3()
-_wP_EPS_ARR = [
-    new Vector3(EPSILON, 0, 0)
-    new Vector3(0, EPSILON, 0)
-    new Vector3(0, 0, EPSILON)
-    new Vector3(-EPSILON, 0, 0)
-    new Vector3(0, -EPSILON, 0)
-    new Vector3(0, 0, -EPSILON)
-]
-_wP_EPS_ARR_COUNT = _wP_EPS_ARR.length
-_matrix3 = new Matrix3()
-wNPI = 4 * Math.PI
-
-returnXYZ = (arr, index) ->
-    x: arr[index]
-    y: arr[index + 1]
-    z: arr[index + 2]
-
-calcWindingNumber_buffer = (trianglesArr, point) ->
-
-    wN = 0
-
-    for i in [0...trianglesArr.length] by 9
-
-        _wV1.subVectors(returnXYZ(trianglesArr, i), point)
-        _wV2.subVectors(returnXYZ(trianglesArr, i + 3), point)
-        _wV3.subVectors(returnXYZ(trianglesArr, i + 6), point)
-        lenA = _wV1.length()
-        lenB = _wV2.length()
-        lenC = _wV3.length()
-        _matrix3.set(_wV1.x, _wV1.y, _wV1.z, _wV2.x, _wV2.y, _wV2.z, _wV3.x, _wV3.y, _wV3.z)
-        omega = 2 * Math.atan2(_matrix3.determinant(), (lenA * lenB * lenC + _wV1.dot(_wV2) * lenC + _wV2.dot(_wV3) * lenA + _wV3.dot(_wV1) * lenB))
-        wN += omega
-
-    wN = Math.round(wN / wNPI)
-    return wN
-
-polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
-
-    result = false
-    _wP.copy(point)
-    wN = calcWindingNumber_buffer(trianglesArr, _wP)
-
-    if wN is 0
-
-        if coplanar
-
-            for j in [0..._wP_EPS_ARR_COUNT]
-
-                _wP.copy(point).add(_wP_EPS_ARR[j])
-                wN = calcWindingNumber_buffer(trianglesArr, _wP)
-
-                if wN isnt 0
-
-                    result = true
-                    break
-
-    else
-
-        result = true
-
-    return result
-
-# -----
-
-handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
-
-    polytreeA_buffer = undefined
-    polytreeB_buffer = undefined
-
-    if Polytree.useWindingNumber is true
-
-        if bothPolytrees
-
-            polytreeA_buffer = prepareTriangleBuffer(polytreeA.getPolygons())
-
-        polytreeB_buffer = prepareTriangleBuffer(polytreeB.getPolygons())
-
-    polytreeA.handleIntersectingPolygons(polytreeB, polytreeB_buffer)
-
-    if bothPolytrees
-
-        polytreeB.handleIntersectingPolygons(polytreeA, polytreeA_buffer)
-
-    if polytreeA_buffer isnt undefined
-
-        polytreeA_buffer = undefined
-        polytreeB_buffer = undefined
-
-prepareTriangleBuffer = (polygons) ->
-
-    numOfTriangles = polygons.length
-    array = new Float32Array(numOfTriangles * 3 * 3)
-    bufferIndex = 0
-
-    for i in [0...numOfTriangles]
-
-        triangle = polygons[i].triangle
-        array[bufferIndex++] = triangle.a.x
-        array[bufferIndex++] = triangle.a.y
-        array[bufferIndex++] = triangle.a.z
-        array[bufferIndex++] = triangle.b.x
-        array[bufferIndex++] = triangle.b.y
-        array[bufferIndex++] = triangle.b.z
-        array[bufferIndex++] = triangle.c.x
-        array[bufferIndex++] = triangle.c.y
-        array[bufferIndex++] = triangle.c.z
-
-    return array
-
-# https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-edge1 = new Vector3()
-edge2 = new Vector3()
-h = new Vector3()
-s = new Vector3()
-q = new Vector3()
-RAY_EPSILON = 0.0000001
-
-rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
-
-    edge1.subVectors(triangle.b, triangle.a)
-    edge2.subVectors(triangle.c, triangle.a)
-    h.crossVectors(ray.direction, edge2)
-    a = edge1.dot(h)
-
-    if a > -RAY_EPSILON and a < RAY_EPSILON
-
-        return null # Ray is parallel to the triangle
-
-    f = 1 / a
-    s.subVectors(ray.origin, triangle.a)
-    u = f * s.dot(h)
-
-    if u < 0 or u > 1
-
-        return null
-
-    q.crossVectors(s, edge1)
-    v = f * ray.direction.dot(q)
-
-    if v < 0 or u + v > 1
-
-        return null
-
-    t = f * edge2.dot(q)
-
-    if t > RAY_EPSILON
-
-        return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
-
-    return null
-
-Polytree.rayIntersectsTriangle = rayIntersectsTriangle
-
-Polytree.usePolytreeRay = true
-Polytree.useWindingNumber = false
-Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
-Polytree.maxLevel = 16
-Polytree.polygonsPerTree = 100
