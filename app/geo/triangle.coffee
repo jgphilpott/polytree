@@ -4,6 +4,51 @@ tempVector1 = new Vector3()
 tempVector2 = new Vector3()
 tempVector3 = new Vector3()
 
+### Validate a triangle (three distinct vertices) in 3D space.
+
+Notes:
+
+    - This does NOT check for area > 0 beyond coincident points (collinear but distinct points are treated as valid).
+    - Use additional orientation/area tests if you need to exclude collinear triangles. ###
+
+isValidTriangle = (triangle) ->
+
+    return false if triangle.a.equals(triangle.b)
+    return false if triangle.a.equals(triangle.c)
+    return false if triangle.b.equals(triangle.c)
+
+    return true
+
+### Check and register triangle uniqueness in a Set/Map.
+
+Hash Scheme:
+
+    - Generates a directional hash using the ordered vertex triplet (a,b,c).
+    - Different vertex order permutations of the same geometric triangle will be treated as different unless normalized before calling.
+
+Usage Guidance:
+
+    - For order-invariant uniqueness, sort or canonicalize vertices first (e.g., by lexicographic (x,y,z)) before invoking.
+    - For performance, this function only creates a single concatenated string and performs a Set lookup. ###
+
+isUniqueTriangle = (triangle, set, map) ->
+
+    hash1 = "{#{triangle.a.x},#{triangle.a.y},#{triangle.a.z}}-{#{triangle.b.x},#{triangle.b.y},#{triangle.b.z}}-{#{triangle.c.x},#{triangle.c.y},#{triangle.c.z}}"
+
+    if set.has(hash1) is true
+
+        return false
+
+    else
+
+        set.add(hash1)
+
+        if map
+
+            map.set(triangle, triangle)
+
+        return true
+
 # Epsilon-aware 2D point equality.
 pointsEqual2D = (p, q, eps = EPS2D) ->
 
