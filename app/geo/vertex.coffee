@@ -1,10 +1,3 @@
-{
-
-    Vector2
-    Vector3
-
-} = require "three"
-
 # class Vertex
 class Vertex
 

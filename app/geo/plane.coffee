@@ -1,9 +1,3 @@
-{
-
-    Vector3
-
-} = require "three"
-
 # Temporary vectors for computation (shared globals)
 triangleVertex0 = new Vector3()
 triangleVertex1 = new Vector3()

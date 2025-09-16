@@ -1,11 +1,3 @@
-{
-
-    Vector3
-    Triangle
-    Matrix3
-
-} = require "three"
-
 # Global polygon ID counter
 _polygonID = 0
 
