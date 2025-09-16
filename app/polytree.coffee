@@ -1127,95 +1127,262 @@ splitPolygonArr = (arr) ->
 
 Polytree.disposePolytree = true
 
-Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
+Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = false) ->
 
-    polytreeA = undefined
-    polytreeB = undefined
-    resultPolytree = undefined
-    material = undefined
+    if async
 
-    if obj.material
+        new Promise (resolve, reject) ->
 
-        material = obj.material
+            try
 
-    if obj.objA
+                _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async).then (result) ->
 
-        polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options)
+                    resolve(result)
 
-        if returnPolytrees == true
+                .catch (e) -> reject(e)
 
-            obj.objA = polytreeA.original
-            polytreeA = polytreeA.result
+            catch e
 
-    if obj.objB
+                reject(e)
 
-        polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options)
+    else
 
-        if returnPolytrees == true
+        _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async)
 
-            obj.objB = polytreeB.original
-            polytreeB = polytreeB.result
+_handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun, async) ->
 
-    switch obj.op
+    if async
 
-        when 'unite'
+        new Promise (resolve, reject) ->
 
-            resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
+            try
 
-        when 'subtract'
+                polytreeA = undefined
+                polytreeB = undefined
+                resultPolytree = undefined
+                material = undefined
 
-            resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+                if obj.material
 
-        when 'intersect'
+                    material = obj.material
 
-            resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                promises = []
 
-    unless returnPolytrees
+                if obj.objA
 
-        disposePolytree(polytreeA, polytreeB)
+                    promise = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, 0, async)
+                    promises.push(promise)
 
-    if firstRun and material
+                if obj.objB
 
-        mesh = Polytree.toMesh(resultPolytree, material)
-        disposePolytree(resultPolytree)
+                    promise = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, 1, async)
+                    promises.push(promise)
 
-        return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
+                Promise.allSettled(promises).then (results) ->
 
-    if firstRun and returnPolytrees
+                    polytrees = []
 
-        return { result: resultPolytree, operationTree: obj }
+                    results.forEach (r) ->
 
-    return resultPolytree
+                        if r.status is "fulfilled"
 
-handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options) ->
+                            if r.value.objIndex is 0
 
-    returnObj = undefined
+                                polytreeA = r.value
 
-    if obj.isMesh
+                            else if r.value.objIndex is 1
 
-        returnObj = Polytree.fromMesh(obj, options.objCounter++)
+                                polytreeB = r.value
 
-        if returnPolytrees
+                    if returnPolytrees is true
 
-            returnObj = { result: returnObj, original: returnObj.clone() }
+                        obj.objA = polytreeA.original
+                        polytreeA = polytreeA.result
+                        obj.objB = polytreeB.original
+                        polytreeB = polytreeB.result
 
-    else if obj.isPolytree
+                    resultPromise = undefined
 
-        returnObj = obj
+                    switch obj.op
 
-        if returnPolytrees
+                        when 'unite'
 
-            returnObj = { result: obj, original: obj.clone() }
+                            resultPromise = Polytree.async.unite(polytreeA, polytreeB, buildTargetPolytree)
 
-    else if obj.op
+                        when 'subtract'
 
-        returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false)
+                            resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
 
-        if returnPolytrees
+                        when 'intersect'
 
-            returnObj = { result: returnObj, original: obj }
+                            resultPromise = Polytree.async.intersect(polytreeA, polytreeB, buildTargetPolytree)
 
-    return returnObj
+                    resultPromise.then (resultPolytree) ->
+
+                        if firstRun and material
+
+                            mesh = Polytree.toMesh(resultPolytree, material)
+
+                            unless returnPolytrees
+
+                                disposePolytree(resultPolytree)
+
+                            resolve(if returnPolytrees then { result: mesh, operationTree: obj } else mesh)
+
+                        else if firstRun and returnPolytrees
+
+                            resolve({ result: resultPolytree, operationTree: obj })
+
+                        else
+
+                            resolve(resultPolytree)
+
+                        unless returnPolytrees
+
+                            disposePolytree(polytreeA, polytreeB)
+
+                    .catch (e) -> reject(e)
+
+            catch e
+
+                reject(e)
+
+    else
+
+        polytreeA = undefined
+        polytreeB = undefined
+        resultPolytree = undefined
+        material = undefined
+
+        if obj.material
+
+            material = obj.material
+
+        if obj.objA
+
+            polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, undefined, async)
+
+            if returnPolytrees == true
+
+                obj.objA = polytreeA.original
+                polytreeA = polytreeA.result
+
+        if obj.objB
+
+            polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, undefined, async)
+
+            if returnPolytrees == true
+
+                obj.objB = polytreeB.original
+                polytreeB = polytreeB.result
+
+        switch obj.op
+
+            when 'unite'
+
+                resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
+
+            when 'subtract'
+
+                resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+
+            when 'intersect'
+
+                resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+
+        unless returnPolytrees
+
+            disposePolytree(polytreeA, polytreeB)
+
+        if firstRun and material
+
+            mesh = Polytree.toMesh(resultPolytree, material)
+            disposePolytree(resultPolytree)
+
+            return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
+
+        if firstRun and returnPolytrees
+
+            return { result: resultPolytree, operationTree: obj }
+
+        return resultPolytree
+
+handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = false) ->
+
+    if async
+
+        new Promise (resolve, reject) ->
+
+            try
+
+                returnObj = undefined
+
+                if obj.isMesh
+
+                    returnObj = Polytree.fromMesh(obj, options.objCounter++)
+
+                    if returnPolytrees
+
+                        returnObj = { result: returnObj, original: returnObj.clone() }
+
+                    returnObj.objIndex = objIndex
+                    resolve(returnObj)
+
+                else if obj.isPolytree
+
+                    returnObj = obj
+
+                    if returnPolytrees
+
+                        returnObj = { result: obj, original: obj.clone() }
+
+                    returnObj.objIndex = objIndex
+                    resolve(returnObj)
+
+                else if obj.op
+
+                    Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async).then (returnObj) ->
+
+                        if returnPolytrees
+
+                            returnObj = { result: returnObj, original: obj }
+
+                        returnObj.objIndex = objIndex
+                        resolve(returnObj)
+
+            catch e
+
+                reject(e)
+
+    else
+
+        returnObj = undefined
+
+        if obj.isMesh
+
+            returnObj = Polytree.fromMesh(obj, options.objCounter++)
+
+            if returnPolytrees
+
+                returnObj = { result: returnObj, original: returnObj.clone() }
+
+        else if obj.isPolytree
+
+            returnObj = obj
+
+            if returnPolytrees
+
+                returnObj = { result: obj, original: obj.clone() }
+
+        else if obj.op
+
+            returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async)
+
+            if returnPolytrees
+
+                returnObj = { result: returnObj, original: obj }
+
+        return returnObj
 
 isUniqueTriangle = (triangle, set, map) ->
 
