@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 cat \
   app/io/imports.js \
+  app/etc/variables.js \
   app/etc/helpers.js \
   app/polytree.js \
   app/csg/unite.js \

@@ -26,9 +26,11 @@
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &",
     "build": "npm run compile && npm run build:node && npm run build:browser && npm run minify",
-    "build:node": "./scripts/build-node.sh",
+    "build:node": "./scripts/bundle.sh",
     "build:browser": "node scripts/browserify.cjs",
-    "minify": "uglifyjs polytree.bundle.js --compress --mangle -o polytree.bundle.min.js && uglifyjs polytree.bundle.browser.js --compress --mangle -o polytree.bundle.browser.min.js",
+    "minify": "npm run minify:node && npm run minify:browser",
+    "minify:node": "uglifyjs polytree.bundle.js -cmo polytree.bundle.min.js",
+    "minify:browser": "uglifyjs polytree.bundle.browser.js -cmo polytree.bundle.browser.min.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
