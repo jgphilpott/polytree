@@ -1,26 +1,3 @@
-# Helper buffer for 3D vectors
-nbuf3 = (ct) ->
-
-    top: 0
-    array: new Float32Array(ct)
-
-    write: (v) ->
-
-        @array[@top++] = v.x
-        @array[@top++] = v.y
-        @array[@top++] = v.z
-
-# Helper buffer for 2D vectors
-nbuf2 = (ct) ->
-
-    top: 0
-    array: new Float32Array(ct)
-
-    write: (v) ->
-
-        @array[@top++] = v.x
-        @array[@top++] = v.y
-
 # Temporary variables for mesh operations
 _normal1 = new Vector3()
 tmpm3 = new Matrix3()
@@ -215,12 +192,3 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
         polytree.mesh = obj
 
     return polytree
-
-# Check if a triangle is valid (non-degenerate)
-isValidTriangle = (triangle) ->
-
-    return false if triangle.a.equals(triangle.b)
-    return false if triangle.a.equals(triangle.c)
-    return false if triangle.b.equals(triangle.c)
-
-    return true

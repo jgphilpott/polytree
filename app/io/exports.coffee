@@ -4,6 +4,8 @@ module.exports.Plane = Plane
 module.exports.Vertex = Vertex
 module.exports.Polygon = Polygon
 
+module.exports.isValidTriangle = isValidTriangle
+module.exports.isUniqueTriangle = isUniqueTriangle
 module.exports.rayIntersectsTriangle = rayIntersectsTriangle
 module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
 

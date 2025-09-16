@@ -2,6 +2,8 @@
 
 {
 
+    isValidTriangle
+    isUniqueTriangle
     triangleIntersectsTriangle
     resolveTriangleIntersection
     resolveCoplanarTriangleIntersection
@@ -12,7 +14,7 @@
     intersectionTestVertex2D
     constructIntersection
 
-} = require "../polytree.bundle.js"
+} = require "../../polytree.bundle.js"
 
 # Helper functions to keep tests DRY.
 
@@ -85,6 +87,66 @@ assertIntersection = (tA, tB, expected, { coplanar: expectedCoplanar = undefined
         unless dist > approx
 
             throw new Error "expected non-zero segment#{if label then " (#{label})" else ""}, got length #{dist}"
+
+describe "triangle validation helpers", ->
+
+    describe "isValidTriangle", ->
+
+        it "returns true for distinct non-collinear triangle", ->
+
+            t = tri(0,0,0, 1,0,0, 0,1,0)
+            expect(isValidTriangle(t)).toBe true
+
+        it "returns true for distinct but collinear triangle (allowed)", ->
+
+            t = tri(0,0,0, 1,0,0, 2,0,0)
+            expect(isValidTriangle(t)).toBe true
+
+        it "returns false when a==b", ->
+
+            t = tri(0,0,0, 0,0,0, 0,1,0)
+            expect(isValidTriangle(t)).toBe false
+
+        it "returns false when a==c", ->
+
+            t = tri(0,0,0, 1,0,0, 0,0,0)
+            expect(isValidTriangle(t)).toBe false
+
+        it "returns false when b==c", ->
+
+            t = tri(0,0,0, 1,0,0, 1,0,0)
+            expect(isValidTriangle(t)).toBe false
+
+    describe "isUniqueTriangle", ->
+
+        it "returns true then false for duplicate directional hash", ->
+
+            set = new Set()
+
+            t = tri(0,0,0, 1,0,0, 0,1,0)
+
+            expect(isUniqueTriangle(t, set)).toBe true
+            expect(isUniqueTriangle(t, set)).toBe false
+
+        it "treats different vertex order as distinct (directional)", ->
+
+            set = new Set()
+
+            t1 = tri(0,0,0, 1,0,0, 0,1,0)
+            t2 = tri(1,0,0, 0,1,0, 0,0,0) # same geometric triangle different order
+
+            expect(isUniqueTriangle(t1, set)).toBe true
+            expect(isUniqueTriangle(t2, set)).toBe true # directional hash => distinct
+
+        it "stores entry in optional map when provided", ->
+
+            set = new Set()
+            map = new Map()
+
+            t = tri(0,0,0, 1,0,0, 0,1,0)
+
+            expect(isUniqueTriangle(t, set, map)).toBe true
+            expect(map.get(t)).toBe t
 
 describe "triangleIntersectsTriangle", ->
 
