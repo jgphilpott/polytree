@@ -1127,7 +1127,7 @@ splitPolygonArr = (arr) ->
 
 Polytree.disposePolytree = true
 
-Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = false) ->
+Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
 
     if async
 
@@ -1307,7 +1307,7 @@ _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun
 
         return resultPolytree
 
-handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = false) ->
+handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = true) ->
 
     if async
 
