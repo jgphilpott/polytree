@@ -253,3 +253,112 @@ RAY_EPSILON = RAY_INTERSECTION_EPSILON
 # Legacy aliases for matrix operations
 triangleVertex0 = temporaryTriangleVertex
 tmpm3 = temporaryMatrixWithNormalCalc
+
+
+# =============================================================================
+# EXPORTS FOR TESTING
+# Export all variables so they can be tested
+# =============================================================================
+
+# Only export when in a testing environment (when module.exports exists)
+if typeof module != 'undefined' and module.exports
+
+    # Mathematical Constants
+    module.exports.GEOMETRIC_EPSILON = GEOMETRIC_EPSILON
+    module.exports.RAY_INTERSECTION_EPSILON = RAY_INTERSECTION_EPSILON
+    module.exports.TRIANGLE_2D_EPSILON = TRIANGLE_2D_EPSILON
+    module.exports.WINDING_NUMBER_FULL_ROTATION = WINDING_NUMBER_FULL_ROTATION
+
+    # Polygon Classification Constants
+    module.exports.POLYGON_COPLANAR = POLYGON_COPLANAR
+    module.exports.POLYGON_FRONT = POLYGON_FRONT
+    module.exports.POLYGON_BACK = POLYGON_BACK
+    module.exports.POLYGON_SPANNING = POLYGON_SPANNING
+
+    # General Purpose Temporary Objects
+    module.exports.temporaryVector3Primary = temporaryVector3Primary
+    module.exports.temporaryVector3Secondary = temporaryVector3Secondary
+    module.exports.temporaryVector3Tertiary = temporaryVector3Tertiary
+    module.exports.temporaryBoundingBox = temporaryBoundingBox
+    module.exports.temporaryRaycaster = temporaryRaycaster
+    module.exports.temporaryRay = temporaryRay
+    module.exports.defaultRayDirection = defaultRayDirection
+
+    # Winding Number Algorithm Variables
+    module.exports.windingNumberVector1 = windingNumberVector1
+    module.exports.windingNumberVector2 = windingNumberVector2
+    module.exports.windingNumberVector3 = windingNumberVector3
+    module.exports.windingNumberTestPoint = windingNumberTestPoint
+    module.exports.windingNumberEpsilonOffsets = windingNumberEpsilonOffsets
+    module.exports.windingNumberEpsilonOffsetsCount = windingNumberEpsilonOffsetsCount
+    module.exports.windingNumberMatrix3 = windingNumberMatrix3
+
+    # Ray-Triangle Intersection Variables
+    module.exports.rayTriangleEdge1 = rayTriangleEdge1
+    module.exports.rayTriangleEdge2 = rayTriangleEdge2
+    module.exports.rayTriangleHVector = rayTriangleHVector
+    module.exports.rayTriangleSVector = rayTriangleSVector
+    module.exports.rayTriangleQVector = rayTriangleQVector
+
+    # Matrix and Transformation Variables
+    module.exports.temporaryTriangleVertex = temporaryTriangleVertex
+    module.exports.temporaryTriangleVertexSecondary = temporaryTriangleVertexSecondary
+    module.exports.temporaryMatrix3 = temporaryMatrix3
+    module.exports.temporaryMatrixWithNormalCalc = temporaryMatrixWithNormalCalc
+
+    # CSG and Octree Operation Variables
+    module.exports.OCTREE_MAX_DEPTH = OCTREE_MAX_DEPTH
+    module.exports.OCTREE_MAX_POLYGONS_PER_NODE = OCTREE_MAX_POLYGONS_PER_NODE
+    module.exports.OCTREE_MIN_NODE_SIZE = OCTREE_MIN_NODE_SIZE
+    module.exports.DEFAULT_MATERIAL_INDEX = DEFAULT_MATERIAL_INDEX
+    module.exports.MAX_REFINEMENT_ITERATIONS = MAX_REFINEMENT_ITERATIONS
+
+    # Performance and Optimization Variables
+    module.exports.DEFAULT_COORDINATE_PRECISION = DEFAULT_COORDINATE_PRECISION
+    module.exports.POINT_COINCIDENCE_THRESHOLD = POINT_COINCIDENCE_THRESHOLD
+    module.exports.DEFAULT_BUFFER_SIZE = DEFAULT_BUFFER_SIZE
+    module.exports.MAX_WORKER_THREADS = MAX_WORKER_THREADS
+    module.exports.ASYNC_OPERATION_TIMEOUT = ASYNC_OPERATION_TIMEOUT
+    module.exports.GARBAGE_COLLECTION_THRESHOLD = GARBAGE_COLLECTION_THRESHOLD
+    module.exports.MEMORY_USAGE_WARNING_LIMIT = MEMORY_USAGE_WARNING_LIMIT
+    module.exports.GEOMETRY_CACHE_SIZE = GEOMETRY_CACHE_SIZE
+    module.exports.INTERSECTION_CACHE_SIZE = INTERSECTION_CACHE_SIZE
+
+    # Debugging and Development Variables
+    module.exports.DEBUG_VERBOSE_LOGGING = DEBUG_VERBOSE_LOGGING
+    module.exports.DEBUG_PERFORMANCE_TIMING = DEBUG_PERFORMANCE_TIMING
+    module.exports.DEBUG_GEOMETRY_VALIDATION = DEBUG_GEOMETRY_VALIDATION
+    module.exports.DEBUG_INTERSECTION_VERIFICATION = DEBUG_INTERSECTION_VERIFICATION
+    module.exports.DEBUG_COLOR_FRONT = DEBUG_COLOR_FRONT
+    module.exports.DEBUG_COLOR_BACK = DEBUG_COLOR_BACK
+    module.exports.DEBUG_COLOR_COPLANAR = DEBUG_COLOR_COPLANAR
+    module.exports.DEBUG_COLOR_SPANNING = DEBUG_COLOR_SPANNING
+
+    # Legacy Compatibility Aliases
+    module.exports.tempVector1 = tempVector1
+    module.exports.tempVector2 = tempVector2
+    module.exports.tempBox3 = tempBox3
+    module.exports.tempRaycaster = tempRaycaster
+    module.exports.tempRay = tempRay
+    module.exports.tempRayDirection = tempRayDirection
+    module.exports.EPSILON = EPSILON
+    module.exports.COPLANAR = COPLANAR
+    module.exports.FRONT = FRONT
+    module.exports.BACK = BACK
+    module.exports.SPANNING = SPANNING
+    module.exports._wV1 = _wV1
+    module.exports._wV2 = _wV2
+    module.exports._wV3 = _wV3
+    module.exports._wP = _wP
+    module.exports._wP_EPS_ARR = _wP_EPS_ARR
+    module.exports._wP_EPS_ARR_COUNT = _wP_EPS_ARR_COUNT
+    module.exports._matrix3 = _matrix3
+    module.exports.wNPI = wNPI
+    module.exports.edge1 = edge1
+    module.exports.edge2 = edge2
+    module.exports.h = h
+    module.exports.s = s
+    module.exports.q = q
+    module.exports.RAY_EPSILON = RAY_EPSILON
+    module.exports.triangleVertex0 = triangleVertex0
+    module.exports.tmpm3 = tmpm3
