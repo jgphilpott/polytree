@@ -1,6 +1,6 @@
 # Temporary variables for mesh operations
 _normal1 = new Vector3()
-tmpm3 = new Matrix3()
+# Note: tmpm3 is now defined in variables.coffee as temporaryMatrixWithNormalCalc
 ttvv0 = new Vector3()
 
 # Convert a Polytree to a THREE.js BufferGeometry

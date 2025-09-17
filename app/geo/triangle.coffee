@@ -1,8 +1,7 @@
-EPS2D = 1e-10
-
-tempVector1 = new Vector3()
-tempVector2 = new Vector3()
-tempVector3 = new Vector3()
+# Note: TRIANGLE_2D_EPSILON moved to variables.coffee as TRIANGLE_2D_EPSILON
+# Note: tempVector1, tempVector2 are now defined in variables.coffee
+# Local third temporary vector for triangle-specific calculations
+tempVector3 = temporaryVector3Tertiary
 
 ### Validate a triangle (three distinct vertices) in 3D space.
 
@@ -50,12 +49,12 @@ isUniqueTriangle = (triangle, set, map) ->
         return true
 
 # Epsilon-aware 2D point equality.
-pointsEqual2D = (p, q, eps = EPS2D) ->
+pointsEqual2D = (p, q, eps = TRIANGLE_2D_EPSILON) ->
 
     return Math.abs(p.x - q.x) <= eps and Math.abs(p.y - q.y) <= eps
 
 # Inclusive point-on-segment check for collinear points.
-pointOnSegmentInclusive2D = (p, a, b, eps = EPS2D) ->
+pointOnSegmentInclusive2D = (p, a, b, eps = TRIANGLE_2D_EPSILON) ->
 
     return pointsEqual2D(p, a, eps) or pointsEqual2D(p, b, eps) if pointsEqual2D(a, b, eps)
 
@@ -72,7 +71,7 @@ pointOnSegmentInclusive2D = (p, a, b, eps = EPS2D) ->
 # - Works for CW or CCW input (auto-detects orientation).
 # - Inclusive of edges/vertices.
 # - Handles degenerate triangles (point or segment) robustly.
-pointInTriangleInclusive2D = (p, a, b, c, eps = EPS2D) ->
+pointInTriangleInclusive2D = (p, a, b, c, eps = TRIANGLE_2D_EPSILON) ->
 
     o = triangleOrientation2D(a, b, c)
 
@@ -435,7 +434,7 @@ resolveCoplanarTriangleIntersection = (vertex1TriangleA, vertex2TriangleA, verte
     - Degenerate handling:
 
         - If one triangle degenerates to a point, returns whether that point lies in (or on) the other triangle.
-        - If both degenerate to points, returns true only if the points coincide within EPS2D.
+        - If both degenerate to points, returns true only if the points coincide within TRIANGLE_2D_EPSILON.
         - Degenerate line triangles are handled by the main CCW intersection routine and by point/segment checks where applicable.
 
 @param {Vector2} vertex1TriangleA, vertex2TriangleA, vertex3TriangleA - Vertices of triangle A
@@ -446,25 +445,25 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
 
     # Early handle point-degenerate cases explicitly and efficiently.
 
-    if pointsEqual2D(vertex1TriangleB, vertex2TriangleB, EPS2D) and pointsEqual2D(vertex2TriangleB, vertex3TriangleB, EPS2D)
+    if pointsEqual2D(vertex1TriangleB, vertex2TriangleB, TRIANGLE_2D_EPSILON) and pointsEqual2D(vertex2TriangleB, vertex3TriangleB, TRIANGLE_2D_EPSILON)
 
-        return pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
+        return pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, TRIANGLE_2D_EPSILON)
 
-    if pointsEqual2D(vertex1TriangleA, vertex2TriangleA, EPS2D) and pointsEqual2D(vertex2TriangleA, vertex3TriangleA, EPS2D)
+    if pointsEqual2D(vertex1TriangleA, vertex2TriangleA, TRIANGLE_2D_EPSILON) and pointsEqual2D(vertex2TriangleA, vertex3TriangleA, TRIANGLE_2D_EPSILON)
 
-        return pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
+        return pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, TRIANGLE_2D_EPSILON)
 
     # If both are line-degenerate (not points): reduce to segment overlap test.
     isLineDegenerate = (v1, v2, v3) ->
 
-        (pointsEqual2D(v1, v2, EPS2D) and not pointsEqual2D(v2, v3, EPS2D)) or
-        (pointsEqual2D(v2, v3, EPS2D) and not pointsEqual2D(v1, v2, EPS2D)) or
-        (pointsEqual2D(v3, v1, EPS2D) and not pointsEqual2D(v1, v2, EPS2D))
+        (pointsEqual2D(v1, v2, TRIANGLE_2D_EPSILON) and not pointsEqual2D(v2, v3, TRIANGLE_2D_EPSILON)) or
+        (pointsEqual2D(v2, v3, TRIANGLE_2D_EPSILON) and not pointsEqual2D(v1, v2, TRIANGLE_2D_EPSILON)) or
+        (pointsEqual2D(v3, v1, TRIANGLE_2D_EPSILON) and not pointsEqual2D(v1, v2, TRIANGLE_2D_EPSILON))
 
     extractSegment = (v1, v2, v3) ->
 
         # Return the two distinct endpoints in stable order.
-        if pointsEqual2D(v1, v2, EPS2D) then [v2, v3] else if pointsEqual2D(v2, v3, EPS2D) then [v1, v2] else [v1, v2] # fallback (should not reach if collinear case handled earlier)
+        if pointsEqual2D(v1, v2, TRIANGLE_2D_EPSILON) then [v2, v3] else if pointsEqual2D(v2, v3, TRIANGLE_2D_EPSILON) then [v1, v2] else [v1, v2] # fallback (should not reach if collinear case handled earlier)
 
     if isLineDegenerate(vertex1TriangleA, vertex2TriangleA, vertex3TriangleA) and isLineDegenerate(vertex1TriangleB, vertex2TriangleB, vertex3TriangleB)
 
@@ -477,10 +476,10 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
         minBx = Math.min(bS.x, bE.x); maxBx = Math.max(bS.x, bE.x)
         minBy = Math.min(bS.y, bE.y); maxBy = Math.max(bS.y, bE.y)
 
-        return false if maxAx < minBx - EPS2D or maxBx < minAx - EPS2D or maxAy < minBy - EPS2D or maxBy < minAy - EPS2D
+        return false if maxAx < minBx - TRIANGLE_2D_EPSILON or maxBx < minAx - TRIANGLE_2D_EPSILON or maxAy < minBy - TRIANGLE_2D_EPSILON or maxBy < minAy - TRIANGLE_2D_EPSILON
 
         # Collinear check: orientation of any mixed triple should be ~0; since we know each triangle is a line, test one.
-        if Math.abs(triangleOrientation2D(aS, aE, bS)) > EPS2D
+        if Math.abs(triangleOrientation2D(aS, aE, bS)) > TRIANGLE_2D_EPSILON
 
             return false
 
@@ -490,15 +489,15 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
         if spanAx >= spanAy
 
             # Project onto X.
-            aMin = Math.min(aS.x, aE.x) - EPS2D; aMax = Math.max(aS.x, aE.x) + EPS2D
-            bMin = Math.min(bS.x, bE.x) - EPS2D; bMax = Math.max(bS.x, bE.x) + EPS2D
+            aMin = Math.min(aS.x, aE.x) - TRIANGLE_2D_EPSILON; aMax = Math.max(aS.x, aE.x) + TRIANGLE_2D_EPSILON
+            bMin = Math.min(bS.x, bE.x) - TRIANGLE_2D_EPSILON; bMax = Math.max(bS.x, bE.x) + TRIANGLE_2D_EPSILON
 
             return not (aMax < bMin or bMax < aMin)
 
         else
 
-            aMin = Math.min(aS.y, aE.y) - EPS2D; aMax = Math.max(aS.y, aE.y) + EPS2D
-            bMin = Math.min(bS.y, bE.y) - EPS2D; bMax = Math.max(bS.y, bE.y) + EPS2D
+            aMin = Math.min(aS.y, aE.y) - TRIANGLE_2D_EPSILON; aMax = Math.max(aS.y, aE.y) + TRIANGLE_2D_EPSILON
+            bMin = Math.min(bS.y, bE.y) - TRIANGLE_2D_EPSILON; bMax = Math.max(bS.y, bE.y) + TRIANGLE_2D_EPSILON
 
             return not (aMax < bMin or bMax < aMin)
 
@@ -526,7 +525,7 @@ trianglesOverlap2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, vert
     The result indicates whether the points are arranged clockwise (CW), counter-clockwise (CCW), or collinear.
 
     Note: This returns the raw signed area (twice the triangle area), without applying an epsilon threshold.
-    Callers should compare against a small EPS (e.g., EPS2D) when classifying near-collinear inputs.
+    Callers should compare against a small EPS (e.g., TRIANGLE_2D_EPSILON) when classifying near-collinear inputs.
 
     Formula: orientation(a, b, c) = (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x)
 
@@ -629,10 +628,10 @@ intersectionTestEdge2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, 
 
         # Collinear / endpoint inclusion checks.
 
-        if Math.abs(o1) <= EPS2D and pointOnSegmentInclusive2D(b1, a1, a2, EPS2D) then return true
-        if Math.abs(o2) <= EPS2D and pointOnSegmentInclusive2D(b2, a1, a2, EPS2D) then return true
-        if Math.abs(o3) <= EPS2D and pointOnSegmentInclusive2D(a1, b1, b2, EPS2D) then return true
-        if Math.abs(o4) <= EPS2D and pointOnSegmentInclusive2D(a2, b1, b2, EPS2D) then return true
+        if Math.abs(o1) <= TRIANGLE_2D_EPSILON and pointOnSegmentInclusive2D(b1, a1, a2, TRIANGLE_2D_EPSILON) then return true
+        if Math.abs(o2) <= TRIANGLE_2D_EPSILON and pointOnSegmentInclusive2D(b2, a1, a2, TRIANGLE_2D_EPSILON) then return true
+        if Math.abs(o3) <= TRIANGLE_2D_EPSILON and pointOnSegmentInclusive2D(a1, b1, b2, TRIANGLE_2D_EPSILON) then return true
+        if Math.abs(o4) <= TRIANGLE_2D_EPSILON and pointOnSegmentInclusive2D(a2, b1, b2, TRIANGLE_2D_EPSILON) then return true
 
         return false
 
@@ -657,13 +656,13 @@ intersectionTestVertex2D = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA
 
     # Returns true if any vertex of triangle B lies inside (or on) triangle A OR any vertex of triangle A lies inside (or on) triangle B.
 
-    return true if pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
-    return true if pointInTriangleInclusive2D(vertex2TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
-    return true if pointInTriangleInclusive2D(vertex3TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex1TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, TRIANGLE_2D_EPSILON)
+    return true if pointInTriangleInclusive2D(vertex2TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, TRIANGLE_2D_EPSILON)
+    return true if pointInTriangleInclusive2D(vertex3TriangleB, vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, TRIANGLE_2D_EPSILON)
 
-    return true if pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
-    return true if pointInTriangleInclusive2D(vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
-    return true if pointInTriangleInclusive2D(vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, EPS2D)
+    return true if pointInTriangleInclusive2D(vertex1TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, TRIANGLE_2D_EPSILON)
+    return true if pointInTriangleInclusive2D(vertex2TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, TRIANGLE_2D_EPSILON)
+    return true if pointInTriangleInclusive2D(vertex3TriangleA, vertex1TriangleB, vertex2TriangleB, vertex3TriangleB, TRIANGLE_2D_EPSILON)
 
     return false
 
