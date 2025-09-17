@@ -11,7 +11,6 @@ class Polytree
         @parent = parent
         @level = 0
         @polygonArrays = undefined
-        # @isPolytree = true
         @addPolygonsArrayToRoot(@polygons)
 
     clone: ->
@@ -755,10 +754,10 @@ class Polytree
 
                 polygonsArray.forEach (p) -> p.shared = index
 
-# Set prototype property
+# Set Prototype Properties.
 Polytree::isPolytree = true
 
-# Static properties
+# Set Static Properties.
 Polytree.disposePolytree = true
 Polytree.usePolytreeRay = true
 Polytree.useWindingNumber = false
@@ -766,10 +765,10 @@ Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.
 Polytree.maxLevel = 16
 Polytree.polygonsPerTree = 100
 
-# Static method
+# Set Static Methods.
 Polytree.rayIntersectsTriangle = rayIntersectsTriangle
 
-# Main operation method
+# Main Operation Method.
 Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
 
     if async
