@@ -152,6 +152,12 @@ OCTREE_MAX_POLYGONS_PER_NODE = 50
 # Minimum octree node size to prevent excessive subdivision
 OCTREE_MIN_NODE_SIZE = 0.001
 
+# Default material index for CSG operations
+DEFAULT_MATERIAL_INDEX = 0
+
+# Maximum iterations for iterative refinement algorithms
+MAX_REFINEMENT_ITERATIONS = 100
+
 
 # =============================================================================
 # PERFORMANCE AND OPTIMIZATION VARIABLES
@@ -166,6 +172,44 @@ POINT_COINCIDENCE_THRESHOLD = 1e-12
 
 # Buffer size for batch processing operations
 DEFAULT_BUFFER_SIZE = 1024
+
+# Maximum number of worker threads for parallel processing
+MAX_WORKER_THREADS = 4
+
+# Timeout for async operations (in milliseconds)
+ASYNC_OPERATION_TIMEOUT = 30000
+
+# Memory management thresholds
+GARBAGE_COLLECTION_THRESHOLD = 10000
+MEMORY_USAGE_WARNING_LIMIT = 0.8
+
+# Cache size limits
+GEOMETRY_CACHE_SIZE = 1000
+INTERSECTION_CACHE_SIZE = 5000
+
+
+# =============================================================================
+# DEBUGGING AND DEVELOPMENT VARIABLES
+# Variables useful for debugging and development
+# =============================================================================
+
+# Enable detailed logging for debugging
+DEBUG_VERBOSE_LOGGING = false
+
+# Enable performance timing measurements
+DEBUG_PERFORMANCE_TIMING = false
+
+# Enable geometry validation checks
+DEBUG_GEOMETRY_VALIDATION = false
+
+# Enable intersection result verification
+DEBUG_INTERSECTION_VERIFICATION = false
+
+# Color codes for debug visualization
+DEBUG_COLOR_FRONT = 0x00ff00
+DEBUG_COLOR_BACK = 0xff0000
+DEBUG_COLOR_COPLANAR = 0x0000ff
+DEBUG_COLOR_SPANNING = 0xffff00
 
 
 # =============================================================================
