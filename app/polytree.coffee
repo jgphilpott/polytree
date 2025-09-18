@@ -27,13 +27,11 @@ class Polytree
 
     # === SMALL HELPERS AND GETTERS/SETTERS ===
 
-    # Check if this tree node contains any polygons
-    isEmpty: ->
+    isEmpty: -> # Check if this tree node contains any polygons.
 
         @polygons.length is 0
 
-    # Get the Three.js mesh associated with this Polytree (traverses to root)
-    getMesh: ->
+    getMesh: -> # Get the Three.js mesh associated with this Polytree (traverses to root).
 
         if @parent
 
@@ -43,13 +41,11 @@ class Polytree
 
             @mesh
 
-    # Create a new Polytree node with given parameters
-    newPolytree: (box, parent) ->
+    newPolytree: (box, parent) -> # Create a new Polytree node with given parameters.
 
         new @constructor(box, parent)
 
-    # Set polygon material index for all polygons in this tree
-    setPolygonIndex: (index) ->
+    setPolygonIndex: (index) -> # Set polygon material index for all polygons in this tree.
 
         return if index is undefined
 
@@ -57,7 +53,7 @@ class Polytree
 
             if polygonsArray.length
 
-                polygonsArray.forEach (p) -> p.shared = index
+                polygonsArray.forEach (polygon) -> polygon.shared = index
 
     # === OBJECT CREATION AND COPYING ===
 
