@@ -1,5 +1,5 @@
-# Note: triangleVertex0 is now defined in variables.coffee as temporaryTriangleVertex
-# Second temporary vertex for calculations requiring multiple vertices
+# Note: triangleVertex0 is now defined in variables.coffee as temporaryTriangleVertex.
+# Second temporary vertex for calculations requiring multiple vertices.
 triangleVertex1 = temporaryTriangleVertexSecondary
 
 # class Plane

@@ -1,8 +1,6 @@
 # Global polygon ID counter
 _polygonID = 0
 
-# Note: tmpm3 is now defined in variables.coffee as temporaryMatrixWithNormalCalc
-
 # class Polygon
 class Polygon
 

@@ -1,6 +1,6 @@
-# Note: TRIANGLE_2D_EPSILON moved to variables.coffee as TRIANGLE_2D_EPSILON
-# Note: tempVector1, tempVector2 are now defined in variables.coffee
-# Local third temporary vector for triangle-specific calculations
+# Note: TRIANGLE_2D_EPSILON moved to variables.coffee as TRIANGLE_2D_EPSILON.
+# Note: tempVector1, tempVector2 are now defined in variables.coffee.
+# Local third temporary vector for triangle-specific calculations.
 tempVector3 = temporaryVector3Tertiary
 
 ### Validate a triangle (three distinct vertices) in 3D space.

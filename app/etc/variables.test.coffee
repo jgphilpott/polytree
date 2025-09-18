@@ -1,14 +1,15 @@
 { Vector3, Box3, Raycaster, Ray, Matrix3 } = require "three"
 
-# Create a context where Three.js is available globally so variables.js can execute
+# Create a context where Three.js is available globally so variables.js can execute.
 global.Vector3 = Vector3
 global.Box3 = Box3
 global.Raycaster = Raycaster
 global.Ray = Ray
 global.Matrix3 = Matrix3
 
-# Import all variables from the variables module
+# Import all variables from the variables module.
 {
+
     # Mathematical Constants
     GEOMETRIC_EPSILON
     RAY_INTERSECTION_EPSILON
@@ -80,38 +81,9 @@ global.Matrix3 = Matrix3
     DEBUG_COLOR_COPLANAR
     DEBUG_COLOR_SPANNING
 
-    # Legacy Compatibility Aliases
-    tempVector1
-    tempVector2
-    tempBox3
-    tempRaycaster
-    tempRay
-    tempRayDirection
-    EPSILON
-    COPLANAR
-    FRONT
-    BACK
-    SPANNING
-    _wV1
-    _wV2
-    _wV3
-    _wP
-    _wP_EPS_ARR
-    _wP_EPS_ARR_COUNT
-    _matrix3
-    wNPI
-    edge1
-    edge2
-    h
-    s
-    q
-    RAY_EPSILON
-    triangleVertex0
-    tmpm3
-
 } = require "./variables.js"
 
-# Test tolerance for floating point comparisons
+# Test tolerance for floating point comparisons.
 TOL = 1e-12
 
 describe "Variables module", ->
@@ -189,6 +161,7 @@ describe "Variables module", ->
         it "defaultRayDirection should be a Vector3 with correct initial value", ->
 
             expect(defaultRayDirection).toBeInstanceOf(Vector3)
+
             expect(defaultRayDirection.x).toBe(0)
             expect(defaultRayDirection.y).toBe(0)
             expect(defaultRayDirection.z).toBe(1)
@@ -215,7 +188,9 @@ describe "Variables module", ->
 
             expect(Array.isArray(windingNumberEpsilonOffsets)).toBe(true)
             expect(windingNumberEpsilonOffsets.length).toBe(6)
+
             windingNumberEpsilonOffsets.forEach (offset) ->
+
                 expect(offset).toBeInstanceOf(Vector3)
 
         it "windingNumberEpsilonOffsetsCount should equal array length", ->
@@ -383,85 +358,3 @@ describe "Variables module", ->
 
             expect(typeof DEBUG_COLOR_SPANNING).toBe("number")
             expect(DEBUG_COLOR_SPANNING).toBe(0xffff00)
-
-    describe "Legacy Compatibility Aliases", ->
-
-        it "tempVector1 should reference temporaryVector3Primary", ->
-
-            expect(tempVector1).toBe(temporaryVector3Primary)
-
-        it "tempVector2 should reference temporaryVector3Secondary", ->
-
-            expect(tempVector2).toBe(temporaryVector3Secondary)
-
-        it "tempBox3 should reference temporaryBoundingBox", ->
-
-            expect(tempBox3).toBe(temporaryBoundingBox)
-
-        it "tempRaycaster should reference temporaryRaycaster", ->
-
-            expect(tempRaycaster).toBe(temporaryRaycaster)
-
-        it "tempRay should reference temporaryRay", ->
-
-            expect(tempRay).toBe(temporaryRay)
-
-        it "tempRayDirection should reference defaultRayDirection", ->
-
-            expect(tempRayDirection).toBe(defaultRayDirection)
-
-        it "EPSILON should reference GEOMETRIC_EPSILON", ->
-
-            expect(EPSILON).toBe(GEOMETRIC_EPSILON)
-
-        it "COPLANAR should reference POLYGON_COPLANAR", ->
-
-            expect(COPLANAR).toBe(POLYGON_COPLANAR)
-
-        it "FRONT should reference POLYGON_FRONT", ->
-
-            expect(FRONT).toBe(POLYGON_FRONT)
-
-        it "BACK should reference POLYGON_BACK", ->
-
-            expect(BACK).toBe(POLYGON_BACK)
-
-        it "SPANNING should reference POLYGON_SPANNING", ->
-
-            expect(SPANNING).toBe(POLYGON_SPANNING)
-
-        it "wNPI should reference WINDING_NUMBER_FULL_ROTATION", ->
-
-            expect(wNPI).toBe(WINDING_NUMBER_FULL_ROTATION)
-
-        it "edge1 should reference rayTriangleEdge1", ->
-
-            expect(edge1).toBe(rayTriangleEdge1)
-
-        it "edge2 should reference rayTriangleEdge2", ->
-
-            expect(edge2).toBe(rayTriangleEdge2)
-
-        it "h should reference rayTriangleHVector", ->
-
-            expect(h).toBe(rayTriangleHVector)
-
-        it "s should reference rayTriangleSVector", ->
-
-            expect(s).toBe(rayTriangleSVector)
-
-        it "q should reference rayTriangleQVector", ->
-
-            expect(q).toBe(rayTriangleQVector)
-
-        it "RAY_EPSILON should reference RAY_INTERSECTION_EPSILON", ->
-
-            expect(RAY_EPSILON).toBe(RAY_INTERSECTION_EPSILON)
-
-        it "triangleVertex0 should reference temporaryTriangleVertex", ->
-
-            expect(triangleVertex0).toBe(temporaryTriangleVertex)
-
-        it "tmpm3 should reference temporaryMatrixWithNormalCalc", ->
-
-            expect(tmpm3).toBe(temporaryMatrixWithNormalCalc)
