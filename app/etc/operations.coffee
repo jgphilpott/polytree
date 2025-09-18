@@ -1,4 +1,26 @@
-# Main operation handler
+# Main operation handler.
+operationHandler = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
+
+    if async
+
+        new Promise (resolve, reject) ->
+
+            try
+
+                _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async).then (result) ->
+
+                    resolve(result)
+
+                .catch (error) -> reject(error)
+
+            catch error
+
+                reject(error)
+
+    else
+
+        _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async)
+
 _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun, async) ->
 
     if async
