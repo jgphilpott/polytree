@@ -1,5 +1,4 @@
-# Note: TRIANGLE_2D_EPSILON moved to variables.coffee as TRIANGLE_2D_EPSILON.
-# Note: tempVector1, tempVector2 are now defined in variables.coffee.
+# Note: Using new descriptive variable names from variables.coffee
 # Local third temporary vector for triangle-specific calculations.
 tempVector3 = temporaryVector3Tertiary
 
@@ -143,19 +142,19 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 
     # Step 1: Compute signed distances of Triangle A’s vertices relative to the plane defined by Triangle B.
 
-    tempVector1.copy(vertex1TriangleB).sub(vertex3TriangleB)
-    tempVector2.copy(vertex2TriangleB).sub(vertex3TriangleB)
+    temporaryVector3Primary.copy(vertex1TriangleB).sub(vertex3TriangleB)
+    temporaryVector3Secondary.copy(vertex2TriangleB).sub(vertex3TriangleB)
 
-    normal2 = (new Vector3()).copy(tempVector1).cross(tempVector2)
+    normal2 = (new Vector3()).copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-    tempVector1.copy(vertex1TriangleA).sub(vertex3TriangleB)
-    distanceVertex1A = tempVector1.dot(normal2)
+    temporaryVector3Primary.copy(vertex1TriangleA).sub(vertex3TriangleB)
+    distanceVertex1A = temporaryVector3Primary.dot(normal2)
 
-    tempVector1.copy(vertex2TriangleA).sub(vertex3TriangleB)
-    distanceVertex2A = tempVector1.dot(normal2)
+    temporaryVector3Primary.copy(vertex2TriangleA).sub(vertex3TriangleB)
+    distanceVertex2A = temporaryVector3Primary.dot(normal2)
 
-    tempVector1.copy(vertex3TriangleA).sub(vertex3TriangleB)
-    distanceVertex3A = tempVector1.dot(normal2)
+    temporaryVector3Primary.copy(vertex3TriangleA).sub(vertex3TriangleB)
+    distanceVertex3A = temporaryVector3Primary.dot(normal2)
 
     if ((distanceVertex1A * distanceVertex2A) > 0) and ((distanceVertex1A * distanceVertex3A) > 0)
 
@@ -163,19 +162,19 @@ triangleIntersectsTriangle = (triangleA, triangleB, additions = { coplanar: fals
 
     # Step 2: Compute signed distances of Triangle B’s vertices relative to the plane defined by Triangle A.
 
-    tempVector1.copy(vertex2TriangleA).sub(vertex1TriangleA)
-    tempVector2.copy(vertex3TriangleA).sub(vertex1TriangleA)
+    temporaryVector3Primary.copy(vertex2TriangleA).sub(vertex1TriangleA)
+    temporaryVector3Secondary.copy(vertex3TriangleA).sub(vertex1TriangleA)
 
-    normal1 = (new Vector3()).copy(tempVector1).cross(tempVector2)
+    normal1 = (new Vector3()).copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-    tempVector1.copy(vertex1TriangleB).sub(vertex3TriangleA)
-    distanceVertex1B = tempVector1.dot(normal1)
+    temporaryVector3Primary.copy(vertex1TriangleB).sub(vertex3TriangleA)
+    distanceVertex1B = temporaryVector3Primary.dot(normal1)
 
-    tempVector1.copy(vertex2TriangleB).sub(vertex3TriangleA)
-    distanceVertex2B = tempVector1.dot(normal1)
+    temporaryVector3Primary.copy(vertex2TriangleB).sub(vertex3TriangleA)
+    distanceVertex2B = temporaryVector3Primary.dot(normal1)
 
-    tempVector1.copy(vertex3TriangleB).sub(vertex3TriangleA)
-    distanceVertex3B = tempVector1.dot(normal1)
+    temporaryVector3Primary.copy(vertex3TriangleB).sub(vertex3TriangleA)
+    distanceVertex3B = temporaryVector3Primary.dot(normal1)
 
     if ((distanceVertex1B * distanceVertex2B) > 0) and ((distanceVertex1B * distanceVertex3B) > 0)
 
@@ -687,66 +686,66 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
     crossNormal = new Vector3()
 
     # Compute cross product for triangle orientation.
-    tempVector1.subVectors(vertex2TriangleA, vertex1TriangleA)
-    tempVector2.subVectors(vertex3TriangleB, vertex1TriangleA)
-    crossNormal.copy(tempVector1).cross(tempVector2)
+    temporaryVector3Primary.subVectors(vertex2TriangleA, vertex1TriangleA)
+    temporaryVector3Secondary.subVectors(vertex3TriangleB, vertex1TriangleA)
+    crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
     tempVector3.subVectors(vertex1TriangleB, vertex1TriangleA)
 
     if tempVector3.dot(crossNormal) > 0
 
         # Check orientation with triangle A's third vertex.
-        tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
-        crossNormal.copy(tempVector1).cross(tempVector2)
+        temporaryVector3Primary.subVectors(vertex3TriangleA, vertex1TriangleA)
+        crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
         if tempVector3.dot(crossNormal) <= 0
 
             # Check orientation with triangle B's second vertex.
-            tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
-            crossNormal.copy(tempVector1).cross(tempVector2)
+            temporaryVector3Secondary.subVectors(vertex2TriangleB, vertex1TriangleA)
+            crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
             if tempVector3.dot(crossNormal) > 0
 
                 # Compute intersection segment endpoints (case 1).
-                tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
-                tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
-                alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+                temporaryVector3Primary.subVectors(vertex1TriangleA, vertex1TriangleB)
+                temporaryVector3Secondary.subVectors(vertex1TriangleA, vertex3TriangleA)
+                alpha = temporaryVector3Primary.dot(additions.normal2) / temporaryVector3Secondary.dot(additions.normal2)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.source.subVectors(vertex1TriangleA, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.source.subVectors(vertex1TriangleA, temporaryVector3Primary)
 
-                tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
-                tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
-                alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+                temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
+                temporaryVector3Secondary.subVectors(vertex1TriangleB, vertex3TriangleB)
+                alpha = temporaryVector3Primary.dot(additions.normal1) / temporaryVector3Secondary.dot(additions.normal1)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.target.subVectors(vertex1TriangleB, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.target.subVectors(vertex1TriangleB, temporaryVector3Primary)
 
                 return true
 
             else
 
                 # Compute intersection segment endpoints (case 2).
-                tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
-                tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
-                alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+                temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
+                temporaryVector3Secondary.subVectors(vertex1TriangleB, vertex2TriangleB)
+                alpha = temporaryVector3Primary.dot(additions.normal1) / temporaryVector3Secondary.dot(additions.normal1)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.source.subVectors(vertex1TriangleB, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.source.subVectors(vertex1TriangleB, temporaryVector3Primary)
 
-                tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
-                tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
-                alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+                temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
+                temporaryVector3Secondary.subVectors(vertex1TriangleB, vertex3TriangleB)
+                alpha = temporaryVector3Primary.dot(additions.normal1) / temporaryVector3Secondary.dot(additions.normal1)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.target.subVectors(vertex1TriangleB, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.target.subVectors(vertex1TriangleB, temporaryVector3Primary)
 
                 return true
 
@@ -756,8 +755,8 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
     else
 
-        tempVector2.subVectors(vertex2TriangleB, vertex1TriangleA)
-        crossNormal.copy(tempVector1).cross(tempVector2)
+        temporaryVector3Secondary.subVectors(vertex2TriangleB, vertex1TriangleA)
+        crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
         if tempVector3.dot(crossNormal) < 0
 
@@ -765,52 +764,52 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
 
         else
 
-            tempVector1.subVectors(vertex3TriangleA, vertex1TriangleA)
-            crossNormal.copy(tempVector1).cross(tempVector2)
+            temporaryVector3Primary.subVectors(vertex3TriangleA, vertex1TriangleA)
+            crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
             if tempVector3.dot(crossNormal) < 0
 
                 # Compute intersection segment endpoints (case 3).
-                tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
-                tempVector2.subVectors(vertex1TriangleB, vertex2TriangleB)
-                alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+                temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
+                temporaryVector3Secondary.subVectors(vertex1TriangleB, vertex2TriangleB)
+                alpha = temporaryVector3Primary.dot(additions.normal1) / temporaryVector3Secondary.dot(additions.normal1)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.source.subVectors(vertex1TriangleB, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.source.subVectors(vertex1TriangleB, temporaryVector3Primary)
 
-                tempVector1.subVectors(vertex1TriangleB, vertex1TriangleA)
-                tempVector2.subVectors(vertex1TriangleB, vertex3TriangleB)
-                alpha = tempVector1.dot(additions.normal1) / tempVector2.dot(additions.normal1)
+                temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
+                temporaryVector3Secondary.subVectors(vertex1TriangleB, vertex3TriangleB)
+                alpha = temporaryVector3Primary.dot(additions.normal1) / temporaryVector3Secondary.dot(additions.normal1)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.target.subVectors(vertex1TriangleB, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.target.subVectors(vertex1TriangleB, temporaryVector3Primary)
 
                 return true
 
             else
 
                 # Compute intersection segment endpoints (case 4).
-                tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
-                tempVector2.subVectors(vertex1TriangleA, vertex3TriangleA)
-                alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+                temporaryVector3Primary.subVectors(vertex1TriangleA, vertex1TriangleB)
+                temporaryVector3Secondary.subVectors(vertex1TriangleA, vertex3TriangleA)
+                alpha = temporaryVector3Primary.dot(additions.normal2) / temporaryVector3Secondary.dot(additions.normal2)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.source.subVectors(vertex1TriangleA, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.source.subVectors(vertex1TriangleA, temporaryVector3Primary)
 
-                tempVector1.subVectors(vertex1TriangleA, vertex1TriangleB)
-                tempVector2.subVectors(vertex1TriangleA, vertex2TriangleA)
-                alpha = tempVector1.dot(additions.normal2) / tempVector2.dot(additions.normal2)
+                temporaryVector3Primary.subVectors(vertex1TriangleA, vertex1TriangleB)
+                temporaryVector3Secondary.subVectors(vertex1TriangleA, vertex2TriangleA)
+                alpha = temporaryVector3Primary.dot(additions.normal2) / temporaryVector3Secondary.dot(additions.normal2)
 
                 return false unless isFinite(alpha)
 
-                tempVector1.copy(tempVector2).multiplyScalar(alpha)
-                additions.target.subVectors(vertex1TriangleA, tempVector1)
+                temporaryVector3Primary.copy(temporaryVector3Secondary).multiplyScalar(alpha)
+                additions.target.subVectors(vertex1TriangleA, temporaryVector3Primary)
 
                 return true
 
