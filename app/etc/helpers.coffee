@@ -45,28 +45,28 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
     for i in [0...polygon.vertices.length]
 
         distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.w
-        type = if distanceToPlane < -EPSILON then BACK else if distanceToPlane > EPSILON then FRONT else COPLANAR
+        type = if distanceToPlane < -GEOMETRIC_EPSILON then POLYGON_BACK else if distanceToPlane > GEOMETRIC_EPSILON then POLYGON_FRONT else POLYGON_COPLANAR
         polygonType |= type
         types.push(type)
 
     switch polygonType
 
-        when COPLANAR
+        when POLYGON_COPLANAR
 
             returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
             result.push(returnPolygon)
 
-        when FRONT
+        when POLYGON_FRONT
 
             returnPolygon.type = "front"
             result.push(returnPolygon)
 
-        when BACK
+        when POLYGON_BACK
 
             returnPolygon.type = "back"
             result.push(returnPolygon)
 
-        when SPANNING
+        when POLYGON_SPANNING
 
             frontVertices = []
             backVertices = []
@@ -79,17 +79,17 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
                 currentVertex = polygon.vertices[i]
                 nextVertex = polygon.vertices[nextIndex]
 
-                if currentType != BACK
+                if currentType != POLYGON_BACK
 
                     frontVertices.push(currentVertex)
 
-                if currentType != FRONT
+                if currentType != POLYGON_FRONT
 
-                    backVertices.push(if currentType != BACK then currentVertex.clone() else currentVertex)
+                    backVertices.push(if currentType != POLYGON_BACK then currentVertex.clone() else currentVertex)
 
-                if (currentType | nextType) == SPANNING
+                if (currentType | nextType) == POLYGON_SPANNING
 
-                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(triangleVertex0.copy(nextVertex.pos).sub(currentVertex.pos))
+                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(temporaryTriangleVertex.copy(nextVertex.pos).sub(currentVertex.pos))
                     vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
                     frontVertices.push(vertexParameter)
                     backVertices.push(vertexParameter.clone())
@@ -186,17 +186,17 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
 
     for i in [0...trianglesArr.length] by 9
 
-        _wV1.subVectors(returnXYZ(trianglesArr, i), point)
-        _wV2.subVectors(returnXYZ(trianglesArr, i + 3), point)
-        _wV3.subVectors(returnXYZ(trianglesArr, i + 6), point)
-        lenA = _wV1.length()
-        lenB = _wV2.length()
-        lenC = _wV3.length()
-        _matrix3.set(_wV1.x, _wV1.y, _wV1.z, _wV2.x, _wV2.y, _wV2.z, _wV3.x, _wV3.y, _wV3.z)
-        omega = 2 * Math.atan2(_matrix3.determinant(), (lenA * lenB * lenC + _wV1.dot(_wV2) * lenC + _wV2.dot(_wV3) * lenA + _wV3.dot(_wV1) * lenB))
+        windingNumberVector1.subVectors(returnXYZ(trianglesArr, i), point)
+        windingNumberVector2.subVectors(returnXYZ(trianglesArr, i + 3), point)
+        windingNumberVector3.subVectors(returnXYZ(trianglesArr, i + 6), point)
+        lenA = windingNumberVector1.length()
+        lenB = windingNumberVector2.length()
+        lenC = windingNumberVector3.length()
+        windingNumberMatrix3.set(windingNumberVector1.x, windingNumberVector1.y, windingNumberVector1.z, windingNumberVector2.x, windingNumberVector2.y, windingNumberVector2.z, windingNumberVector3.x, windingNumberVector3.y, windingNumberVector3.z)
+        omega = 2 * Math.atan2(windingNumberMatrix3.determinant(), (lenA * lenB * lenC + windingNumberVector1.dot(windingNumberVector2) * lenC + windingNumberVector2.dot(windingNumberVector3) * lenA + windingNumberVector3.dot(windingNumberVector1) * lenB))
         wN += omega
 
-    wN = Math.round(wN / wNPI)
+    wN = Math.round(wN / WINDING_NUMBER_FULL_ROTATION)
     return wN
 
 # Check if polygon is inside using winding number
@@ -251,33 +251,33 @@ prepareTriangleBuffer = (polygons) ->
 # Ray-triangle intersection using Möller–Trumbore algorithm
 rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
 
-    edge1.subVectors(triangle.b, triangle.a)
-    edge2.subVectors(triangle.c, triangle.a)
-    h.crossVectors(ray.direction, edge2)
-    a = edge1.dot(h)
+    rayTriangleEdge1.subVectors(triangle.b, triangle.a)
+    rayTriangleEdge2.subVectors(triangle.c, triangle.a)
+    rayTriangleHVector.crossVectors(ray.direction, rayTriangleEdge2)
+    a = rayTriangleEdge1.dot(rayTriangleHVector)
 
-    if a > -RAY_EPSILON and a < RAY_EPSILON
+    if a > -RAY_INTERSECTION_EPSILON and a < RAY_INTERSECTION_EPSILON
 
         return null # Ray is parallel to the triangle
 
     f = 1 / a
-    s.subVectors(ray.origin, triangle.a)
-    u = f * s.dot(h)
+    rayTriangleSVector.subVectors(ray.origin, triangle.a)
+    u = f * rayTriangleSVector.dot(rayTriangleHVector)
 
     if u < 0 or u > 1
 
         return null
 
-    q.crossVectors(s, edge1)
-    v = f * ray.direction.dot(q)
+    rayTriangleQVector.crossVectors(rayTriangleSVector, rayTriangleEdge1)
+    v = f * ray.direction.dot(rayTriangleQVector)
 
     if v < 0 or u + v > 1
 
         return null
 
-    t = f * edge2.dot(q)
+    t = f * rayTriangleEdge2.dot(rayTriangleQVector)
 
-    if t > RAY_EPSILON
+    if t > RAY_INTERSECTION_EPSILON
 
         return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
 

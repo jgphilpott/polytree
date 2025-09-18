@@ -1,6 +1,6 @@
-# Temporary vectors for computation (shared globals)
-triangleVertex0 = new Vector3()
-triangleVertex1 = new Vector3()
+# Note: triangleVertex0 is now defined in variables.coffee as temporaryTriangleVertex.
+# Second temporary vertex for calculations requiring multiple vertices.
+triangleVertex1 = temporaryTriangleVertexSecondary
 
 # class Plane
 class Plane
@@ -30,5 +30,5 @@ class Plane
 
 Plane.fromPoints = (a, b, c) ->
 
-    planeNormal = triangleVertex0.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
+    planeNormal = temporaryTriangleVertex.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
     new Plane(planeNormal, planeNormal.dot(a))

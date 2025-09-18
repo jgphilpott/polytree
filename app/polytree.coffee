@@ -121,7 +121,7 @@ class Polytree
         return unless @box
 
         subTrees = []
-        halfsize = tempVector2.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
+        halfsize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
         for x in [0..1]
 
@@ -130,11 +130,11 @@ class Polytree
                 for z in [0..1]
 
                     box = new Box3()
-                    vectorPosition = tempVector1.set(x, y, z)
+                    vectorPosition = temporaryVector3Primary.set(x, y, z)
 
                     box.min.copy(@box.min).add(vectorPosition.multiply(halfsize))
                     box.max.copy(box.min).add(halfsize)
-                    box.expandByScalar(EPSILON)
+                    box.expandByScalar(GEOMETRIC_EPSILON)
                     subTrees.push(@newPolytree(box, this))
 
         polygon = undefined
@@ -181,7 +181,7 @@ class Polytree
 
         unless @isEmpty()
 
-            tempBox3.copy(@box)
+            temporaryBoundingBox.copy(@box)
 
             for i in [0...@polygons.length]
 
@@ -272,12 +272,12 @@ class Polytree
 
             if Polytree.rayIntersectTriangleType is "regular"
 
-                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, tempVector1)
+                result = ray.intersectTriangle(polygons[i].triangle.a, polygons[i].triangle.b, polygons[i].triangle.c, false, temporaryVector3Primary)
 
                 if result
 
-                    tempVector1.applyMatrix4(matrixWorld)
-                    distance = tempVector1.distanceTo(ray.origin)
+                    temporaryVector3Primary.applyMatrix4(matrixWorld)
+                    distance = temporaryVector3Primary.distanceTo(ray.origin)
 
                     if distance < 0 or distance > Infinity
 
@@ -285,11 +285,11 @@ class Polytree
 
                     else
 
-                        intersects.push({ distance: distance, polygon: polygons[i], position: tempVector1.clone() })
+                        intersects.push({ distance: distance, polygon: polygons[i], position: temporaryVector3Primary.clone() })
 
             else
 
-                result = rayIntersectsTriangle(ray, polygons[i].triangle, tempVector1)
+                result = rayIntersectsTriangle(ray, polygons[i].triangle, temporaryVector3Primary)
 
                 if result
 
@@ -582,59 +582,59 @@ class Polytree
 
                     else
 
-                        point = pointRounding(tempVector2.copy(currentPolygon.getMidpoint()))
+                        point = pointRounding(temporaryVector3Secondary.copy(currentPolygon.getMidpoint()))
 
                         if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
 
-                            tempRayDirection.copy(currentPolygon.plane.normal)
-                            tempRaycaster.set(point, tempRayDirection)
-                            intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
+                            defaultRayDirection.copy(currentPolygon.plane.normal)
+                            temporaryRaycaster.set(point, defaultRayDirection)
+                            intersects = temporaryRaycaster.intersectObject(targetPolytree.mesh)
 
                             if intersects.length
 
-                                if tempRayDirection.dot(intersects[0].face.normal) > 0
+                                if defaultRayDirection.dot(intersects[0].face.normal) > 0
 
                                     inside = true
 
                             unless inside or not currentPolygon.coplanar
 
-                                for j in [0..._wP_EPS_ARR_COUNT]
+                                for j in [0...windingNumberEpsilonOffsetsCount]
 
-                                    tempRaycaster.ray.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    intersects = tempRaycaster.intersectObject(targetPolytree.mesh)
+                                    temporaryRaycaster.ray.origin.copy(point).add(windingNumberEpsilonOffsets[j])
+                                    intersects = temporaryRaycaster.intersectObject(targetPolytree.mesh)
 
                                     if intersects.length
 
-                                        if tempRayDirection.dot(intersects[0].face.normal) > 0
+                                        if defaultRayDirection.dot(intersects[0].face.normal) > 0
 
                                             inside = true
                                             break
 
                         else
 
-                            tempRay.origin.copy(point)
-                            tempRayDirection.copy(currentPolygon.plane.normal)
-                            tempRay.direction.copy(currentPolygon.plane.normal)
-                            intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
+                            temporaryRay.origin.copy(point)
+                            defaultRayDirection.copy(currentPolygon.plane.normal)
+                            temporaryRay.direction.copy(currentPolygon.plane.normal)
+                            intersects = targetPolytree.rayIntersect(temporaryRay, targetPolytree.originalMatrixWorld)
 
                             if intersects.length
 
-                                if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                if defaultRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                     inside = true
 
                             unless inside or not currentPolygon.coplanar
 
-                                for j in [0..._wP_EPS_ARR_COUNT]
+                                for j in [0...windingNumberEpsilonOffsetsCount]
 
-                                    tempRay.origin.copy(point).add(_wP_EPS_ARR[j])
-                                    tempRayDirection.copy(currentPolygon.plane.normal)
-                                    tempRay.direction.copy(currentPolygon.plane.normal)
-                                    intersects = targetPolytree.rayIntersect(tempRay, targetPolytree.originalMatrixWorld)
+                                    temporaryRay.origin.copy(point).add(windingNumberEpsilonOffsets[j])
+                                    defaultRayDirection.copy(currentPolygon.plane.normal)
+                                    temporaryRay.direction.copy(currentPolygon.plane.normal)
+                                    intersects = targetPolytree.rayIntersect(temporaryRay, targetPolytree.originalMatrixWorld)
 
                                     if intersects.length
 
-                                        if tempRayDirection.dot(intersects[0].polygon.plane.normal) > 0
+                                        if defaultRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                             inside = true
                                             break
@@ -726,7 +726,7 @@ class Polytree
             matrix = matrix.matrix
 
         @box.makeEmpty()
-        normalMatrix = normalMatrix or tmpm3.getNormalMatrix(matrix)
+        normalMatrix = normalMatrix or temporaryMatrixWithNormalCalc.getNormalMatrix(matrix)
 
         if @polygons.length > 0
 

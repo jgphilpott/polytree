@@ -1,6 +1,5 @@
 # Temporary variables for mesh operations
 _normal1 = new Vector3()
-tmpm3 = new Matrix3()
 ttvv0 = new Vector3()
 
 # Convert a Polytree to a THREE.js BufferGeometry
@@ -117,7 +116,7 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 
     obj.updateWorldMatrix(true, true)
     geometry = obj.geometry
-    tmpm3.getNormalMatrix(obj.matrix)
+    temporaryMatrixWithNormalCalc.getNormalMatrix(obj.matrix)
     posattr = geometry.attributes.position
     normalattr = geometry.attributes.normal
     uvattr = geometry.attributes.uv
@@ -140,7 +139,7 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
             normal = new Vector3(normalattr.array[positionIndex], normalattr.array[positionIndex + 1], normalattr.array[positionIndex + 2])
 
             pos.applyMatrix4(obj.matrix)
-            normal.applyMatrix3(tmpm3)
+            normal.applyMatrix3(temporaryMatrixWithNormalCalc)
 
             uvCoords =
                 if uvattr

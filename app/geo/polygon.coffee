@@ -1,9 +1,6 @@
 # Global polygon ID counter
 _polygonID = 0
 
-# Temporary matrix for normal calculations
-tmpm3 = new Matrix3()
-
 # class Polygon
 class Polygon
 
@@ -29,7 +26,7 @@ class Polygon
 
     applyMatrix: (matrix, normalMatrix) ->
 
-        normalMatrix = normalMatrix or tmpm3.getNormalMatrix(matrix)
+        normalMatrix = normalMatrix or temporaryMatrixWithNormalCalc.getNormalMatrix(matrix)
         @vertices.forEach (v) ->
             v.pos.applyMatrix4(matrix)
             v.normal.applyMatrix3(normalMatrix)
