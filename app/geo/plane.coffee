@@ -30,5 +30,5 @@ class Plane
 
 Plane.fromPoints = (a, b, c) ->
 
-    planeNormal = triangleVertex0.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
+    planeNormal = temporaryTriangleVertex.copy(b).sub(a).cross(triangleVertex1.copy(c).sub(a)).normalize().clone()
     new Plane(planeNormal, planeNormal.dot(a))

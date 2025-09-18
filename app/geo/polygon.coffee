@@ -26,7 +26,7 @@ class Polygon
 
     applyMatrix: (matrix, normalMatrix) ->
 
-        normalMatrix = normalMatrix or tmpm3.getNormalMatrix(matrix)
+        normalMatrix = normalMatrix or temporaryMatrixWithNormalCalc.getNormalMatrix(matrix)
         @vertices.forEach (v) ->
             v.pos.applyMatrix4(matrix)
             v.normal.applyMatrix3(normalMatrix)
