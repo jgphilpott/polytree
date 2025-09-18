@@ -1,5 +1,25 @@
 class Polytree
 
+    # ----- Prototype Properties -----
+
+    @::isPolytree = true
+
+    # ----- Static Properties -----
+
+    @maxLevel = 16
+    @polygonsPerTree = 100
+
+    @usePolytreeRay = true
+    @disposePolytree = true
+    @useWindingNumber = false
+
+    @rayIntersectTriangleType = "MollerTrumbore"
+
+    # ----- Static Methods -----
+
+    @operation = operationHandler
+    @rayIntersectsTriangle = rayIntersectsTriangle
+
     # Main constructor for creating Polytree nodes.
     # Initializes core properties and sets up polygon array management.
 
@@ -854,40 +874,3 @@ class Polytree
     dispose: (deletePolygons = true) ->
 
         @delete(deletePolygons)
-
-# Set Prototype Properties.
-Polytree::isPolytree = true
-
-# Set Static Properties.
-Polytree.disposePolytree = true
-Polytree.usePolytreeRay = true
-Polytree.useWindingNumber = false
-Polytree.rayIntersectTriangleType = "MollerTrumbore" # "regular" (three.js' ray.intersectTriangle; "MollerTrumbore" (Moller Trumbore algorithm);
-Polytree.maxLevel = 16
-Polytree.polygonsPerTree = 100
-
-# Set Static Methods.
-Polytree.rayIntersectsTriangle = rayIntersectsTriangle
-
-# Main Operation Method.
-Polytree.operation = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
-
-    if async
-
-        new Promise (resolve, reject) ->
-
-            try
-
-                _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async).then (result) ->
-
-                    resolve(result)
-
-                .catch (e) -> reject(e)
-
-            catch e
-
-                reject(e)
-
-    else
-
-        _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async)
