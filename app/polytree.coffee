@@ -57,19 +57,16 @@ class Polytree
 
     # === OBJECT CREATION AND COPYING ===
 
-    # Creates a deep copy of this Polytree
-    clone: ->
+    clone: -> # Creates a deep copy of this Polytree.
 
         (new @constructor()).copy(this)
 
-    # Copy data from another Polytree instance
-    copy: (source) ->
+    copy: (source) -> # Copy data from another Polytree instance.
 
         @deletePolygonsArrayFromRoot(@polygons)
-        @polygons = source.polygons.map (p) -> p.clone()
+        @polygons = source.polygons.map (polygon) -> polygon.clone()
         @addPolygonsArrayToRoot(@polygons)
-
-        @replacedPolygons = source.replacedPolygons.map (p) -> p.clone()
+        @replacedPolygons = source.replacedPolygons.map (polygon) -> polygon.clone()
 
         if source.mesh
 
