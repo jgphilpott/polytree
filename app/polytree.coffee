@@ -464,8 +464,8 @@ class Polytree
 
     # === COMPLEX CSG OPERATIONS AND STATE MANAGEMENT ===
 
-    # Delete polygons based on complex state rules for CSG operations
-    # This implements the polygon classification logic for boolean operations
+    # Delete polygons based on complex state rules for CSG operations.
+    # This implements the polygon classification logic for boolean operations.
     deletePolygonsByStateRules: (rulesArr, firstRun = true) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -487,10 +487,13 @@ class Polytree
                             if (states.includes(polygon.state)) and (((polygon.previousState isnt "undecided") and (states.includes(polygon.previousState))) or (polygon.previousState is "undecided"))
 
                                 found = true
+
                                 statesObj = {}
                                 mainStatesObj = {}
+
                                 states.forEach (state) -> statesObj[state] = false
                                 states.forEach (state) -> mainStatesObj[state] = false
+
                                 statesObj[polygon.state] = true
 
                                 for i in [0...polygon.previousStates.length]
@@ -498,6 +501,7 @@ class Polytree
                                     unless states.includes(polygon.previousStates[i])
 
                                         found = false
+
                                         break
 
                                     else
@@ -511,6 +515,7 @@ class Polytree
                                         if statesObj[state] is false
 
                                             found = false
+
                                             break
 
                                     if found
@@ -522,6 +527,7 @@ class Polytree
                             if polygon.checkAllStates(rulesArr[j].rule)
 
                                 found = true
+
                                 break
 
                     if found
@@ -537,7 +543,7 @@ class Polytree
 
                             polygon.delete()
 
-    # Delete polygons based on their intersection status (simpler filtering)
+    # Delete polygons based on their intersection status (simpler filtering).
     deletePolygonsByIntersection: (intersects, firstRun = true) ->
 
         return if intersects == undefined
@@ -565,7 +571,7 @@ class Polytree
 
                                 polygon.delete()
 
-    # Check if a polygon intersects with this tree's bounding box
+    # Check if a polygon intersects with this tree's bounding box.
     isPolygonIntersecting: (polygon) ->
 
         unless @box.intersectsTriangle(polygon.triangle)
@@ -574,7 +580,7 @@ class Polytree
 
         return true
 
-    # Mark polygons as intersecting with target polytree
+    # Mark polygons as intersecting with target polytree.
     markIntesectingPolygons: (targetPolytree) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -585,7 +591,7 @@ class Polytree
 
                     polygon.intersects = targetPolytree.isPolygonIntersecting(polygon)
 
-    # Reset polygon states for CSG operation preparation
+    # Reset polygon states for CSG operation preparation.
     resetPolygons: (resetOriginal = true) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -596,8 +602,8 @@ class Polytree
 
                     polygon.reset(resetOriginal)
 
-    # Complex CSG intersection handling - splits and classifies polygons
-    # This is the core method for polygon classification in boolean operations
+    # Complex CSG intersection handling - splits and classifies polygons.
+    # This is the core method for polygon classification in boolean operations.
     handleIntersectingPolygons: (targetPolytree, targetPolytreeBuffer) ->
 
         if @polygons.length > 0
@@ -634,6 +640,7 @@ class Polytree
                                 polygonStack.push(polygon)
 
                             @replacePolygon(currentPolygon, splitResults.map((result) -> result.polygon))
+
                             break
 
                         else
@@ -644,6 +651,7 @@ class Polytree
                                 splitResults[0].polygon.newPolygon = true
                                 polygonStack.push(splitResults[0].polygon)
                                 @replacePolygon(currentPolygon, splitResults[0].polygon)
+
                                 break
 
                             else
@@ -654,6 +662,7 @@ class Polytree
                                     currentPolygon.coplanar = true
 
                 currentPolygon = polygonStack.pop()
+
             polygonStack = @polygons.filter (polygon) -> (polygon.valid == true) and (polygon.intersects == true)
             currentPolygon = polygonStack.pop()
             inside = false
@@ -700,6 +709,7 @@ class Polytree
                                         if defaultRayDirection.dot(intersects[0].face.normal) > 0
 
                                             inside = true
+
                                             break
 
                         else
@@ -729,6 +739,7 @@ class Polytree
                                         if defaultRayDirection.dot(intersects[0].polygon.plane.normal) > 0
 
                                             inside = true
+
                                             break
 
                 if inside is true
@@ -745,72 +756,7 @@ class Polytree
 
             @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
-    delete: (deletePolygons = true) ->
-
-        if @polygons.length > 0 and deletePolygons
-
-            @polygons.forEach (p) -> p.delete()
-            @polygons.length = 0
-
-        if @replacedPolygons.length > 0 and deletePolygons
-
-            @replacedPolygons.forEach (p) -> p.delete()
-            @replacedPolygons.length = 0
-
-        if @polygonArrays
-
-            @polygonArrays.length = 0
-
-        if @subTrees.length
-
-            for i in [0...@subTrees.length]
-
-                @subTrees[i].delete(deletePolygons)
-
-            @subTrees.length = 0
-
-        @mesh = undefined
-        @originalMatrixWorld = undefined
-        @box = undefined
-        @parent = undefined
-        @level = undefined
-
-    dispose: (deletePolygons = true) ->
-
-        @delete(deletePolygons)
-
-    getPolygonCloneCallback: (cbFunc, trianglesSet) ->
-
-        @polygonArrays.forEach (polygonsArray) ->
-
-            if polygonsArray.length
-
-                for i in [0...polygonsArray.length]
-
-                    if polygonsArray[i].valid
-
-                        cbFunc(polygonsArray[i].clone(), trianglesSet)
-
-    deleteReplacedPolygons: ->
-
-        if @replacedPolygons.length > 0
-
-            @replacedPolygons.forEach (p) -> p.delete()
-            @replacedPolygons.length = 0
-
-        for i in [0...@subTrees.length]
-
-            @subTrees[i].deleteReplacedPolygons()
-
-    markPolygonsAsOriginal: ->
-
-        @polygonArrays.forEach (polygonsArray) ->
-
-            if polygonsArray.length
-
-                polygonsArray.forEach (p) -> p.originalValid = true
-
-    # Apply transformation matrix to all polygons in this tree
+    # Apply transformation matrix to all polygons in this tree.
     applyMatrix: (matrix, normalMatrix, firstRun = true) ->
 
         if matrix.isMesh
