@@ -787,6 +787,7 @@ class Polytree
             @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
     # Apply transformation matrix to all polygons in this tree.
+    # Apply transformation matrix to all polygons in this tree.
     applyMatrix: (matrix, normalMatrix, firstRun = true) ->
 
         if matrix.isMesh
@@ -794,7 +795,10 @@ class Polytree
             matrix.updateMatrix()
             matrix = matrix.matrix
 
-        @box.makeEmpty()
+        if @box
+
+            @box.makeEmpty()
+
         normalMatrix = normalMatrix or temporaryMatrixWithNormalCalc.getNormalMatrix(matrix)
 
         if @polygons.length > 0
