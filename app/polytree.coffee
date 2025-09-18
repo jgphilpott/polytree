@@ -88,29 +88,17 @@ class Polytree
 
     # === CSG OPERATIONS (INSTANCE METHODS) ===
 
-    # Perform union operation between two meshes (combines both meshes)
-    # @param mesh1 - First Three.js mesh object
-    # @param mesh2 - Second Three.js mesh object
-    # @param targetMaterial - Optional material for result mesh
-    # @return Three.js mesh with union result
+    # Perform union operation (combines both meshes).
     unite: (mesh1, mesh2, targetMaterial = null) ->
 
         Polytree.unite(mesh1, mesh2, targetMaterial)
 
-    # Perform subtraction operation (mesh1 minus mesh2)
-    # @param mesh1 - Base Three.js mesh object
-    # @param mesh2 - Three.js mesh object to subtract from mesh1
-    # @param targetMaterial - Optional material for result mesh
-    # @return Three.js mesh with subtraction result
+    # Perform subtraction operation (mesh1 minus mesh2).
     subtract: (mesh1, mesh2, targetMaterial = null) ->
 
         Polytree.subtract(mesh1, mesh2, targetMaterial)
 
-    # Perform intersection operation (keep only overlapping volume)
-    # @param mesh1 - First Three.js mesh object
-    # @param mesh2 - Second Three.js mesh object
-    # @param targetMaterial - Optional material for result mesh
-    # @return Three.js mesh with intersection result
+    # Perform intersection operation (keep only overlapping volume).
     intersect: (mesh1, mesh2, targetMaterial = null) ->
 
         Polytree.intersect(mesh1, mesh2, targetMaterial)
