@@ -1,9 +1,9 @@
 class Polytree
 
     # Main constructor for creating Polytree nodes
-    # @param box - Bounding box for this tree node
-    # @param parent - Parent Polytree node (null for root)
-    constructor: (box, parent) ->
+    # @param box - Optional bounding box for this tree node (used internally for octree subdivision)
+    # @param parent - Optional parent Polytree node (used internally, null for root)
+    constructor: (box = null, parent = null) ->
 
         # Core geometric data
         @polygons = []                    # Primary polygon storage for this node
@@ -91,9 +91,37 @@ class Polytree
 
         return this
 
+    # === CSG OPERATIONS (INSTANCE METHODS) ===
+
+    # Perform union operation between two meshes (combines both meshes)
+    # @param mesh1 - First Three.js mesh object
+    # @param mesh2 - Second Three.js mesh object  
+    # @param targetMaterial - Optional material for result mesh
+    # @return Three.js mesh with union result
+    unite: (mesh1, mesh2, targetMaterial = null) ->
+
+        Polytree.unite(mesh1, mesh2, targetMaterial)
+
+    # Perform subtraction operation (mesh1 minus mesh2)
+    # @param mesh1 - Base Three.js mesh object
+    # @param mesh2 - Three.js mesh object to subtract from mesh1
+    # @param targetMaterial - Optional material for result mesh
+    # @return Three.js mesh with subtraction result
+    subtract: (mesh1, mesh2, targetMaterial = null) ->
+
+        Polytree.subtract(mesh1, mesh2, targetMaterial)
+
+    # Perform intersection operation (keep only overlapping volume)
+    # @param mesh1 - First Three.js mesh object
+    # @param mesh2 - Second Three.js mesh object
+    # @param targetMaterial - Optional material for result mesh
+    # @return Three.js mesh with intersection result
+    intersect: (mesh1, mesh2, targetMaterial = null) ->
+
+        Polytree.intersect(mesh1, mesh2, targetMaterial)
+
     # === POLYGON ARRAY MANAGEMENT ===
 
-    # Add polygon array to root node's collection (internal helper)
     # Add polygon array to root node's collection (internal helper)
     addPolygonsArrayToRoot: (array) ->
 
