@@ -53,13 +53,20 @@ class Polytree
 
     getMesh: -> # Get the Three.js mesh associated with this Polytree (traverses to root).
 
-        if @parent
+        visited = new Set()
+        current = this
 
-            @parent.getMesh()
+        while current and not visited.has(current)
 
-        else
+            visited.add(current)
 
-            @mesh
+            if not current.parent
+
+                return current.mesh ? null
+
+            current = current.parent
+
+        return null # Circular reference or no mesh found
 
     newPolytree: (box, parent) -> # Create a new Polytree node with given parameters.
 
@@ -69,11 +76,13 @@ class Polytree
 
         return if index is undefined
 
-        @polygonArrays.forEach (polygonsArray) ->
+        if @polygonArrays
 
-            if polygonsArray.length
+            @polygonArrays.forEach (polygonsArray) ->
 
-                polygonsArray.forEach (polygon) -> polygon.shared = index
+                if polygonsArray?.length
+
+                    polygonsArray.forEach (polygon) -> polygon.shared = index
 
     # === OBJECT CREATION AND COPYING ===
 
@@ -83,10 +92,12 @@ class Polytree
 
     copy: (source) -> # Copy data from another Polytree instance.
 
+        return this unless source
+
         @deletePolygonsArrayFromRoot(@polygons)
-        @polygons = source.polygons.map (polygon) -> polygon.clone()
+        @polygons = if source.polygons then source.polygons.map((polygon) -> polygon.clone()) else []
         @addPolygonsArrayToRoot(@polygons)
-        @replacedPolygons = source.replacedPolygons.map (polygon) -> polygon.clone()
+        @replacedPolygons = if source.replacedPolygons then source.replacedPolygons.map((polygon) -> polygon.clone()) else []
 
         if source.mesh
 
@@ -96,13 +107,15 @@ class Polytree
 
             @originalMatrixWorld = source.originalMatrixWorld.clone()
 
-        @box = source.box.clone()
-        @level = source.level
+        @box = if source.box then source.box.clone() else null
+        @level = source.level ? 0
 
-        for i in [0...source.subTrees.length]
+        if source.subTrees
 
-            subTree = new @constructor(undefined, this).copy(source.subTrees[i])
-            @subTrees.push(subTree)
+            for i in [0...source.subTrees.length]
+
+                subTree = new @constructor(undefined, this).copy(source.subTrees[i])
+                @subTrees.push(subTree)
 
         return this
 
@@ -170,13 +183,10 @@ class Polytree
 
             return this
 
-        @bounds.min.x = Math.min(@bounds.min.x, triangle.a.x, triangle.b.x, triangle.c.x)
-        @bounds.min.y = Math.min(@bounds.min.y, triangle.a.y, triangle.b.y, triangle.c.y)
-        @bounds.min.z = Math.min(@bounds.min.z, triangle.a.z, triangle.b.z, triangle.c.z)
-
-        @bounds.max.x = Math.max(@bounds.max.x, triangle.a.x, triangle.b.x, triangle.c.x)
-        @bounds.max.y = Math.max(@bounds.max.y, triangle.a.y, triangle.b.y, triangle.c.y)
-        @bounds.max.z = Math.max(@bounds.max.z, triangle.a.z, triangle.b.z, triangle.c.z)
+        # Expand bounds to include all triangle vertices
+        @bounds.expandByPoint(triangle.a)
+        @bounds.expandByPoint(triangle.b)
+        @bounds.expandByPoint(triangle.c)
 
         @polygons.push(polygon)
 
@@ -210,7 +220,7 @@ class Polytree
 
         subTrees = []
 
-        return unless @box
+        return this unless @box
 
         halfsize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
@@ -293,14 +303,14 @@ class Polytree
             @subTrees[i].processTree()
 
     # Recursively expand parent bounding boxes up the tree hierarchy.
-    expandParentBox: ->
+    expandParentBox: (visited = new Set()) ->
 
-        if @parent
+        if @parent and not visited.has(@parent)
 
+            visited.add(@parent)
             @parent.box.expandByPoint(@box.min)
             @parent.box.expandByPoint(@box.max)
-
-            @parent.expandParentBox()
+            @parent.expandParentBox(visited)
 
     # === POLYGON QUERIES AND INTERSECTION TESTING ===
 
