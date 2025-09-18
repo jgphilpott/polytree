@@ -1,30 +1,32 @@
 class Polytree
 
-    # Main constructor for creating Polytree nodes
-    # @param box - Optional bounding box for this tree node (used internally for octree subdivision)
-    # @param parent - Optional parent Polytree node (used internally, null for root)
+    # Main constructor for creating Polytree nodes.
+    # Initializes core properties and sets up polygon array management.
+
+    # @param box - Optional bounding box for this tree node (used internally for octree subdivision).
+    # @param parent - Optional parent Polytree node (used internally, null for root).
     constructor: (box = null, parent = null) ->
 
-        # Core geometric data
-        @polygons = []                    # Primary polygon storage for this node
-        @replacedPolygons = []            # Temporary storage for replaced polygons during operations
-        @box = box                        # Bounding box for spatial partitioning
+        # Core geometric data.
+        @box = box                                # Bounding box for spatial partitioning.
+        @polygons = []                            # Primary polygon storage for this node.
+        @replacedPolygons = []                    # Temporary storage for replaced polygons during operations.
 
-        # Tree structure properties  
-        @subTrees = []                    # Child Polytree nodes for octree subdivision
-        @parent = parent                  # Reference to parent node (null for root)
-        @level = 0                        # Depth level in octree hierarchy
+        # Tree structure properties.
+        @parent = parent                          # Reference to parent node (null for root).
+        @subTrees = []                            # Child Polytree nodes for octree subdivision.
+        @level = 0                                # Depth level in octree hierarchy.
 
-        # Mesh and transformation data
-        @mesh                             # Reference to Three.js mesh object
-        @originalMatrixWorld              # Original world transformation matrix
+        # Mesh and Matrix transformation data.
+        @originalMatrixWorld                      # Original world transformation matrix.
+        @mesh                                     # Reference to Three.js mesh object.
 
-        # Polygon array management for root node
-        @polygonArrays = undefined        # Collection of all polygon arrays (root node only)
+        # Polygon array management for root node.
+        @polygonArrays = undefined                # Collection of all polygon arrays (root node only).
         @addPolygonsArrayToRoot(@polygons)
 
     # === SMALL HELPERS AND GETTERS/SETTERS ===
-    
+
     # Check if this tree node contains any polygons
     isEmpty: ->
 
@@ -95,7 +97,7 @@ class Polytree
 
     # Perform union operation between two meshes (combines both meshes)
     # @param mesh1 - First Three.js mesh object
-    # @param mesh2 - Second Three.js mesh object  
+    # @param mesh2 - Second Three.js mesh object
     # @param targetMaterial - Optional material for result mesh
     # @return Three.js mesh with union result
     unite: (mesh1, mesh2, targetMaterial = null) ->
@@ -137,7 +139,7 @@ class Polytree
 
             @polygonArrays.push(array)
 
-    # Remove polygon array from root node's collection (internal helper)  
+    # Remove polygon array from root node's collection (internal helper)
     deletePolygonsArrayFromRoot: (array) ->
 
         if @parent
@@ -284,7 +286,7 @@ class Polytree
 
             @subTrees[i].processTree()
 
-    # Recursively expand parent bounding boxes up the tree hierarchy  
+    # Recursively expand parent bounding boxes up the tree hierarchy
     expandParentBox: ->
 
         if @parent
@@ -873,7 +875,7 @@ class Polytree
 
                 polygonsArray.forEach (p) -> p.originalValid = true
 
-    # Get polygon clones via callback for CSG operations  
+    # Get polygon clones via callback for CSG operations
     getPolygonCloneCallback: (cbFunc, trianglesSet) ->
 
         @polygonArrays.forEach (polygonsArray) ->
