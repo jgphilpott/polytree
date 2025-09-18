@@ -787,7 +787,6 @@ class Polytree
             @subTrees[i].handleIntersectingPolygons(targetPolytree, targetPolytreeBuffer)
 
     # Apply transformation matrix to all polygons in this tree.
-    # Apply transformation matrix to all polygons in this tree.
     applyMatrix: (matrix, normalMatrix, firstRun = true) ->
 
         if matrix.isMesh

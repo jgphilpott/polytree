@@ -441,24 +441,28 @@ describe "Polytree", ->
         it "dispose should work as alias for delete", ->
 
             polytree = new Polytree()
-            mockPolygon = { 
+
+            mockPolygon = {
                 test: "data"
                 delete: -> # Mock delete method
             }
+
             polytree.polygons.push(mockPolygon)
-            
+
             expect(() -> polytree.dispose()).not.toThrow()
             expect(polytree.polygons.length).toBe(0)
 
         it "dispose should pass parameters to delete", ->
 
             polytree = new Polytree()
-            mockPolygon = { 
+
+            mockPolygon = {
                 test: "data"
                 delete: -> # Mock delete method
             }
+
             polytree.polygons.push(mockPolygon)
-            
+
             # Test with deletePolygons = false
             expect(() -> polytree.dispose(false)).not.toThrow()
 
@@ -467,11 +471,13 @@ describe "Polytree", ->
         it "deleteReplacedPolygons should clean up replaced polygons", ->
 
             polytree = new Polytree()
-            mockPolygon = { 
+
+            mockPolygon = {
                 delete: -> # Mock delete method
             }
+
             polytree.replacedPolygons.push(mockPolygon)
-            
+
             expect(() -> polytree.deleteReplacedPolygons()).not.toThrow()
             expect(polytree.replacedPolygons.length).toBe(0)
 
@@ -480,11 +486,11 @@ describe "Polytree", ->
             polytree = new Polytree()
             child = new Polytree(null, polytree)
             polytree.subTrees.push(child)
-            
+
             mockPolygon = { delete: -> }
             child.replacedPolygons.push(mockPolygon)
-            
             polytree.deleteReplacedPolygons()
+
             expect(child.replacedPolygons.length).toBe(0)
 
         it "markPolygonsAsOriginal should set originalValid flag", ->
@@ -492,33 +498,36 @@ describe "Polytree", ->
             polytree = new Polytree()
             mockPolygon = { originalValid: false }
             polytree.polygons.push(mockPolygon)
-            
             polytree.markPolygonsAsOriginal()
+
             expect(mockPolygon.originalValid).toBe(true)
 
         it "invert should call flip on all polygons", ->
 
             polytree = new Polytree()
             flipped = false
-            mockPolygon = { 
+
+            mockPolygon = {
                 flip: -> flipped = true
             }
+
             polytree.polygons.push(mockPolygon)
-            
             polytree.invert()
+
             expect(flipped).toBe(true)
 
         it "processTree should handle empty trees", ->
 
             polytree = new Polytree()
+
             expect(() -> polytree.processTree()).not.toThrow()
 
         it "processTree should expand bounding boxes", ->
 
             polytree = new Polytree()
             polytree.box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-            
-            # Add a mock polygon that would expand the bounds
+
+            # Add a mock polygon that would expand the bounds.
             mockPolygon = {
                 triangle: {
                     a: new Vector3(5, 5, 5)
@@ -526,10 +535,11 @@ describe "Polytree", ->
                     c: new Vector3(7, 7, 7)
                 }
             }
+
             polytree.polygons.push(mockPolygon)
-            
+
             expect(() -> polytree.processTree()).not.toThrow()
-            # Box should be expanded to include the polygon vertices
+            # Box should be expanded to include the polygon vertices.
             expect(polytree.box.max.x).toBeGreaterThan(1)
 
     describe "Polygon Array Management Advanced", ->
@@ -539,10 +549,10 @@ describe "Polytree", ->
             polytree = new Polytree()
             validPolygon = { valid: true }
             invalidPolygon = { valid: false }
-            
+
             polytree.polygons.push(validPolygon, invalidPolygon)
-            
             polygons = polytree.getPolygons()
+
             expect(polygons.length).toBe(1)
             expect(polygons[0]).toBe(validPolygon)
 
@@ -551,10 +561,10 @@ describe "Polytree", ->
             polytree = new Polytree()
             intersectingPolygon = { valid: true, intersects: true }
             nonIntersectingPolygon = { valid: true, intersects: false }
-            
+
             polytree.polygons.push(intersectingPolygon, nonIntersectingPolygon)
-            
             polygons = polytree.getIntersectingPolygons()
+
             expect(polygons.length).toBe(1)
             expect(polygons[0]).toBe(intersectingPolygon)
 
@@ -562,41 +572,44 @@ describe "Polytree", ->
 
             polytree = new Polytree()
             callbackCalled = false
-            mockPolygon = { 
+
+            mockPolygon = {
                 valid: true
                 clone: -> this
             }
+
             polytree.polygons.push(mockPolygon)
-            
             callback = -> callbackCalled = true
             polytree.getPolygonCloneCallback(callback)
-            
+
             expect(callbackCalled).toBe(true)
 
         it "replacePolygon should handle array replacement", ->
 
             polytree = new Polytree()
-            originalPolygon = { 
+
+            originalPolygon = {
                 test: "original"
                 setInvalid: -> # Mock setInvalid method
             }
+
             replacementPolygon = { test: "replacement" }
-            
             polytree.polygons.push(originalPolygon)
-            
+
             expect(() -> polytree.replacePolygon(originalPolygon, replacementPolygon)).not.toThrow()
 
         it "replacePolygon should handle multiple replacements", ->
 
             polytree = new Polytree()
-            originalPolygon = { 
+
+            originalPolygon = {
                 test: "original"
                 setInvalid: -> # Mock setInvalid method
             }
+
             replacements = [{ test: "replacement1" }, { test: "replacement2" }]
-            
             polytree.polygons.push(originalPolygon)
-            
+
             expect(() -> polytree.replacePolygon(originalPolygon, replacements)).not.toThrow()
 
     describe "Matrix and Transformation", ->
@@ -605,7 +618,7 @@ describe "Polytree", ->
 
             polytree = new Polytree()
             # Don't set box, test with null
-            
+
             # Should not crash when box is null
             expect(() -> polytree.applyMatrix(new Matrix4())).not.toThrow()
 
@@ -613,10 +626,10 @@ describe "Polytree", ->
 
             polytree = new Polytree()
             polytree.box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-            
+
             # Use real Three.js matrix
             matrix = new Matrix4()
-            
+
             expect(() -> polytree.applyMatrix(matrix)).not.toThrow()
 
     describe "Complex Edge Cases", ->
@@ -625,16 +638,16 @@ describe "Polytree", ->
 
             polytree = new Polytree()
             polytree.polygonArrays = null
-            
+
             expect(() -> polytree.setPolygonIndex(5)).not.toThrow()
-            # Note: getPolygons and invert expect polygonArrays to exist, so skip those tests
-            # These methods would need null safety improvements if this is a real use case
+            # Note: getPolygons and invert expect polygonArrays to exist, so skip those tests.
+            # These methods would need null safety improvements if this is a real use case.
 
         it "should handle empty polygon arrays", ->
 
             polytree = new Polytree()
             polytree.polygonArrays = []
-            
+
             expect(() -> polytree.setPolygonIndex(5)).not.toThrow()
             expect(() -> polytree.getPolygons()).not.toThrow()
             expect(() -> polytree.invert()).not.toThrow()
@@ -643,13 +656,14 @@ describe "Polytree", ->
 
             root = new Polytree()
             current = root
-            
+
             # Create 50 levels deep
             for i in [0...50]
+
                 child = new Polytree(null, current)
                 current.subTrees.push(child)
                 current = child
-            
+
             expect(() -> root.processTree()).not.toThrow()
             expect(() -> root.deleteReplacedPolygons()).not.toThrow()
             expect(() -> root.markPolygonsAsOriginal()).not.toThrow()
