@@ -184,16 +184,17 @@ class Polytree
 
     # === TREE CONSTRUCTION AND SPATIAL PARTITIONING ===
 
-    # Split this node into 8 octree children based on spatial subdivision
-    # This creates an octree by recursively subdividing space until polygon density is acceptable
+    # Split this node into 8 octree children based on spatial subdivision.
+    # This creates an octree by recursively subdividing space until polygon density is acceptable.
     split: (level) ->
+
+        subTrees = []
 
         return unless @box
 
-        subTrees = []
         halfsize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
-        # Create 8 child boxes in a 2x2x2 grid
+        # Create 8 child boxes in a 2x2x2 grid.
         for x in [0..1]
 
             for y in [0..1]
@@ -201,6 +202,7 @@ class Polytree
                 for z in [0..1]
 
                     box = new Box3()
+
                     vectorPosition = temporaryVector3Primary.set(x, y, z)
 
                     box.min.copy(@box.min).add(vectorPosition.multiply(halfsize))
@@ -208,7 +210,7 @@ class Polytree
                     box.expandByScalar(GEOMETRIC_EPSILON)
                     subTrees.push(@newPolytree(box, this))
 
-        # Redistribute polygons to appropriate child nodes based on midpoint
+        # Redistribute polygons to appropriate child nodes based on midpoint.
         polygon = undefined
 
         while polygon = @polygons.pop()
@@ -220,20 +222,21 @@ class Polytree
                 if subTrees[i].box.containsPoint(polygon.getMidpoint())
 
                     subTrees[i].polygons.push(polygon)
+
                     found = true
 
             unless found
 
                 console.error("ERROR: unable to find subtree for:", polygon.triangle)
-                throw new Error("Unable to find subtree for triangle at level #{level}")
+                throw new Error("Unable to find subtree for triangle at level #{level}.")
 
-        # Recursively split child nodes if they exceed polygon threshold
+        # Recursively split child nodes if they exceed polygon threshold.
         for i in [0...subTrees.length]
 
             subTrees[i].level = level + 1
             len = subTrees[i].polygons.length
 
-            # Continue subdivision if polygon count exceeds threshold and max depth not reached
+            # Continue subdivision if polygon count exceeds threshold and max depth not reached.
             if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
 
                 subTrees[i].split(level + 1)
@@ -242,17 +245,15 @@ class Polytree
 
         return this
 
-    # Build complete octree structure from polygon data
-    # Build complete octree structure from polygon data
-    buildTree: ->
+    buildTree: -> # Build complete octree structure from polygon data.
 
         @calcBox()
         @split(0)
         @processTree()
+
         return this
 
-    # Process tree nodes to update bounding boxes after polygon distribution
-    # Process tree nodes to update bounding boxes after polygon distribution
+    # Process tree nodes to update bounding boxes after polygon distribution.
     processTree: ->
 
         unless @isEmpty()
@@ -271,13 +272,14 @@ class Polytree
 
             @subTrees[i].processTree()
 
-    # Recursively expand parent bounding boxes up the tree hierarchy
+    # Recursively expand parent bounding boxes up the tree hierarchy.
     expandParentBox: ->
 
         if @parent
 
             @parent.box.expandByPoint(@box.min)
             @parent.box.expandByPoint(@box.max)
+
             @parent.expandParentBox()
 
     # === POLYGON QUERIES AND INTERSECTION TESTING ===
