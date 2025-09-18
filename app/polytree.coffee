@@ -1,22 +1,70 @@
 class Polytree
 
+    # Main constructor for creating Polytree nodes
+    # @param box - Bounding box for this tree node
+    # @param parent - Parent Polytree node (null for root)
     constructor: (box, parent) ->
 
-        @polygons = []
-        @replacedPolygons = []
-        @mesh
-        @originalMatrixWorld
-        @box = box
-        @subTrees = []
-        @parent = parent
-        @level = 0
-        @polygonArrays = undefined
+        # Core geometric data
+        @polygons = []                    # Primary polygon storage for this node
+        @replacedPolygons = []            # Temporary storage for replaced polygons during operations
+        @box = box                        # Bounding box for spatial partitioning
+
+        # Tree structure properties  
+        @subTrees = []                    # Child Polytree nodes for octree subdivision
+        @parent = parent                  # Reference to parent node (null for root)
+        @level = 0                        # Depth level in octree hierarchy
+
+        # Mesh and transformation data
+        @mesh                             # Reference to Three.js mesh object
+        @originalMatrixWorld              # Original world transformation matrix
+
+        # Polygon array management for root node
+        @polygonArrays = undefined        # Collection of all polygon arrays (root node only)
         @addPolygonsArrayToRoot(@polygons)
 
+    # === SMALL HELPERS AND GETTERS/SETTERS ===
+    
+    # Check if this tree node contains any polygons
+    isEmpty: ->
+
+        @polygons.length is 0
+
+    # Get the Three.js mesh associated with this Polytree (traverses to root)
+    getMesh: ->
+
+        if @parent
+
+            @parent.getMesh()
+
+        else
+
+            @mesh
+
+    # Create a new Polytree node with given parameters
+    newPolytree: (box, parent) ->
+
+        new @constructor(box, parent)
+
+    # Set polygon material index for all polygons in this tree
+    setPolygonIndex: (index) ->
+
+        return if index is undefined
+
+        @polygonArrays.forEach (polygonsArray) ->
+
+            if polygonsArray.length
+
+                polygonsArray.forEach (p) -> p.shared = index
+
+    # === OBJECT CREATION AND COPYING ===
+
+    # Creates a deep copy of this Polytree
     clone: ->
 
         (new @constructor()).copy(this)
 
+    # Copy data from another Polytree instance
     copy: (source) ->
 
         @deletePolygonsArrayFromRoot(@polygons)
@@ -43,6 +91,10 @@ class Polytree
 
         return this
 
+    # === POLYGON ARRAY MANAGEMENT ===
+
+    # Add polygon array to root node's collection (internal helper)
+    # Add polygon array to root node's collection (internal helper)
     addPolygonsArrayToRoot: (array) ->
 
         if @parent
@@ -57,6 +109,7 @@ class Polytree
 
             @polygonArrays.push(array)
 
+    # Remove polygon array from root node's collection (internal helper)  
     deletePolygonsArrayFromRoot: (array) ->
 
         if @parent
@@ -71,10 +124,10 @@ class Polytree
 
                 @polygonArrays.splice(index, 1)
 
-    isEmpty: ->
+    # === CORE POLYGON OPERATIONS ===
 
-        @polygons.length is 0
-
+    # Add a polygon to this tree node with spatial bounds calculation
+    # Add a polygon to this tree node with spatial bounds calculation
     addPolygon: (polygon, trianglesSet) ->
 
         unless @bounds
@@ -97,6 +150,8 @@ class Polytree
         @polygons.push(polygon)
         return this
 
+    # Calculate and set bounding box from polygon bounds
+    # Calculate and set bounding box from polygon bounds
     calcBox: ->
 
         unless @bounds
@@ -112,10 +167,10 @@ class Polytree
 
         return this
 
-    newPolytree: (box, parent) ->
+    # === TREE CONSTRUCTION AND SPATIAL PARTITIONING ===
 
-        new @constructor(box, parent)
-
+    # Split this node into 8 octree children based on spatial subdivision
+    # This creates an octree by recursively subdividing space until polygon density is acceptable
     split: (level) ->
 
         return unless @box
@@ -123,6 +178,7 @@ class Polytree
         subTrees = []
         halfsize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
+        # Create 8 child boxes in a 2x2x2 grid
         for x in [0..1]
 
             for y in [0..1]
@@ -137,6 +193,7 @@ class Polytree
                     box.expandByScalar(GEOMETRIC_EPSILON)
                     subTrees.push(@newPolytree(box, this))
 
+        # Redistribute polygons to appropriate child nodes based on midpoint
         polygon = undefined
 
         while polygon = @polygons.pop()
@@ -155,21 +212,23 @@ class Polytree
                 console.error("ERROR: unable to find subtree for:", polygon.triangle)
                 throw new Error("Unable to find subtree for triangle at level #{level}")
 
+        # Recursively split child nodes if they exceed polygon threshold
         for i in [0...subTrees.length]
 
             subTrees[i].level = level + 1
             len = subTrees[i].polygons.length
 
-            # if (len !== 0) {
+            # Continue subdivision if polygon count exceeds threshold and max depth not reached
             if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
 
                 subTrees[i].split(level + 1)
 
             @subTrees.push(subTrees[i])
-            # }
 
         return this
 
+    # Build complete octree structure from polygon data
+    # Build complete octree structure from polygon data
     buildTree: ->
 
         @calcBox()
@@ -177,6 +236,8 @@ class Polytree
         @processTree()
         return this
 
+    # Process tree nodes to update bounding boxes after polygon distribution
+    # Process tree nodes to update bounding boxes after polygon distribution
     processTree: ->
 
         unless @isEmpty()
@@ -195,6 +256,7 @@ class Polytree
 
             @subTrees[i].processTree()
 
+    # Recursively expand parent bounding boxes up the tree hierarchy  
     expandParentBox: ->
 
         if @parent
@@ -203,6 +265,10 @@ class Polytree
             @parent.box.expandByPoint(@box.max)
             @parent.expandParentBox()
 
+    # === POLYGON QUERIES AND INTERSECTION TESTING ===
+
+    # Find all polygons that intersect with a target polygon using spatial partitioning
+    # Find all polygons that intersect with a target polygon using spatial partitioning
     getPolygonsIntersectingPolygon: (targetPolygon, polygons = []) ->
 
         if @box.intersectsTriangle(targetPolygon.triangle)
@@ -235,6 +301,8 @@ class Polytree
 
         polygons
 
+    # Collect polygons that intersect with a ray for raycasting operations
+    # Collect polygons that intersect with a ray for raycasting operations
     getRayPolygons: (ray, polygons = []) ->
 
         if @polygons.length > 0
@@ -259,6 +327,8 @@ class Polytree
 
         return polygons
 
+    # Perform ray intersection testing against all polygons in tree
+    # Returns array of intersection results sorted by distance
     rayIntersect: (ray, matrixWorld, intersects = []) ->
 
         return [] if ray.direction.length() is 0
@@ -307,6 +377,7 @@ class Polytree
 
         return intersects
 
+    # Get all polygons marked as intersecting from polygon arrays
     getIntersectingPolygons: (polygons = []) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -321,6 +392,8 @@ class Polytree
 
         return polygons
 
+    # Get all valid polygons from all polygon arrays in this tree
+    # Get all valid polygons from all polygon arrays in this tree
     getPolygons: (polygons = []) ->
         @polygonArrays.forEach (polygonsArray) ->
 
@@ -336,6 +409,7 @@ class Polytree
 
         return polygons
 
+    # Invert all polygons by flipping their face normals
     invert: ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -344,16 +418,9 @@ class Polytree
 
                 polygonsArray.forEach (p) -> p.flip()
 
-    getMesh: ->
+    # === POLYGON MODIFICATION AND STATE MANAGEMENT ===
 
-        if @parent
-
-            @parent.getMesh()
-
-        else
-
-            @mesh
-
+    # Replace a polygon with one or more new polygons during CSG operations
     replacePolygon: (polygon, newPolygons) ->
 
         unless Array.isArray(newPolygons)
