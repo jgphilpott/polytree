@@ -105,7 +105,7 @@ class Polytree
 
     # === POLYGON ARRAY MANAGEMENT ===
 
-    # Add polygon array to root node's collection (internal helper)
+    # Add polygon array to root node's collection (internal helper).
     addPolygonsArrayToRoot: (array) ->
 
         if @parent
@@ -120,7 +120,7 @@ class Polytree
 
             @polygonArrays.push(array)
 
-    # Remove polygon array from root node's collection (internal helper)
+    # Remove polygon array from root node's collection (internal helper).
     deletePolygonsArrayFromRoot: (array) ->
 
         if @parent
