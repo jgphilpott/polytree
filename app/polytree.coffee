@@ -435,7 +435,7 @@ class Polytree
 
     # === POLYGON MODIFICATION AND STATE MANAGEMENT ===
 
-    # Replace a polygon with one or more new polygons during CSG operations
+    # Replace a polygon with one or more new polygons during CSG operations.
     replacePolygon: (polygon, newPolygons) ->
 
         unless Array.isArray(newPolygons)
