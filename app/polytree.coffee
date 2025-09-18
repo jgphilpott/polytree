@@ -137,8 +137,7 @@ class Polytree
 
     # === CORE POLYGON OPERATIONS ===
 
-    # Add a polygon to this tree node with spatial bounds calculation
-    # Add a polygon to this tree node with spatial bounds calculation
+    # Add a polygon to this tree node with spatial bounds calculation.
     addPolygon: (polygon, trianglesSet) ->
 
         unless @bounds
@@ -154,16 +153,16 @@ class Polytree
         @bounds.min.x = Math.min(@bounds.min.x, triangle.a.x, triangle.b.x, triangle.c.x)
         @bounds.min.y = Math.min(@bounds.min.y, triangle.a.y, triangle.b.y, triangle.c.y)
         @bounds.min.z = Math.min(@bounds.min.z, triangle.a.z, triangle.b.z, triangle.c.z)
+
         @bounds.max.x = Math.max(@bounds.max.x, triangle.a.x, triangle.b.x, triangle.c.x)
         @bounds.max.y = Math.max(@bounds.max.y, triangle.a.y, triangle.b.y, triangle.c.y)
         @bounds.max.z = Math.max(@bounds.max.z, triangle.a.z, triangle.b.z, triangle.c.z)
 
         @polygons.push(polygon)
+
         return this
 
-    # Calculate and set bounding box from polygon bounds
-    # Calculate and set bounding box from polygon bounds
-    calcBox: ->
+    calcBox: -> # Calculate and set bounding box from polygon bounds.
 
         unless @bounds
 
@@ -171,10 +170,15 @@ class Polytree
 
         @box = @bounds.clone()
 
-        # offset small ammount to account for regular grid
-        @box.min.x -= 0.01
-        @box.min.y -= 0.01
-        @box.min.z -= 0.01
+        offset = 0.001 # Offset small amount to guarantee that all polygons (even those with vertices exactly on the box boundary) are included in queries.
+
+        @box.min.x -= offset
+        @box.min.y -= offset
+        @box.min.z -= offset
+
+        @box.max.x += offset
+        @box.max.y += offset
+        @box.max.z += offset
 
         return this
 
