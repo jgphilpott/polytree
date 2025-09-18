@@ -1,4 +1,4 @@
-# Comprehensive Polytree tests
+# Comprehensive Polytree Tests
 
 { Polytree } = require "../polytree.bundle.js"
 { Box3, Vector3, Mesh, BoxGeometry, MeshBasicMaterial } = require "three"
@@ -10,11 +10,15 @@ describe "Polytree", ->
         it "should create instance without parameters", ->
 
             polytree = new Polytree()
+
             expect(polytree).toBeDefined()
             expect(polytree.isPolytree).toBe(true)
+
             expect(polytree.box).toBeNull()
             expect(polytree.parent).toBeNull()
+
             expect(polytree.level).toBe(0)
+
             expect(polytree.polygons).toEqual([])
             expect(polytree.subTrees).toEqual([])
 
@@ -22,6 +26,7 @@ describe "Polytree", ->
 
             box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             polytree = new Polytree(box)
+
             expect(polytree.box).toBe(box)
             expect(polytree.parent).toBeNull()
 
@@ -30,6 +35,7 @@ describe "Polytree", ->
             parentPolytree = new Polytree()
             box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             childPolytree = new Polytree(box, parentPolytree)
+
             expect(childPolytree.box).toBe(box)
             expect(childPolytree.parent).toBe(parentPolytree)
 
@@ -38,17 +44,20 @@ describe "Polytree", ->
         it "isEmpty should return true for empty polytree", ->
 
             polytree = new Polytree()
+
             expect(polytree.isEmpty()).toBe(true)
 
         it "isEmpty should return false for non-empty polytree", ->
 
             polytree = new Polytree()
             polytree.polygons.push({}) # Mock polygon
+
             expect(polytree.isEmpty()).toBe(false)
 
         it "getMesh should return null for root with no mesh", ->
 
             polytree = new Polytree()
+
             expect(polytree.getMesh()).toBeNull()
 
         it "getMesh should return mesh from root", ->
@@ -56,9 +65,10 @@ describe "Polytree", ->
             geometry = new BoxGeometry(1, 1, 1)
             material = new MeshBasicMaterial({ color: 0x00ff00 })
             mesh = new Mesh(geometry, material)
-            
+
             polytree = new Polytree()
             polytree.mesh = mesh
+
             expect(polytree.getMesh()).toBe(mesh)
 
         it "getMesh should traverse to root and get mesh", ->
@@ -66,12 +76,12 @@ describe "Polytree", ->
             geometry = new BoxGeometry(1, 1, 1)
             material = new MeshBasicMaterial({ color: 0x00ff00 })
             mesh = new Mesh(geometry, material)
-            
+
             root = new Polytree()
             root.mesh = mesh
             child = new Polytree(null, root)
             grandchild = new Polytree(null, child)
-            
+
             expect(grandchild.getMesh()).toBe(mesh)
 
         it "getMesh should handle circular references", ->
@@ -79,7 +89,7 @@ describe "Polytree", ->
             root = new Polytree()
             child = new Polytree(null, root)
             root.parent = child # Create circular reference
-            
+
             expect(root.getMesh()).toBeNull()
 
         it "newPolytree should create new instance with parameters", ->
@@ -87,7 +97,7 @@ describe "Polytree", ->
             polytree = new Polytree()
             box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             newInstance = polytree.newPolytree(box, polytree)
-            
+
             expect(newInstance).toBeInstanceOf(Polytree)
             expect(newInstance.box).toBe(box)
             expect(newInstance.parent).toBe(polytree)
@@ -95,6 +105,7 @@ describe "Polytree", ->
         it "setPolygonIndex should handle undefined index", ->
 
             polytree = new Polytree()
+
             expect(() -> polytree.setPolygonIndex(undefined)).not.toThrow()
 
     describe "Object Creation and Copying", ->
@@ -104,7 +115,7 @@ describe "Polytree", ->
             original = new Polytree()
             original.level = 5
             clone = original.clone()
-            
+
             expect(clone).toBeInstanceOf(Polytree)
             expect(clone).not.toBe(original)
             expect(clone.level).toBe(5)
@@ -113,7 +124,7 @@ describe "Polytree", ->
 
             source = new Polytree()
             target = new Polytree()
-            
+
             expect(() -> target.copy(source)).not.toThrow()
             expect(target.box).toBeNull()
 
@@ -122,8 +133,8 @@ describe "Polytree", ->
             box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             source = new Polytree(box)
             target = new Polytree()
-            
             target.copy(source)
+
             expect(target.box).not.toBe(source.box) # Should be different objects
             expect(target.box.equals(source.box)).toBe(true) # But equal values
 
@@ -133,14 +144,14 @@ describe "Polytree", ->
             material = new MeshBasicMaterial({ color: 0x00ff00 })
             mesh = new Mesh(geometry, material)
             matrix = mesh.matrixWorld.clone()
-            
+
             source = new Polytree()
             source.mesh = mesh
             source.originalMatrixWorld = matrix
-            
+
             target = new Polytree()
             target.copy(source)
-            
+
             expect(target.mesh).toBe(mesh) # Mesh is shared reference
             expect(target.originalMatrixWorld).not.toBe(matrix) # Matrix should be cloned
             expect(target.originalMatrixWorld.equals(matrix)).toBe(true)
@@ -148,6 +159,7 @@ describe "Polytree", ->
     describe "CSG Operations (Instance Methods)", ->
 
         beforeEach ->
+
             @polytree = new Polytree()
 
         it "should have CSG instance methods", ->
@@ -156,28 +168,29 @@ describe "Polytree", ->
             expect(typeof @polytree.subtract).toBe("function")
             expect(typeof @polytree.intersect).toBe("function")
 
-        # Note: Full CSG testing would require complex mesh setup
-        # These tests verify the methods exist and can be called
+        # Note: Full CSG testing would require complex mesh setup.
+        # These tests verify the methods exist and can be called.
         it "unite method should be callable", ->
 
             expect(typeof @polytree.unite).toBe("function")
-            # Full testing would require valid mesh objects
+            # Full testing would require valid mesh objects.
 
         it "subtract method should be callable", ->
 
             expect(typeof @polytree.subtract).toBe("function")
-            # Full testing would require valid mesh objects
+            # Full testing would require valid mesh objects.
 
         it "intersect method should be callable", ->
 
             expect(typeof @polytree.intersect).toBe("function")
-            # Full testing would require valid mesh objects
+            # Full testing would require valid mesh objects.
 
     describe "Core Polygon Operations", ->
 
         it "calcBox should handle missing bounds", ->
 
             polytree = new Polytree()
+
             expect(() -> polytree.calcBox()).not.toThrow()
             expect(polytree.box).toBeDefined()
 
@@ -186,13 +199,14 @@ describe "Polytree", ->
             polytree = new Polytree()
             polytree.bounds = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             polytree.calcBox()
-            
+
             expect(polytree.box.min.x).toBeLessThan(-1)
             expect(polytree.box.max.x).toBeGreaterThan(1)
 
         it "addPolygon should initialize bounds if not present", ->
 
             polytree = new Polytree()
+
             mockPolygon = {
                 triangle: {
                     a: new Vector3(1, 2, 3)
@@ -200,14 +214,16 @@ describe "Polytree", ->
                     c: new Vector3(7, 8, 9)
                 }
             }
-            
+
             polytree.addPolygon(mockPolygon)
+
             expect(polytree.bounds).toBeDefined()
             expect(polytree.polygons.length).toBe(1)
 
         it "addPolygon should expand bounds correctly", ->
 
             polytree = new Polytree()
+
             mockPolygon = {
                 triangle: {
                     a: new Vector3(-5, -5, -5)
@@ -215,8 +231,9 @@ describe "Polytree", ->
                     c: new Vector3(0, 0, 0)
                 }
             }
-            
+
             polytree.addPolygon(mockPolygon)
+
             expect(polytree.bounds.min.x).toBe(-5)
             expect(polytree.bounds.max.x).toBe(5)
             expect(polytree.bounds.min.y).toBe(-5)
@@ -225,6 +242,7 @@ describe "Polytree", ->
         it "addPolygon should handle trianglesSet parameter", ->
 
             polytree = new Polytree()
+
             mockPolygon = {
                 triangle: {
                     a: new Vector3(1, 2, 3)
@@ -232,24 +250,26 @@ describe "Polytree", ->
                     c: new Vector3(7, 8, 9)
                 }
             }
-            
-            # Test with trianglesSet parameter (actual behavior depends on isUniqueTriangle implementation)
+
+            # Test with trianglesSet parameter (actual behavior depends on isUniqueTriangle implementation).
             trianglesSet = new Set()
             result = polytree.addPolygon(mockPolygon, trianglesSet)
-            expect(result).toBe(polytree)
-            # Note: Actual polygon addition depends on isUniqueTriangle function implementation
+
+            expect(result).toBe(polytree) # Note: Actual polygon addition depends on isUniqueTriangle function implementation.
 
     describe "Tree Construction", ->
 
         it "buildTree should execute without errors on empty polytree", ->
 
             polytree = new Polytree()
+
             expect(() -> polytree.buildTree()).not.toThrow()
 
         it "split should return early if no box", ->
 
             polytree = new Polytree()
             result = polytree.split(0)
+
             expect(result).toBe(polytree)
             expect(polytree.subTrees.length).toBe(0)
 
@@ -260,7 +280,7 @@ describe "Polytree", ->
             polytree = new Polytree()
             testArray = []
             polytree.addPolygonsArrayToRoot(testArray)
-            
+
             expect(polytree.polygonArrays).toContain(testArray)
 
         it "addPolygonsArrayToRoot should traverse to root", ->
@@ -268,8 +288,8 @@ describe "Polytree", ->
             root = new Polytree()
             child = new Polytree(null, root)
             testArray = []
-            
             child.addPolygonsArrayToRoot(testArray)
+
             expect(root.polygonArrays).toContain(testArray)
 
         it "deletePolygonsArrayFromRoot should remove array", ->
@@ -278,7 +298,7 @@ describe "Polytree", ->
             testArray = []
             polytree.addPolygonsArrayToRoot(testArray)
             polytree.deletePolygonsArrayFromRoot(testArray)
-            
+
             expect(polytree.polygonArrays).not.toContain(testArray)
 
     describe "Static Properties", ->
@@ -295,7 +315,7 @@ describe "Polytree", ->
         it "should have static methods", ->
 
             expect(typeof Polytree.unite).toBe("function")
-            expect(typeof Polytree.subtract).toBe("function") 
+            expect(typeof Polytree.subtract).toBe("function")
             expect(typeof Polytree.intersect).toBe("function")
             expect(typeof Polytree.rayIntersectsTriangle).toBe("function")
 
@@ -304,7 +324,7 @@ describe "Polytree", ->
         it "should handle method calls on empty polytree", ->
 
             polytree = new Polytree()
-            
+
             expect(() -> polytree.isEmpty()).not.toThrow()
             expect(() -> polytree.getMesh()).not.toThrow()
             expect(() -> polytree.clone()).not.toThrow()
@@ -313,7 +333,7 @@ describe "Polytree", ->
         it "should handle invalid parameters gracefully", ->
 
             polytree = new Polytree()
-            
+
             expect(() -> polytree.setPolygonIndex(null)).not.toThrow()
             expect(() -> polytree.setPolygonIndex(undefined)).not.toThrow()
             expect(() -> polytree.copy({})).not.toThrow() # Invalid source object
@@ -324,9 +344,10 @@ describe "Polytree", ->
 
             polytree = new Polytree()
             start = Date.now()
-            
-            # Add 1000 mock polygons
+
+            # Add 1000 mock polygons.
             for i in [0...1000]
+
                 mockPolygon = {
                     triangle: {
                         a: new Vector3(Math.random() * 100, Math.random() * 100, Math.random() * 100)
@@ -334,24 +355,27 @@ describe "Polytree", ->
                         c: new Vector3(Math.random() * 100, Math.random() * 100, Math.random() * 100)
                     }
                 }
+
                 polytree.addPolygon(mockPolygon)
-            
+
             end = Date.now()
+
             expect(polytree.polygons.length).toBe(1000)
-            expect(end - start).toBeLessThan(1000) # Should complete in under 1 second
+            expect(end - start).toBeLessThan(1000) # Should complete in under 1 second.
 
         it "should handle deep tree structures", ->
 
             root = new Polytree()
             current = root
-            
-            # Create a chain of 100 child nodes
+
+            # Create a chain of 100 child nodes.
             for i in [0...100]
+
                 child = new Polytree(null, current)
                 current.subTrees.push(child)
                 current = child
-            
-            # Should be able to traverse without stack overflow
+
+            # Should be able to traverse without stack overflow.
             expect(() -> root.getMesh()).not.toThrow()
 
         it "expandParentBox should handle circular references", ->
@@ -361,26 +385,30 @@ describe "Polytree", ->
             parent.parent = child # Create circular reference
             parent.box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
             child.box = new Box3(new Vector3(-2, -2, -2), new Vector3(2, 2, 2))
-            
+
             expect(() -> child.expandParentBox()).not.toThrow()
 
         it "split should handle edge case with invalid polygon midpoints", ->
 
             polytree = new Polytree()
             polytree.box = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1))
-            
-            # Add polygon with midpoint outside the box (edge case)
+
+            # Add polygon with midpoint outside the box (edge case).
             mockPolygon = {
+
                 triangle: {
                     a: new Vector3(10, 10, 10)
                     b: new Vector3(11, 11, 11)
                     c: new Vector3(12, 12, 12)
                 }
+
                 getMidpoint: -> new Vector3(11, 11, 11) # Outside the box
+
             }
+
             polytree.polygons.push(mockPolygon)
-            
-            # Should throw an error for polygon outside bounds
+
+            # Should throw an error for polygon outside bounds.
             expect(() -> polytree.split(0)).toThrow()
 
     describe "Memory Management", ->
@@ -390,21 +418,22 @@ describe "Polytree", ->
             polytree = new Polytree()
             child = new Polytree(null, polytree)
             polytree.subTrees.push(child)
-            
-            # Add some mock data with proper delete methods
-            mockPolygon = { 
+
+            # Add some mock data with proper delete methods.
+            mockPolygon = {
                 test: "data"
                 delete: -> # Mock delete method
             }
-            mockChildPolygon = { 
+
+            mockChildPolygon = {
                 test: "child data"
                 delete: -> # Mock delete method
             }
-            
+
             polytree.polygons.push(mockPolygon)
             child.polygons.push(mockChildPolygon)
-            
-            # Clear should work without errors
+
+            # Clear should work without errors.
             expect(() -> polytree.delete()).not.toThrow()
             expect(polytree.polygons.length).toBe(0)
             expect(polytree.subTrees.length).toBe(0)

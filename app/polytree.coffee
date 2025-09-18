@@ -66,7 +66,7 @@ class Polytree
 
             current = current.parent
 
-        return null # Circular reference or no mesh found
+        return null # Circular reference or no mesh found.
 
     newPolytree: (box, parent) -> # Create a new Polytree node with given parameters.
 
@@ -183,7 +183,7 @@ class Polytree
 
             return this
 
-        # Expand bounds to include all triangle vertices
+        # Expand bounds to include all triangle vertices.
         @bounds.expandByPoint(triangle.a)
         @bounds.expandByPoint(triangle.b)
         @bounds.expandByPoint(triangle.c)
