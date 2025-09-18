@@ -284,8 +284,7 @@ class Polytree
 
     # === POLYGON QUERIES AND INTERSECTION TESTING ===
 
-    # Find all polygons that intersect with a target polygon using spatial partitioning
-    # Find all polygons that intersect with a target polygon using spatial partitioning
+    # Find all polygons that intersect with a target polygon using spatial partitioning.
     getPolygonsIntersectingPolygon: (targetPolygon, polygons = []) ->
 
         if @box.intersectsTriangle(targetPolygon.triangle)
@@ -316,10 +315,9 @@ class Polytree
 
             @subTrees[i].getPolygonsIntersectingPolygon(targetPolygon, polygons)
 
-        polygons
+        return polygons
 
-    # Collect polygons that intersect with a ray for raycasting operations
-    # Collect polygons that intersect with a ray for raycasting operations
+    # Collect polygons that intersect with a ray for raycasting operations.
     getRayPolygons: (ray, polygons = []) ->
 
         if @polygons.length > 0
@@ -344,8 +342,8 @@ class Polytree
 
         return polygons
 
-    # Perform ray intersection testing against all polygons in tree
-    # Returns array of intersection results sorted by distance
+    # Perform ray intersection testing against all polygons in the tree.
+    # Returns array of intersection results sorted by distance.
     rayIntersect: (ray, matrixWorld, intersects = []) ->
 
         return [] if ray.direction.length() is 0
@@ -368,7 +366,7 @@ class Polytree
 
                     if distance < 0 or distance > Infinity
 
-                        console.warn("[rayIntersect] Failed ray distance check", ray)
+                        console.warn("[rayIntersect] Failed ray distance check.", ray)
 
                     else
 
@@ -394,7 +392,7 @@ class Polytree
 
         return intersects
 
-    # Get all polygons marked as intersecting from polygon arrays
+    # Get all polygons marked as intersecting from polygon arrays.
     getIntersectingPolygons: (polygons = []) ->
 
         @polygonArrays.forEach (polygonsArray) ->
@@ -409,9 +407,9 @@ class Polytree
 
         return polygons
 
-    # Get all valid polygons from all polygon arrays in this tree
-    # Get all valid polygons from all polygon arrays in this tree
+    # Get all valid polygons from all polygon arrays in this tree.
     getPolygons: (polygons = []) ->
+
         @polygonArrays.forEach (polygonsArray) ->
 
             if polygonsArray.length
@@ -426,7 +424,7 @@ class Polytree
 
         return polygons
 
-    # Invert all polygons by flipping their face normals
+    # Invert all polygons by flipping their face normals.
     invert: ->
 
         @polygonArrays.forEach (polygonsArray) ->
