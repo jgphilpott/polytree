@@ -9,11 +9,9 @@ These notes define conventions and coverage expectations for the test suite.
 
 ## File / Naming
 
-- Place tests in `tests/` directory.
 - Name pattern: `*.test.coffee`.
 - One logical unit per file (e.g. `triangle.test.coffee`).
-- Group related geometry helpers (e.g. future `octree-ray.test.coffee`).
- - CURRENT PATTERN: All helpers from `triangle.coffee` share a single consolidated test file `triangle.test.coffee` (append new helper tests at bottom, do not create a separate file).
+ - All helpers from `triangle.coffee` share a single consolidated test file `triangle.test.coffee` (append new helper tests at bottom, do not create a separate file).
 
 ## Structure
 
