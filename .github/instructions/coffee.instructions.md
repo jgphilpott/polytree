@@ -19,9 +19,22 @@ These guidelines apply to all CoffeeScript source edits in this repository.
   - if/else blocks
   - loops
   - any change in indentation level
+  - variable assignments before object creation/manipulation
+  - between logical groups within functions
 - Do not collapse existing blank lines when editing.
+- In helper functions, add blank lines to separate logical groups (geometry creation, mesh setup, return statements).
+- Remove trailing whitespace consistently.
 
 If you are unsure, prefer the more spacious option to maintain consistency with the existing style.
+
+## Test Code Style Preferences
+
+- Add blank lines after geometry/material creation and before mesh creation.
+- Add blank lines after mesh setup and before return statements.
+- Align inline comments consistently using single space before # comment.
+- For comments explaining parameters, add period after comment for complete sentences.
+- Maintain consistent spacing around assignment operators.
+- Prefer single-line variable assignments with proper spacing.
 
 ## Reserved Word Note (Project Convention)
 
