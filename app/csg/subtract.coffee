@@ -25,6 +25,7 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
         # Original polytree-to-polytree operation
         polytreeA = mesh1
         polytreeB = mesh2
+
         buildTargetPolytree = if targetMaterial is null then true else false
 
         return this.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
@@ -48,6 +49,7 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
 
         resultPolytree = this.subtractCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+
         disposePolytree(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh
@@ -74,10 +76,12 @@ Polytree.subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         polytreeA.resetPolygons(false)
         polytreeB.resetPolygons(false)
+
         polytreeA.markIntesectingPolygons(polytreeB)
         polytreeB.markIntesectingPolygons(polytreeA)
 
         handleIntersectingPolytrees(polytreeA, polytreeB)
+
         polytreeA.deleteReplacedPolygons()
         polytreeB.deleteReplacedPolygons()
 

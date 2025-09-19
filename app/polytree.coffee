@@ -222,7 +222,7 @@ class Polytree
 
         return this unless @box
 
-        halfsize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
+        halfSize = temporaryVector3Secondary.copy(@box.max).sub(@box.min).multiplyScalar(0.5)
 
         # Create 8 child boxes in a 2x2x2 grid.
         for x in [0..1]
@@ -235,8 +235,8 @@ class Polytree
 
                     vectorPosition = temporaryVector3Primary.set(x, y, z)
 
-                    box.min.copy(@box.min).add(vectorPosition.multiply(halfsize))
-                    box.max.copy(box.min).add(halfsize)
+                    box.min.copy(@box.min).add(vectorPosition.multiply(halfSize))
+                    box.max.copy(box.min).add(halfSize)
                     box.expandByScalar(GEOMETRIC_EPSILON)
                     subTrees.push(@newPolytree(box, this))
 
@@ -257,7 +257,6 @@ class Polytree
 
             unless found
 
-                console.error("ERROR: unable to find subtree for:", polygon.triangle)
                 throw new Error("Unable to find subtree for triangle at level #{level}.")
 
         # Recursively split child nodes if they exceed polygon threshold.
@@ -408,11 +407,11 @@ class Polytree
 
                 if result
 
-                    newdistance = result.clone().sub(ray.origin).length()
+                    newDistance = result.clone().sub(ray.origin).length()
 
-                    if distance > newdistance
+                    if distance > newDistance
 
-                        distance = newdistance
+                        distance = newDistance
 
                     if distance < 1e100
 

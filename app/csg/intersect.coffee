@@ -36,6 +36,7 @@ Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
         # Original polytree-to-polytree operation
         polytreeA = mesh1
         polytreeB = mesh2
+
         buildTargetPolytree = if targetMaterial is null then true else false
 
         return this.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
@@ -59,6 +60,7 @@ Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
 
         resultPolytree = this.intersectCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+
         disposePolytree(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh

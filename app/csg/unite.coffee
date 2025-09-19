@@ -24,6 +24,7 @@ Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
         # Original polytree-to-polytree operation
         polytreeA = mesh1
         polytreeB = mesh2
+
         buildTargetPolytree = if targetMaterial is null then true else false
 
         return this.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
@@ -47,6 +48,7 @@ Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
 
         resultPolytree = this.uniteCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+
         disposePolytree(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh
@@ -78,6 +80,7 @@ Polytree.uniteCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
         polytreeB.markIntesectingPolygons(polytreeA)
 
         handleIntersectingPolytrees(polytreeA, polytreeB)
+
         polytreeA.deleteReplacedPolygons()
         polytreeB.deleteReplacedPolygons()
 
