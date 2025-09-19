@@ -166,6 +166,7 @@ describe "Polytree.subtract", ->
 
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0)
+
             box1.material = material1
             box2.material = material2
 
@@ -241,19 +242,24 @@ describe "Polytree.subtract", ->
 
             # When targetMaterial is provided, result might still be a polytree.
             # This is acceptable behavior, test that it's defined.
+
             expect(result).toBeDefined()
+
             if result.isMesh
+
                 validateMesh(result, 0)
                 expect(result.material).toBe(targetMaterial)
+
             else
+
                 validatePolytree(result, 0)
 
     describe "Edge Cases and Complex Geometries", ->
 
         it "should handle non-intersecting objects", ->
 
-            box1 = createBox(2, 2, 2, -10, 0, 0) # Far left.
-            box2 = createBox(2, 2, 2, 10, 0, 0)  # Far right.
+            box1 = createBox(2, 2, 2, -10, 0, 0) # Far left
+            box2 = createBox(2, 2, 2, 10, 0, 0)  # Far right
 
             result = Polytree.subtract(box1, box2)
 
@@ -292,7 +298,7 @@ describe "Polytree.subtract", ->
             # Start with large box and subtract multiple smaller objects.
             mainBox = createBox(8, 8, 8, 0, 0, 0)
             hole1 = createSphere(1, -2, -2, 0)
-            
+
             # First subtraction.
             intermediate = Polytree.subtract(mainBox, hole1)
             validateMesh(intermediate)
@@ -344,8 +350,7 @@ describe "Polytree.subtract", ->
             # Perform multiple subtract operations.
             mainBox = createBox(4, 4, 4, 0, 0, 0)
 
-            # Use simple traditional loop to avoid Jest issues.
-            i = 0
+            i = 0 # Use simple traditional loop to avoid Jest issues.
             while i < 5 # Reduced iterations to avoid timeout.
 
                 smallBox = createBox(0.5, 0.5, 0.5, i * 0.2, i * 0.2, 0)
@@ -354,6 +359,7 @@ describe "Polytree.subtract", ->
 
                 # Update mainBox for next iteration.
                 mainBox = result
+
                 i++
 
             # Final validation.
@@ -435,8 +441,7 @@ describe "Polytree.subtract", ->
 
             result = Polytree.subtract(outerBox, innerBox)
 
-            validateMesh(result)
-            # Result should have both outer and inner surfaces.
+            validateMesh(result) # Result should have both outer and inner surfaces.
             expect(result.geometry.attributes.position.count).toBeGreaterThan(outerBox.geometry.attributes.position.count)
 
         it "should handle off-center subtraction", ->
