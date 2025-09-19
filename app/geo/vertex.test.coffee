@@ -276,3 +276,24 @@ describe "Vertex", ->
             # Test with factor > 1.
             result2 = vertex1.interpolate(vertex2, 1.5)
             expect(result2.pos.x).toBe(15)
+
+        it "should handle null/undefined parameters gracefully", ->
+
+            vertex1 = new Vertex(v3(0, 0, 0), v3(1, 0, 0))
+
+            # These should not crash (Three.js handles them gracefully).
+            expect(() -> new Vertex(null, v3(1, 0, 0))).toThrow()
+            expect(() -> new Vertex(v3(0, 0, 0), null)).toThrow()
+
+        it "should work with edge case interpolation factor values", ->
+
+            vertex1 = new Vertex(v3(0, 0, 0), v3(1, 0, 0))
+            vertex2 = new Vertex(v3(10, 10, 10), v3(0, 1, 0))
+
+            # Should handle Infinity.
+            result = vertex1.interpolate(vertex2, Infinity)
+            expect(isFinite(result.pos.x)).toBe(false)
+
+            # Should handle NaN.
+            resultNaN = vertex1.interpolate(vertex2, NaN)
+            expect(isNaN(resultNaN.pos.x)).toBe(true)
