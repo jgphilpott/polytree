@@ -7,8 +7,10 @@
 # of the second object from the first object, creating a carved-out result.
 #
 # Algorithm Overview:
+#
 # The subtract operation preserves polygons that define the external surface
 # of object A minus the volume of object B. It processes:
+#
 # - Polygons from A that are outside B or coplanar-front with B
 # - Polygons from B that are inside A, inverted to form internal surfaces
 #
@@ -40,9 +42,11 @@ subtractRules =
 
 # Perform subtract (difference) operation between two 3D objects.
 # This removes the volume of mesh2 from mesh1, creating a carved result.
+#
 # @param mesh1 - Primary 3D object to subtract from (Three.js Mesh or Polytree instance).
 # @param mesh2 - 3D object to subtract away (Three.js Mesh or Polytree instance).
 # @param targetMaterial - Optional material for result mesh. If null and polytree input, returns polytree.
+#
 # @return Three.js Mesh with subtracted geometry or Polytree instance.
 Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
 
@@ -95,9 +99,11 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
 
 # Core subtract operation implementation working with polytree objects.
 # This method performs the actual CSG boolean logic for difference operations.
+#
 # @param polytreeA - Primary polytree object to subtract from.
 # @param polytreeB - Polytree object to subtract away from A.
 # @param buildTargetPolytree - Whether to build spatial tree structure in result.
+#
 # @return Polytree containing the subtracted geometry.
 Polytree.subtractCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 

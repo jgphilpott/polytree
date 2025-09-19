@@ -7,8 +7,10 @@
 # all their surfaces while removing internal/overlapping geometry.
 #
 # Algorithm Overview:
+#
 # The unite operation preserves polygons from both objects that contribute to
 # the external surface of the combined result. It removes:
+#
 # - Polygons from A that are inside B or coplanar-back with B
 # - Polygons from B that are inside A or coplanar-back/front with A
 #
@@ -38,9 +40,11 @@ uniteRules =
 
 # Perform unite (union) operation between two 3D objects.
 # This is the main entry point that handles both mesh and polytree inputs.
+#
 # @param mesh1 - First 3D object (Three.js Mesh or Polytree instance).
 # @param mesh2 - Second 3D object (Three.js Mesh or Polytree instance).
 # @param targetMaterial - Optional material for result mesh. If null and polytree input, returns polytree.
+#
 # @return Three.js Mesh with united geometry or Polytree instance.
 Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
 
@@ -93,9 +97,11 @@ Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
 
 # Core unite operation implementation working with polytree objects.
 # This method performs the actual CSG boolean logic for union operations.
+#
 # @param polytreeA - First polytree object to unite.
 # @param polytreeB - Second polytree object to unite.
 # @param buildTargetPolytree - Whether to build spatial tree structure in result.
+#
 # @return Polytree containing the united geometry.
 Polytree.uniteCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 

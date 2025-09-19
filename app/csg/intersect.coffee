@@ -7,8 +7,10 @@
 # volume that is common to both input objects.
 #
 # Algorithm Overview:
+#
 # The intersect operation preserves only polygons that contribute to the
 # volume where both objects overlap. It removes extensive sets of polygons:
+#
 # - From A: inside+coplanar-back, outside+coplanar-front/back, and outside
 # - From B: inside+coplanar-front/back, outside+coplanar-front/back, and outside
 #
@@ -43,9 +45,11 @@ intersectRules =
 
 # Perform intersect operation between two 3D objects.
 # This keeps only the overlapping volume common to both objects.
+#
 # @param mesh1 - First 3D object to intersect (Three.js Mesh or Polytree instance).
 # @param mesh2 - Second 3D object to intersect (Three.js Mesh or Polytree instance).
 # @param targetMaterial - Optional material for result mesh. If null and polytree input, returns polytree.
+#
 # @return Three.js Mesh with intersected geometry or Polytree instance.
 Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
 
@@ -98,9 +102,11 @@ Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
 
 # Core intersect operation implementation working with polytree objects.
 # This method performs the actual CSG boolean logic for intersection operations.
+#
 # @param polytreeA - First polytree object to intersect.
 # @param polytreeB - Second polytree object to intersect.
 # @param buildTargetPolytree - Whether to build spatial tree structure in result.
+#
 # @return Polytree containing the intersected geometry.
 Polytree.intersectCore = (polytreeA, polytreeB, buildTargetPolytree = true) ->
 

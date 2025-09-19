@@ -355,6 +355,7 @@ describe "Polytree.subtract", ->
 
                 smallBox = createBox(0.5, 0.5, 0.5, i * 0.2, i * 0.2, 0)
                 result = Polytree.subtract(mainBox, smallBox)
+
                 validateMesh(result)
 
                 # Update mainBox for next iteration.

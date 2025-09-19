@@ -324,10 +324,12 @@ describe "Polytree.unite", ->
 
                 box2 = createBox(1, 1, 1, i * 0.1, 0, 0)
                 result = Polytree.unite(box1, box2)
+
                 validateMesh(result)
 
                 # Update box1 for next iteration.
                 box1 = result
+
                 i++
 
             # Final validation.
