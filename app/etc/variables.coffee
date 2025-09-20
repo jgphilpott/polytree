@@ -46,8 +46,8 @@ temporaryVector3Secondary = new Vector3()
 # Tertiary temporary vector for calculations requiring three vectors.
 temporaryVector3Tertiary = new Vector3()
 
-# Fourth temporary vector for triangle-specific calculations.
-tempVector3 = new Vector3()
+# Quaternary temporary vector for triangle-specific calculations.
+temporaryVector3Quaternary = new Vector3()
 
 # Temporary bounding box for spatial calculations.
 temporaryBoundingBox = new Box3()
@@ -233,7 +233,7 @@ if typeof module != 'undefined' and module.exports
     module.exports.temporaryVector3Primary = temporaryVector3Primary
     module.exports.temporaryVector3Secondary = temporaryVector3Secondary
     module.exports.temporaryVector3Tertiary = temporaryVector3Tertiary
-    module.exports.tempVector3 = tempVector3
+    module.exports.temporaryVector3Quaternary = temporaryVector3Quaternary
     module.exports.temporaryBoundingBox = temporaryBoundingBox
     module.exports.temporaryRaycaster = temporaryRaycaster
     module.exports.temporaryRay = temporaryRay

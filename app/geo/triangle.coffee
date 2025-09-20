@@ -685,21 +685,21 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
     temporaryVector3Primary.subVectors(vertex2TriangleA, vertex1TriangleA)
     temporaryVector3Secondary.subVectors(vertex3TriangleB, vertex1TriangleA)
     crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
-    tempVector3.subVectors(vertex1TriangleB, vertex1TriangleA)
+    temporaryVector3Quaternary.subVectors(vertex1TriangleB, vertex1TriangleA)
 
-    if tempVector3.dot(crossNormal) > 0
+    if temporaryVector3Quaternary.dot(crossNormal) > 0
 
         # Check orientation with triangle A's third vertex.
         temporaryVector3Primary.subVectors(vertex3TriangleA, vertex1TriangleA)
         crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-        if tempVector3.dot(crossNormal) <= 0
+        if temporaryVector3Quaternary.dot(crossNormal) <= 0
 
             # Check orientation with triangle B's second vertex.
             temporaryVector3Secondary.subVectors(vertex2TriangleB, vertex1TriangleA)
             crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-            if tempVector3.dot(crossNormal) > 0
+            if temporaryVector3Quaternary.dot(crossNormal) > 0
 
                 # Compute intersection segment endpoints (case 1).
                 temporaryVector3Primary.subVectors(vertex1TriangleA, vertex1TriangleB)
@@ -754,7 +754,7 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
         temporaryVector3Secondary.subVectors(vertex2TriangleB, vertex1TriangleA)
         crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-        if tempVector3.dot(crossNormal) < 0
+        if temporaryVector3Quaternary.dot(crossNormal) < 0
 
             return false # No intersection, orientation test failed.
 
@@ -763,7 +763,7 @@ constructIntersection = (vertex1TriangleA, vertex2TriangleA, vertex3TriangleA, v
             temporaryVector3Primary.subVectors(vertex3TriangleA, vertex1TriangleA)
             crossNormal.copy(temporaryVector3Primary).cross(temporaryVector3Secondary)
 
-            if tempVector3.dot(crossNormal) < 0
+            if temporaryVector3Quaternary.dot(crossNormal) < 0
 
                 # Compute intersection segment endpoints (case 3).
                 temporaryVector3Primary.subVectors(vertex1TriangleB, vertex1TriangleA)
