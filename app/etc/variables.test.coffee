@@ -26,6 +26,7 @@ global.Matrix3 = Matrix3
     temporaryVector3Primary
     temporaryVector3Secondary
     temporaryVector3Tertiary
+    tempVector3
     temporaryBoundingBox
     temporaryRaycaster
     temporaryRay
@@ -145,6 +146,10 @@ describe "Variables module", ->
         it "temporaryVector3Tertiary should be a Vector3 instance", ->
 
             expect(temporaryVector3Tertiary).toBeInstanceOf(Vector3)
+
+        it "tempVector3 should be a Vector3 instance", ->
+
+            expect(tempVector3).toBeInstanceOf(Vector3)
 
         it "temporaryBoundingBox should be a Box3 instance", ->
 

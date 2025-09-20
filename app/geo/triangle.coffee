@@ -1,7 +1,3 @@
-# Note: Using new descriptive variable names from variables.coffee
-# Local third temporary vector for triangle-specific calculations.
-tempVector3 = temporaryVector3Tertiary
-
 ### Validate a triangle (three distinct vertices) in 3D space.
 
 Notes:
