@@ -12,12 +12,12 @@ class Vertex
     constructor: (pos, normal, uv, color) ->
 
         # Core geometric properties.
-        @pos = new Vector3().copy(pos)            # 3D position coordinates.
-        @normal = new Vector3().copy(normal)      # Surface normal vector.
+        @pos = new Vector3().copy(pos)                 # 3D position coordinates.
+        @normal = new Vector3().copy(normal)           # Surface normal vector.
 
         # Optional texture and visual properties.
-        uv and (@uv = new Vector2().copy(uv))     # Texture coordinates (UV mapping).
-        color and (@color = new Vector3().copy(color))  # Vertex color data.
+        uv and (@uv = new Vector2().copy(uv))          # Texture coordinates (UV mapping).
+        color and (@color = new Vector3().copy(color)) # Vertex color data.
 
     # === OBJECT CREATION AND COPYING ===
 
@@ -31,13 +31,14 @@ class Vertex
 
         @normal.negate()
 
-    interpolate: (other, interpolationFactor) -> # Linear interpolation between this vertex and another.
-        # Creates a new vertex interpolated between this vertex and another.
-        # All properties (position, normal, UV, color) are interpolated if present on both vertices.
-        #
-        # @param other - The target vertex to interpolate towards.
-        # @param interpolationFactor - Factor from 0.0 (this vertex) to 1.0 (other vertex).
-        # @return New interpolated Vertex instance.
+    # Creates a new vertex interpolated between this vertex and another.
+    # All properties (position, normal, UV, color) are interpolated if present on both vertices.
+    #
+    # @param other - The target vertex to interpolate towards.
+    # @param interpolationFactor - Factor from 0.0 (this vertex) to 1.0 (other vertex).
+    #
+    # @return New interpolated Vertex instance.
+    interpolate: (other, interpolationFactor) ->
 
         new Vertex(
             @pos.clone().lerp(other.pos, interpolationFactor),
@@ -48,10 +49,12 @@ class Vertex
 
     # === CLEANUP AND DISPOSAL METHODS ===
 
-    delete: -> # Clean up vertex data by setting all properties to undefined.
-        # Used for memory management during intensive operations.
+    # Clean up vertex data by setting all properties to undefined.
+    # Used for memory management during intensive operations.
+    delete: ->
 
         @pos = undefined
         @normal = undefined
+
         @uv and (@uv = undefined)
         @color and (@color = undefined)
