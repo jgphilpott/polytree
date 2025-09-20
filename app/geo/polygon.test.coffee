@@ -26,6 +26,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             expect(polygon.vertices.length).toBe(3)
@@ -58,6 +59,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(originalVertices, 0)
 
             # Modify original vertices.
@@ -73,6 +75,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             expect(polygon.plane).toBeDefined()
@@ -89,6 +92,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             expect(polygon.previousStates).toEqual([])
@@ -103,6 +107,7 @@ describe "Polygon", ->
                 vertex(v3(3, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 3, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             midpoint = polygon.getMidpoint()
@@ -118,6 +123,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             midpoint1 = polygon.getMidpoint()
@@ -134,6 +140,7 @@ describe "Polygon", ->
                 vertex(v3(0, 1, 0), v3(0, 1, 0))
                 vertex(v3(0, 0, 1), v3(0, 1, 0))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             # Translation matrix.
@@ -151,6 +158,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             originalPlane = polygon.plane
@@ -170,6 +178,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             matrix = new Matrix4().makeTranslation(1, 1, 1)
@@ -187,6 +196,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             # Modify state.
@@ -217,10 +227,10 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
-            polygon = new Polygon(vertices, 0)
 
+            polygon = new Polygon(vertices, 0)
             polygon.originalValid = true
-            polygon.reset(false) # Don't reset originalValid
+            polygon.reset(false) # Don't reset originalValid.
 
             expect(polygon.originalValid).toBe(true)
 
@@ -233,8 +243,8 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
-            polygon = new Polygon(vertices, 0)
 
+            polygon = new Polygon(vertices, 0)
             polygon.setState("inside")
 
             expect(polygon.state).toBe("inside")
@@ -253,10 +263,11 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             polygon.setState("inside")
-            polygon.setState("outside", "inside") # Should not change
+            polygon.setState("outside", "inside") # Should not change.
 
             expect(polygon.state).toBe("inside")
 
@@ -269,6 +280,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             polygon.setState("inside")
@@ -284,6 +296,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             polygon.setState("inside")
@@ -300,6 +313,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             expect(polygon.valid).toBe(true)
@@ -319,6 +333,7 @@ describe "Polygon", ->
                 vertex(v3(4, 5, 6), v3(0, 0, 1))
                 vertex(v3(7, 8, 9), v3(0, 0, 1))
             ]
+
             original = new Polygon(vertices, 5)
 
             # Set some state.
@@ -351,6 +366,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             original = new Polygon(vertices, 0)
             clone = original.clone()
 
@@ -371,6 +387,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             original = new Polygon(vertices, 0)
 
             # Force midpoint calculation.
@@ -390,6 +407,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             originalTriangleA = polygon.triangle.a.clone()
@@ -419,6 +437,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             polygon.delete()
@@ -441,19 +460,20 @@ describe "Polygon", ->
 
             # Mock delete method on the polygon's vertices (not the original ones).
             polygon.vertices.forEach (v) ->
+
                 v.delete = jest.fn()
 
             polygon.delete()
 
             polygon.vertices.forEach (v) ->
+
                 expect(v.delete).toHaveBeenCalled()
 
     describe "Edge Cases and Error Handling", ->
 
         it "should handle degenerate triangles gracefully", ->
 
-            # All vertices at same position.
-            vertices = [
+            vertices = [ # All vertices at same position.
                 vertex(v3(0, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 0, 0), v3(0, 0, 1))
@@ -496,6 +516,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             # Multiple state changes.
@@ -516,6 +537,7 @@ describe "Polygon", ->
                 vertex(v3(1, 0, 0), v3(0, 0, 1))
                 vertex(v3(0, 1, 0), v3(0, 0, 1))
             ]
+
             polygon = new Polygon(vertices, 0)
 
             # Apply multiple transformations.
@@ -529,4 +551,3 @@ describe "Polygon", ->
 
             expect(polygon.plane).toBeDefined()
             expect(polygon.triangle).toBeDefined()
-

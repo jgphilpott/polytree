@@ -10,9 +10,9 @@ class Polygon
     constructor: (vertices, shared) ->
 
         # Core geometric properties.
-        @id = polygonID++                              # Unique identifier for this polygon.
+        @id = polygonID++                                    # Unique identifier for this polygon.
         @vertices = vertices.map((vertex) -> vertex.clone()) # Deep copy of vertex array.
-        @shared = shared                               # Material index or shared data.
+        @shared = shared                                     # Material index or shared data.
 
         # Geometric calculations.
         @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
