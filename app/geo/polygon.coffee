@@ -10,9 +10,9 @@ class Polygon
     constructor: (vertices, shared) ->
 
         # Core geometric properties.
-        @id = _polygonID++                         # Unique identifier for this polygon.
-        @vertices = vertices.map((v) -> v.clone()) # Deep copy of vertex array.
-        @shared = shared                           # Material index or shared data.
+        @id = polygonID++                              # Unique identifier for this polygon.
+        @vertices = vertices.map((vertex) -> vertex.clone()) # Deep copy of vertex array.
+        @shared = shared                               # Material index or shared data.
 
         # Geometric calculations.
         @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
@@ -68,7 +68,7 @@ class Polygon
     # Used for changing polygon winding and surface normal direction.
     flip: ->
 
-        @vertices.reverse().forEach((v) -> v.flip())
+        @vertices.reverse().forEach((vertex) -> vertex.flip())
         tmp = @triangle.a
         @triangle.a = @triangle.c
         @triangle.c = tmp
@@ -113,9 +113,9 @@ class Polygon
 
         return false if (@state isnt state) or ((@previousState isnt state) and (@previousState isnt "undecided"))
 
-        for s in @previousStates
+        for previousState in @previousStates
 
-            return false if s isnt state
+            return false if previousState isnt state
 
         return true
 
@@ -135,7 +135,7 @@ class Polygon
     # @return New Polygon instance with copied data.
     clone: ->
 
-        polygon = new Polygon(@vertices.map((v) -> v.clone()), @shared)
+        polygon = new Polygon(@vertices.map((vertex) -> vertex.clone()), @shared)
         polygon.intersects = @intersects
         polygon.valid = @valid
         polygon.coplanar = @coplanar
@@ -157,7 +157,7 @@ class Polygon
     # Deletes vertices, geometric objects, and marks polygon as invalid.
     delete: ->
 
-        @vertices.forEach((v) -> v.delete())
+        @vertices.forEach((vertex) -> vertex.delete())
         @vertices.length = 0
 
         if @plane

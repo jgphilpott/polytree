@@ -24,8 +24,20 @@ These guidelines apply to all CoffeeScript source edits in this repository.
 - Do not collapse existing blank lines when editing.
 - In helper functions, add blank lines to separate logical groups (geometry creation, mesh setup, return statements).
 - Remove trailing whitespace consistently.
+- Always insert final newline at the end of files (consistent with `.editorconfig`).
 
 If you are unsure, prefer the more spacious option to maintain consistency with the existing style.
+
+## Variable Naming Conventions
+
+- Follow standard JavaScript camelCase naming conventions for all variables.
+- **Do not use leading underscores** (`_variableName`) unless it's a true private convention.
+- **Use descriptive, full-form variable names** instead of cryptic abbreviations:
+  - ✅ Good: `for previousState in @previousStates`
+  - ❌ Bad: `for s in @previousStates`
+  - ✅ Good: `temporaryVertex`, `currentPolygon`
+  - ❌ Bad: `tmpV`, `curPoly`
+- Prefer clarity over brevity - code is read more often than written.
 
 ## Test Code Style Preferences
 

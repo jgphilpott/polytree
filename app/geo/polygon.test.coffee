@@ -529,3 +529,4 @@ describe "Polygon", ->
 
             expect(polygon.plane).toBeDefined()
             expect(polygon.triangle).toBeDefined()
+

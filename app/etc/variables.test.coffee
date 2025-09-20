@@ -72,7 +72,7 @@ global.Matrix3 = Matrix3
     INTERSECTION_CACHE_SIZE
 
     # Polygon ID Management
-    _polygonID
+    polygonID
 
     # Debugging and Development Variables
     DEBUG_VERBOSE_LOGGING
@@ -322,10 +322,10 @@ describe "Variables module", ->
 
     describe "Polygon ID Management Variables", ->
 
-        it "_polygonID should be a number", ->
+        it "polygonID should be a number", ->
 
-            expect(typeof _polygonID).toBe("number")
-            expect(_polygonID).toBeGreaterThanOrEqual(0)
+            expect(typeof polygonID).toBe("number")
+            expect(polygonID).toBeGreaterThanOrEqual(0)
 
     describe "Debugging and Development Variables", ->
 

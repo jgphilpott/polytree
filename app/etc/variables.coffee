@@ -189,7 +189,7 @@ INTERSECTION_CACHE_SIZE = 5000
 # =============================================================================
 
 # Global polygon ID counter for unique polygon identification.
-_polygonID = 0
+polygonID = 0
 
 # =============================================================================
 # DEBUGGING AND DEVELOPMENT VARIABLES
@@ -284,7 +284,7 @@ if typeof module != 'undefined' and module.exports
     module.exports.INTERSECTION_CACHE_SIZE = INTERSECTION_CACHE_SIZE
 
     # Polygon ID Management
-    module.exports._polygonID = _polygonID
+    module.exports.polygonID = polygonID
 
     # Debugging and Development Variables
     module.exports.DEBUG_VERBOSE_LOGGING = DEBUG_VERBOSE_LOGGING
