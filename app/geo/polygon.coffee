@@ -10,9 +10,9 @@ class Polygon
     constructor: (vertices, shared) ->
 
         # Core geometric properties.
-        @id = _polygonID++                    # Unique identifier for this polygon.
+        @id = _polygonID++                         # Unique identifier for this polygon.
         @vertices = vertices.map((v) -> v.clone()) # Deep copy of vertex array.
-        @shared = shared                      # Material index or shared data.
+        @shared = shared                           # Material index or shared data.
 
         # Geometric calculations.
         @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
@@ -51,15 +51,17 @@ class Polygon
 
         normalMatrix = normalMatrix or temporaryMatrixWithNormalCalc.getNormalMatrix(matrix)
 
-        @vertices.forEach (v) ->
-            v.pos.applyMatrix4(matrix)
-            v.normal.applyMatrix3(normalMatrix)
+        @vertices.forEach (vertex) ->
+
+            vertex.pos.applyMatrix4(matrix)
+            vertex.normal.applyMatrix3(normalMatrix)
 
         @plane.delete()
         @plane = Plane.fromPoints(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
         @triangle.set(@vertices[0].pos, @vertices[1].pos, @vertices[2].pos)
 
         if @triangle.midPoint
+
             @triangle.getMidpoint(@triangle.midPoint)
 
     # Flip the polygon orientation by reversing vertex order and flipping normals.
@@ -105,12 +107,16 @@ class Polygon
     # Used for CSG rule evaluation requiring state consistency.
     #
     # @param state - State to check for consistency.
+    #
     # @return Boolean indicating if all states match the specified state.
     checkAllStates: (state) ->
 
         return false if (@state isnt state) or ((@previousState isnt state) and (@previousState isnt "undecided"))
+
         for s in @previousStates
+
             return false if s isnt state
+
         return true
 
     # === VALIDITY MANAGEMENT ===
@@ -140,6 +146,7 @@ class Polygon
         polygon.previousStates = @previousStates.slice()
 
         if @triangle.midPoint
+
             polygon.triangle.midPoint = @triangle.midPoint.clone()
 
         return polygon
@@ -154,9 +161,11 @@ class Polygon
         @vertices.length = 0
 
         if @plane
+
             @plane.delete()
             @plane = undefined
 
         @triangle = undefined
         @shared = undefined
+
         @setInvalid()
