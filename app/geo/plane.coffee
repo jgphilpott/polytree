@@ -32,12 +32,12 @@ class Plane
     # Test if this plane is identical to another plane.
     # Compares both normal vector and distance parameter for equality.
     #
-    # @param p - The other plane to compare against.
+    # @param otherPlane - The other plane to compare against.
     #
     # @return Boolean indicating whether planes are identical.
-    equals: (p) ->
+    equals: (otherPlane) ->
 
-        @normal.equals(p.normal) and @w is p.w
+        @normal.equals(otherPlane.normal) and @w is otherPlane.w
 
     # === CLEANUP AND DISPOSAL METHODS ===
 
@@ -48,18 +48,18 @@ class Plane
         @normal = undefined
         @w = undefined
 
-# === STATIC FACTORY METHODS ===
+    # === STATIC FACTORY METHODS ===
 
-# Create a plane from three points in 3D space.
-# Uses cross product to compute normal and dot product for distance.
-# Points should be ordered counter-clockwise when viewed from the front face.
-#
-# @param a - First point (Three.js Vector3).
-# @param b - Second point (Three.js Vector3).
-# @param c - Third point (Three.js Vector3).
-#
-# @return New Plane instance passing through the three points.
-Plane.fromPoints = (a, b, c) ->
+    # Create a plane from three points in 3D space.
+    # Uses cross product to compute normal and dot product for distance.
+    # Points should be ordered counter-clockwise when viewed from the front face.
+    #
+    # @param firstPoint - First point (Three.js Vector3).
+    # @param secondPoint - Second point (Three.js Vector3).
+    # @param thirdPoint - Third point (Three.js Vector3).
+    #
+    # @return New Plane instance passing through the three points.
+    @fromPoints: (firstPoint, secondPoint, thirdPoint) ->
 
-    planeNormal = temporaryTriangleVertex.copy(b).sub(a).cross(temporaryTriangleVertexSecondary.copy(c).sub(a)).normalize().clone()
-    new Plane(planeNormal, planeNormal.dot(a))
+        planeNormal = temporaryTriangleVertex.copy(secondPoint).sub(firstPoint).cross(temporaryTriangleVertexSecondary.copy(thirdPoint).sub(firstPoint)).normalize().clone()
+        new Plane(planeNormal, planeNormal.dot(firstPoint))
