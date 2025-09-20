@@ -184,6 +184,14 @@ GEOMETRY_CACHE_SIZE = 1000
 INTERSECTION_CACHE_SIZE = 5000
 
 # =============================================================================
+# POLYGON ID MANAGEMENT
+# Global counter for assigning unique IDs to polygon instances.
+# =============================================================================
+
+# Global polygon ID counter for unique polygon identification.
+_polygonID = 0
+
+# =============================================================================
 # DEBUGGING AND DEVELOPMENT VARIABLES
 # Variables useful for debugging and development.
 # =============================================================================
@@ -274,6 +282,9 @@ if typeof module != 'undefined' and module.exports
     module.exports.MEMORY_USAGE_WARNING_LIMIT = MEMORY_USAGE_WARNING_LIMIT
     module.exports.GEOMETRY_CACHE_SIZE = GEOMETRY_CACHE_SIZE
     module.exports.INTERSECTION_CACHE_SIZE = INTERSECTION_CACHE_SIZE
+
+    # Polygon ID Management
+    module.exports._polygonID = _polygonID
 
     # Debugging and Development Variables
     module.exports.DEBUG_VERBOSE_LOGGING = DEBUG_VERBOSE_LOGGING
