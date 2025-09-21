@@ -44,7 +44,7 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
     for i in [0...polygon.vertices.length]
 
-        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.w
+        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.distanceFromOrigin
         type = if distanceToPlane < -GEOMETRIC_EPSILON then POLYGON_BACK else if distanceToPlane > GEOMETRIC_EPSILON then POLYGON_FRONT else POLYGON_COPLANAR
         polygonType |= type
         types.push(type)
@@ -89,7 +89,7 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
                 if (currentType | nextType) == POLYGON_SPANNING
 
-                    intersectionParameter = (plane.w - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(temporaryTriangleVertex.copy(nextVertex.pos).sub(currentVertex.pos))
+                    intersectionParameter = (plane.distanceFromOrigin - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(temporaryTriangleVertex.copy(nextVertex.pos).sub(currentVertex.pos))
                     vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
                     frontVertices.push(vertexParameter)
                     backVertices.push(vertexParameter.clone())
