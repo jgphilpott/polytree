@@ -138,6 +138,12 @@ temporaryMatrixWithNormalCalc.getNormalMatrix = (matrix) ->
 
     @setFromMatrix4(matrix).invert().transpose()
 
+# Temporary vector for mesh normal calculations and geometry operations.
+meshOperationNormalVector = new Vector3()
+
+# Temporary vertex vector for mesh transformation and vertex operations.
+meshOperationVertexVector = new Vector3()
+
 # =============================================================================
 # CSG AND OCTREE OPERATION VARIABLES
 # Variables for Constructive Solid Geometry and spatial partitioning.
@@ -268,6 +274,8 @@ if typeof module != 'undefined' and module.exports
     module.exports.temporaryTriangleVertexSecondary = temporaryTriangleVertexSecondary
     module.exports.temporaryMatrix3 = temporaryMatrix3
     module.exports.temporaryMatrixWithNormalCalc = temporaryMatrixWithNormalCalc
+    module.exports.meshOperationNormalVector = meshOperationNormalVector
+    module.exports.meshOperationVertexVector = meshOperationVertexVector
 
     # CSG and Octree Operation Variables
     module.exports.OCTREE_MAX_DEPTH = OCTREE_MAX_DEPTH
