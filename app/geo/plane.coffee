@@ -1,31 +1,31 @@
 # Main class for representing geometric planes in 3D space.
-# Planes are defined by a normal vector and a distance (w) from the origin.
+# Planes are defined by a normal vector and a distance from the origin.
 # Used extensively in CSG operations for polygon classification and splitting.
 class Plane
 
     # Main constructor for creating plane instances.
-    # Creates a plane defined by the equation: normal·point = w
+    # Creates a plane defined by the equation: normal·point = distanceFromOrigin
     #
     # @param normal - Three.js Vector3 representing the plane's normal direction.
-    # @param w - Distance from origin along the normal direction.
-    constructor: (normal, w) ->
+    # @param distanceFromOrigin - Distance from origin along the normal direction.
+    constructor: (normal, distanceFromOrigin) ->
 
         # Core geometric properties.
-        @normal = normal    # Normal vector defining plane orientation.
-        @w = w              # Distance parameter in plane equation.
+        @normal = normal                              # Normal vector defining plane orientation.
+        @distanceFromOrigin = distanceFromOrigin      # Distance parameter in plane equation.
 
     # === OBJECT CREATION AND COPYING ===
 
     clone: -> # Create a deep copy of this plane with all properties.
 
-        new Plane(@normal.clone(), @w)
+        new Plane(@normal.clone(), @distanceFromOrigin)
 
     # === GEOMETRIC TRANSFORMATIONS ===
 
     flip: -> # Flip the plane orientation (reverse normal and negate distance).
 
         @normal.negate()
-        @w = -@w
+        @distanceFromOrigin = -@distanceFromOrigin
 
     # === COMPARISON OPERATIONS ===
 
@@ -37,7 +37,7 @@ class Plane
     # @return Boolean indicating whether planes are identical.
     equals: (otherPlane) ->
 
-        @normal.equals(otherPlane.normal) and @w is otherPlane.w
+        @normal.equals(otherPlane.normal) and @distanceFromOrigin is otherPlane.distanceFromOrigin
 
     # === CLEANUP AND DISPOSAL METHODS ===
 
@@ -46,7 +46,7 @@ class Plane
     delete: ->
 
         @normal = undefined
-        @w = undefined
+        @distanceFromOrigin = undefined
 
     # === STATIC FACTORY METHODS ===
 

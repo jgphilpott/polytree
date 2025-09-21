@@ -6,7 +6,7 @@
 createVector3 = (x, y, z) -> new Vector3(x, y, z)
 
 # Helper factory for creating test planes.
-createPlane = (normalX, normalY, normalZ, wValue) -> new Plane(createVector3(normalX, normalY, normalZ), wValue)
+createPlane = (normalX, normalY, normalZ, distanceFromOriginValue) -> new Plane(createVector3(normalX, normalY, normalZ), distanceFromOriginValue)
 
 # Tolerance for floating point comparisons.
 EPSILON = 1e-6
@@ -15,41 +15,41 @@ describe "Plane", ->
 
     describe "Constructor", ->
 
-        it "should create plane with normal and w value", ->
+        it "should create plane with normal and distance from origin value", ->
 
             normalVector = createVector3(0, 1, 0)
-            wValue = 5.0
-            testPlane = new Plane(normalVector, wValue)
+            distanceFromOriginValue = 5.0
+            testPlane = new Plane(normalVector, distanceFromOriginValue)
 
             expect(testPlane.normal).toEqual(normalVector)
-            expect(testPlane.w).toBe(wValue)
+            expect(testPlane.distanceFromOrigin).toBe(distanceFromOriginValue)
 
         it "should create plane with normalized normal", ->
 
             normalVector = createVector3(0, 2, 0) # Will be normalized in practice
-            wValue = 3.0
-            testPlane = new Plane(normalVector, wValue)
+            distanceFromOriginValue = 3.0
+            testPlane = new Plane(normalVector, distanceFromOriginValue)
 
             expect(testPlane.normal).toEqual(normalVector)
-            expect(testPlane.w).toBe(wValue)
+            expect(testPlane.distanceFromOrigin).toBe(distanceFromOriginValue)
 
-        it "should handle zero w value", ->
+        it "should handle zero distance value", ->
 
             normalVector = createVector3(1, 0, 0)
-            wValue = 0.0
-            testPlane = new Plane(normalVector, wValue)
+            distanceFromOriginValue = 0.0
+            testPlane = new Plane(normalVector, distanceFromOriginValue)
 
             expect(testPlane.normal).toEqual(normalVector)
-            expect(testPlane.w).toBe(wValue)
+            expect(testPlane.distanceFromOrigin).toBe(distanceFromOriginValue)
 
         it "should handle negative w value", ->
 
             normalVector = createVector3(0, 0, 1)
-            wValue = -2.5
-            testPlane = new Plane(normalVector, wValue)
+            distanceFromOriginValue = -2.5
+            testPlane = new Plane(normalVector, distanceFromOriginValue)
 
             expect(testPlane.normal).toEqual(normalVector)
-            expect(testPlane.w).toBe(wValue)
+            expect(testPlane.distanceFromOrigin).toBe(distanceFromOriginValue)
 
     describe "Clone Method", ->
 
@@ -59,7 +59,7 @@ describe "Plane", ->
             clonedPlane = originalPlane.clone()
 
             expect(clonedPlane.normal).toEqual(originalPlane.normal)
-            expect(clonedPlane.w).toBe(originalPlane.w)
+            expect(clonedPlane.distanceFromOrigin).toBe(originalPlane.distanceFromOrigin)
 
             # Verify it's a deep copy
             expect(clonedPlane.normal).not.toBe(originalPlane.normal)
@@ -73,7 +73,7 @@ describe "Plane", ->
             expect(clonedPlane.normal.x).toBe(originalPlane.normal.x)
             expect(clonedPlane.normal.y).toBe(originalPlane.normal.y)
             expect(clonedPlane.normal.z).toBe(originalPlane.normal.z)
-            expect(clonedPlane.w).toBe(originalPlane.w)
+            expect(clonedPlane.distanceFromOrigin).toBe(originalPlane.distanceFromOrigin)
 
         it "should create independent copy that can be modified", ->
 
@@ -84,8 +84,8 @@ describe "Plane", ->
 
             expect(originalPlane.normal.x).toBe(1)
             expect(clonedPlane.normal.x).toBe(-1)
-            expect(originalPlane.w).toBe(3.0)
-            expect(clonedPlane.w).toBe(-3.0)
+            expect(originalPlane.distanceFromOrigin).toBe(3.0)
+            expect(clonedPlane.distanceFromOrigin).toBe(-3.0)
 
     describe "Flip Method", ->
 
@@ -103,15 +103,15 @@ describe "Plane", ->
             testPlane = createPlane(1, 0, 0, 3.0)
             testPlane.flip()
 
-            expect(testPlane.w).toBe(-3.0)
+            expect(testPlane.distanceFromOrigin).toBe(-3.0)
 
-        it "should work with negative w values", ->
+        it "should work with negative distance values", ->
 
             testPlane = createPlane(0, 0, 1, -2.5)
             testPlane.flip()
 
             expect(testPlane.normal.z).toBe(-1)
-            expect(testPlane.w).toBe(2.5)
+            expect(testPlane.distanceFromOrigin).toBe(2.5)
 
         it "should work with non-unit normals", ->
 
@@ -121,15 +121,15 @@ describe "Plane", ->
             expect(testPlane.normal.x).toBe(-2)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(0, 5)
-            expect(testPlane.w).toBe(-4.0)
+            expect(testPlane.distanceFromOrigin).toBe(-4.0)
 
-        it "should handle zero w value", ->
+        it "should handle zero distance value", ->
 
             testPlane = createPlane(0, 1, 0, 0.0)
             testPlane.flip()
 
             expect(testPlane.normal.y).toBe(-1)
-            expect(testPlane.w).toBeCloseTo(0.0, 5)
+            expect(testPlane.distanceFromOrigin).toBeCloseTo(0.0, 5)
 
     describe "Delete Method", ->
 
@@ -145,7 +145,7 @@ describe "Plane", ->
             testPlane = createPlane(0, 1, 0, 3.0)
             testPlane.delete()
 
-            expect(testPlane.w).toBeUndefined()
+            expect(testPlane.distanceFromOrigin).toBeUndefined()
 
         it "should clean up all properties", ->
 
@@ -153,7 +153,7 @@ describe "Plane", ->
             testPlane.delete()
 
             expect(testPlane.normal).toBeUndefined()
-            expect(testPlane.w).toBeUndefined()
+            expect(testPlane.distanceFromOrigin).toBeUndefined()
 
     describe "Equals Method", ->
 
@@ -171,7 +171,7 @@ describe "Plane", ->
 
             expect(firstPlane.equals(secondPlane)).toBe(false)
 
-        it "should return false for different w values", ->
+        it "should return false for different distance values", ->
 
             firstPlane = createPlane(0, 1, 0, 5.0)
             secondPlane = createPlane(0, 1, 0, 3.0)
@@ -211,7 +211,7 @@ describe "Plane", ->
 
             expect(testPlane).toBeInstanceOf(Plane)
             expect(testPlane.normal).toBeInstanceOf(Vector3)
-            expect(typeof testPlane.w).toBe("number")
+            expect(typeof testPlane.distanceFromOrigin).toBe("number")
 
         it "should create correct plane for XY plane", ->
 
@@ -225,7 +225,7 @@ describe "Plane", ->
             expect(testPlane.normal.x).toBeCloseTo(0, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(1, 5)
-            expect(testPlane.w).toBeCloseTo(0, 5)
+            expect(testPlane.distanceFromOrigin).toBeCloseTo(0, 5)
 
         it "should create correct plane for offset XY plane", ->
 
@@ -239,7 +239,7 @@ describe "Plane", ->
             expect(testPlane.normal.x).toBeCloseTo(0, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(1, 5)
-            expect(testPlane.w).toBeCloseTo(2, 5)
+            expect(testPlane.distanceFromOrigin).toBeCloseTo(2, 5)
 
         it "should create correct plane for YZ plane", ->
 
@@ -253,7 +253,7 @@ describe "Plane", ->
             expect(testPlane.normal.x).toBeCloseTo(1, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(0, 5)
-            expect(testPlane.w).toBeCloseTo(3, 5)
+            expect(testPlane.distanceFromOrigin).toBeCloseTo(3, 5)
 
         it "should create correct plane for arbitrary triangle", ->
 
@@ -264,9 +264,9 @@ describe "Plane", ->
             testPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
 
             # Points should lie on the plane
-            expect(testPlane.normal.dot(firstPoint)).toBeCloseTo(testPlane.w, 5)
-            expect(testPlane.normal.dot(secondPoint)).toBeCloseTo(testPlane.w, 5)
-            expect(testPlane.normal.dot(thirdPoint)).toBeCloseTo(testPlane.w, 5)
+            expect(testPlane.normal.dot(firstPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
+            expect(testPlane.normal.dot(secondPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
+            expect(testPlane.normal.dot(thirdPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
 
         it "should handle different point orderings", ->
 
@@ -299,7 +299,7 @@ describe "Plane", ->
 
             clonedPlane = testPlane.clone()
             expect(clonedPlane.normal.x).toBe(bigValue)
-            expect(clonedPlane.w).toBe(bigValue)
+            expect(clonedPlane.distanceFromOrigin).toBe(bigValue)
 
         it "should handle very small coordinates", ->
 
@@ -308,7 +308,7 @@ describe "Plane", ->
 
             clonedPlane = testPlane.clone()
             expect(clonedPlane.normal.x).toBe(smallValue)
-            expect(clonedPlane.w).toBe(smallValue)
+            expect(clonedPlane.distanceFromOrigin).toBe(smallValue)
 
         it "should handle fromPoints with collinear points gracefully", ->
 
