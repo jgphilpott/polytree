@@ -21,21 +21,23 @@ nbuf3 = (ct) ->
         @array[@top++] = v.y
         @array[@top++] = v.z
 
-# Raycast sorting function
+# Raycast sorting function.
 raycastIntersectAscSort = (a, b) -> a.distance - b.distance
 
-# Point rounding utility
+# Point rounding utility.
 pointRounding = (point, num = 15) ->
 
     point.x = +point.x.toFixed(num)
     point.y = +point.y.toFixed(num)
     point.z = +point.z.toFixed(num)
-    point
 
-# Split polygon by plane
+    return point
+
+# Split polygon by plane.
 splitPolygonByPlane = (polygon, plane, result = []) ->
 
     returnPolygon =
+
         polygon: polygon
         type: "undecided"
 
@@ -46,6 +48,7 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
         distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.distanceFromOrigin
         type = if distanceToPlane < -GEOMETRIC_EPSILON then POLYGON_BACK else if distanceToPlane > GEOMETRIC_EPSILON then POLYGON_FRONT else POLYGON_COPLANAR
+
         polygonType |= type
         types.push(type)
 
@@ -91,6 +94,7 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
                     intersectionParameter = (plane.distanceFromOrigin - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(temporaryTriangleVertex.copy(nextVertex.pos).sub(currentVertex.pos))
                     vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
+
                     frontVertices.push(vertexParameter)
                     backVertices.push(vertexParameter.clone())
 
@@ -140,7 +144,7 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
 
     return result
 
-# Split polygon array utility
+# Split polygon array utility.
 splitPolygonArr = (arr) ->
 
     resultArr = []
@@ -161,25 +165,24 @@ splitPolygonArr = (arr) ->
 
         if arr[0].pos.distanceTo(arr[2].pos) <= arr[1].pos.distanceTo(arr[3].pos)
 
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[2].clone()],
-                [arr[0].clone(), arr[2].clone(), arr[3].clone()])
+            resultArr.push([arr[0].clone(), arr[1].clone(), arr[2].clone()], [arr[0].clone(), arr[2].clone(), arr[3].clone()])
 
         else
 
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[3].clone()],
-                [arr[1].clone(), arr[2].clone(), arr[3].clone()])
+            resultArr.push([arr[0].clone(), arr[1].clone(), arr[3].clone()], [arr[1].clone(), arr[2].clone(), arr[3].clone()])
 
         return resultArr
 
     return resultArr
 
-# Return XYZ helper for winding number
+# Return XYZ helper for winding number.
 returnXYZ = (arr, index) ->
+
     x: arr[index]
     y: arr[index + 1]
     z: arr[index + 2]
 
-# Calculate winding number from buffer
+# Calculate winding number from buffer.
 calcWindingNumber_buffer = (trianglesArr, point) ->
 
     wN = 0
@@ -189,17 +192,20 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
         windingNumberVector1.subVectors(returnXYZ(trianglesArr, i), point)
         windingNumberVector2.subVectors(returnXYZ(trianglesArr, i + 3), point)
         windingNumberVector3.subVectors(returnXYZ(trianglesArr, i + 6), point)
+
         lenA = windingNumberVector1.length()
         lenB = windingNumberVector2.length()
         lenC = windingNumberVector3.length()
+
         windingNumberMatrix3.set(windingNumberVector1.x, windingNumberVector1.y, windingNumberVector1.z, windingNumberVector2.x, windingNumberVector2.y, windingNumberVector2.z, windingNumberVector3.x, windingNumberVector3.y, windingNumberVector3.z)
         omega = 2 * Math.atan2(windingNumberMatrix3.determinant(), (lenA * lenB * lenC + windingNumberVector1.dot(windingNumberVector2) * lenC + windingNumberVector2.dot(windingNumberVector3) * lenA + windingNumberVector3.dot(windingNumberVector1) * lenB))
         wN += omega
 
     wN = Math.round(wN / WINDING_NUMBER_FULL_ROTATION)
+
     return wN
 
-# Check if polygon is inside using winding number
+# Check if polygon is inside using winding number.
 polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
     result = false
@@ -218,6 +224,7 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
                 if wN isnt 0
 
                     result = true
+
                     break
 
     else
@@ -226,7 +233,7 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
     return result
 
-# Prepare triangle buffer for winding number calculations
+# Prepare triangle buffer for winding number calculations.
 prepareTriangleBuffer = (polygons) ->
 
     numOfTriangles = polygons.length
@@ -236,29 +243,33 @@ prepareTriangleBuffer = (polygons) ->
     for i in [0...numOfTriangles]
 
         triangle = polygons[i].triangle
+
         array[bufferIndex++] = triangle.a.x
         array[bufferIndex++] = triangle.a.y
         array[bufferIndex++] = triangle.a.z
+
         array[bufferIndex++] = triangle.b.x
         array[bufferIndex++] = triangle.b.y
         array[bufferIndex++] = triangle.b.z
+
         array[bufferIndex++] = triangle.c.x
         array[bufferIndex++] = triangle.c.y
         array[bufferIndex++] = triangle.c.z
 
     return array
 
-# Ray-triangle intersection using Möller–Trumbore algorithm
+# Ray-triangle intersection using Möller–Trumbore algorithm.
 rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
 
     rayTriangleEdge1.subVectors(triangle.b, triangle.a)
     rayTriangleEdge2.subVectors(triangle.c, triangle.a)
+
     rayTriangleHVector.crossVectors(ray.direction, rayTriangleEdge2)
     a = rayTriangleEdge1.dot(rayTriangleHVector)
 
     if a > -RAY_INTERSECTION_EPSILON and a < RAY_INTERSECTION_EPSILON
 
-        return null # Ray is parallel to the triangle
+        return null # Ray is parallel to the triangle.
 
     f = 1 / a
     rayTriangleSVector.subVectors(ray.origin, triangle.a)
@@ -283,7 +294,7 @@ rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
 
     return null
 
-# Handle intersecting polytrees
+# Handle intersecting polytrees.
 handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
 
     polytreeA_buffer = undefined
@@ -308,7 +319,7 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
         polytreeA_buffer = undefined
         polytreeB_buffer = undefined
 
-# Dispose polytree utility
+# Dispose polytree utility.
 disposePolytree = (...polytrees) ->
 
     if Polytree.disposePolytree
