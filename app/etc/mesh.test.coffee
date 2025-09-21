@@ -361,8 +361,7 @@ describe "Mesh Conversion", ->
 
         it "should handle empty geometry", ->
 
-            geometry = new BufferGeometry()
-            # Create empty position and normal attributes
+            geometry = new BufferGeometry() # Create empty position and normal attributes.
             geometry.setAttribute('position', new BufferAttribute(new Float32Array(0), 3))
             geometry.setAttribute('normal', new BufferAttribute(new Float32Array(0), 3))
             material = new MeshBasicMaterial()

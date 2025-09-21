@@ -3,9 +3,9 @@ cat \
   app/io/imports.js \
   app/etc/variables.js \
   app/etc/helpers.js \
+  app/etc/operations.js \
   app/polytree.js \
   app/etc/mesh.js \
-  app/etc/operations.js \
   app/csg/unite.js \
   app/csg/subtract.js \
   app/csg/intersect.js \

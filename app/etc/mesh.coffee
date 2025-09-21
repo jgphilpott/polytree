@@ -7,16 +7,17 @@
 # @return THREE.js BufferGeometry ready for rendering.
 Polytree.toGeometry = (polytree) ->
 
+    groups = []
+    defaultGroup = []
+
+    uvs = undefined
+    colors = undefined
+
     polygons = polytree.getPolygons()
     triangleCount = polygons.length
 
-    # Initialize buffer arrays for geometry attributes.
     positions = nbuf3(triangleCount * 3 * 3)
     normals = nbuf3(triangleCount * 3 * 3)
-    uvs = undefined
-    colors = undefined
-    groups = []
-    defaultGroup = []
 
     for polygon in polygons
 
