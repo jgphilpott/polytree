@@ -2,4 +2,3 @@ node_modules
 tests/*.js
 app/*.js
 *.js
-coverage/

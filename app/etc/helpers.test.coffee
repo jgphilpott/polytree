@@ -1,6 +1,7 @@
 { Vector2, Vector3, Triangle, Ray } = require "three"
 
 {
+
     createVector2Buffer
     createVector3Buffer
     sortRaycastIntersectionsByDistance
@@ -14,19 +15,6 @@
     testRayTriangleIntersection
     handleIntersectingPolytrees
     disposePolytreeResources
-    
-    # Backward compatibility aliases
-    nbuf2
-    nbuf3
-    raycastIntersectAscSort
-    pointRounding
-    returnXYZ
-    calcWindingNumber_buffer
-    polyInside_WindingNumber_buffer
-    prepareTriangleBuffer
-    rayIntersectsTriangle
-    disposePolytree
-    splitPolygonArr
 
 } = require "../../polytree.bundle.js"
 
@@ -56,7 +44,7 @@ describe "Helper Functions", ->
             buffer = createVector2Buffer(3)
 
             expect(buffer.top).toBe(0)
-            expect(buffer.array.length).toBe(6) # 3 vectors × 2 components
+            expect(buffer.array.length).toBe(6) # 3 vectors × 2 components.
 
             buffer.write(vec2(1, 2))
             buffer.write(vec2(3, 4))
@@ -72,7 +60,7 @@ describe "Helper Functions", ->
             buffer = createVector3Buffer(2)
 
             expect(buffer.top).toBe(0)
-            expect(buffer.array.length).toBe(6) # 2 vectors × 3 components
+            expect(buffer.array.length).toBe(6) # 2 vectors × 3 components.
 
             buffer.write(vec3(1, 2, 3))
             buffer.write(vec3(4, 5, 6))
@@ -84,20 +72,6 @@ describe "Helper Functions", ->
             expect(buffer.array[3]).toBe(4)
             expect(buffer.array[4]).toBe(5)
             expect(buffer.array[5]).toBe(6)
-
-        it "backward compatibility aliases should work for buffers", ->
-
-            buffer2D = nbuf2(2)
-            buffer3D = nbuf3(2)
-
-            expect(buffer2D.array.length).toBe(4)
-            expect(buffer3D.array.length).toBe(6)
-
-            buffer2D.write(vec2(1, 2))
-            buffer3D.write(vec3(1, 2, 3))
-
-            expect(buffer2D.top).toBe(2)
-            expect(buffer3D.top).toBe(3)
 
     describe "Point and Geometric Utilities", ->
 
@@ -132,7 +106,7 @@ describe "Helper Functions", ->
             roundedPoint = roundPointCoordinates(point)
 
             expect(typeof roundedPoint.x).toBe("number")
-            expect(roundedPoint).toBe(point) # Should modify in place
+            expect(roundedPoint).toBe(point) # Should modify in place.
 
         it "extractCoordinatesFromArray should extract XYZ coordinates", ->
 
@@ -142,23 +116,6 @@ describe "Helper Functions", ->
             expect(coordinates.x).toBe(4)
             expect(coordinates.y).toBe(5)
             expect(coordinates.z).toBe(6)
-
-        it "backward compatibility aliases should work for utilities", ->
-
-            intersections = [{ distance: 3 }, { distance: 1 }]
-            intersections.sort(raycastIntersectAscSort)
-
-            expect(intersections[0].distance).toBe(1)
-
-            point = vec3(1.123, 2.456, 3.789)
-            pointRounding(point, 2)
-
-            expect(point.x).toBe(1.12)
-
-            array = new Float32Array([1, 2, 3])
-            coords = returnXYZ(array, 0)
-
-            expect(coords.x).toBe(1)
 
     describe "Ray-Triangle Intersection", ->
 
@@ -177,7 +134,7 @@ describe "Helper Functions", ->
         it "testRayTriangleIntersection should return null for miss", ->
 
             testTriangle = triangle(0, 0, 0, 1, 0, 0, 0, 1, 0)
-            ray = new Ray(vec3(2, 2, 1), vec3(0, 0, -1)) # Ray misses triangle
+            ray = new Ray(vec3(2, 2, 1), vec3(0, 0, -1)) # Ray misses triangle.
 
             intersection = testRayTriangleIntersection(ray, testTriangle)
 
@@ -186,7 +143,7 @@ describe "Helper Functions", ->
         it "testRayTriangleIntersection should return null for parallel ray", ->
 
             testTriangle = triangle(0, 0, 0, 1, 0, 0, 0, 1, 0)
-            ray = new Ray(vec3(0, 0, 1), vec3(1, 0, 0)) # Ray parallel to triangle
+            ray = new Ray(vec3(0, 0, 1), vec3(1, 0, 0)) # Ray parallel to triangle.
 
             intersection = testRayTriangleIntersection(ray, testTriangle)
 
@@ -195,18 +152,9 @@ describe "Helper Functions", ->
         it "testRayTriangleIntersection should handle edge cases", ->
 
             testTriangle = triangle(0, 0, 0, 1, 0, 0, 0, 1, 0)
-            ray = new Ray(vec3(0, 0, 1), vec3(0, 0, -1)) # Ray hits vertex
+            ray = new Ray(vec3(0, 0, 1), vec3(0, 0, -1)) # Ray hits vertex.
 
             intersection = testRayTriangleIntersection(ray, testTriangle)
-
-            expect(intersection).not.toBeNull()
-
-        it "backward compatibility alias should work", ->
-
-            testTriangle = triangle(0, 0, 0, 1, 0, 0, 0, 1, 0)
-            ray = new Ray(vec3(0.5, 0.25, 1), vec3(0, 0, -1))
-
-            intersection = rayIntersectsTriangle(ray, testTriangle)
 
             expect(intersection).not.toBeNull()
 
@@ -226,22 +174,10 @@ describe "Helper Functions", ->
 
             buffer = prepareTriangleBufferFromPolygons(mockPolygons)
 
-            expect(buffer.length).toBe(18) # 2 triangles × 3 vertices × 3 coordinates
-            expect(buffer[0]).toBe(0) # First triangle, first vertex, x coordinate
-            expect(buffer[1]).toBe(0) # First triangle, first vertex, y coordinate
-            expect(buffer[2]).toBe(0) # First triangle, first vertex, z coordinate
-
-        it "backward compatibility alias should work for triangle buffer", ->
-
-            mockPolygons = [
-                {
-                    triangle: triangle(0, 0, 0, 1, 0, 0, 0, 1, 0)
-                }
-            ]
-
-            buffer = prepareTriangleBuffer(mockPolygons)
-
-            expect(buffer.length).toBe(9) # 1 triangle × 3 vertices × 3 coordinates
+            expect(buffer.length).toBe(18) # 2 triangles × 3 vertices × 3 coordinates.
+            expect(buffer[0]).toBe(0) # First triangle, first vertex, x coordinate.
+            expect(buffer[1]).toBe(0) # First triangle, first vertex, y coordinate.
+            expect(buffer[2]).toBe(0) # First triangle, first vertex, z coordinate.
 
     describe "Error Handling and Edge Cases", ->
 
@@ -292,33 +228,5 @@ describe "Helper Functions", ->
             manyIntersections.sort(sortRaycastIntersectionsByDistance)
             endTime = Date.now()
 
-            expect(endTime - startTime).toBeLessThan(100) # Should be fast
+            expect(endTime - startTime).toBeLessThan(100) # Should be fast.
             expect(manyIntersections[0].distance).toBeLessThanOrEqual(manyIntersections[1].distance)
-
-    describe "Backward Compatibility", ->
-
-        it "all legacy function names should exist", ->
-
-            expect(typeof nbuf2).toBe("function")
-            expect(typeof nbuf3).toBe("function")
-            expect(typeof raycastIntersectAscSort).toBe("function")
-            expect(typeof pointRounding).toBe("function")
-            expect(typeof returnXYZ).toBe("function")
-            expect(typeof calcWindingNumber_buffer).toBe("function")
-            expect(typeof polyInside_WindingNumber_buffer).toBe("function")
-            expect(typeof prepareTriangleBuffer).toBe("function")
-            expect(typeof rayIntersectsTriangle).toBe("function")
-            expect(typeof disposePolytree).toBe("function")
-            expect(typeof splitPolygonArr).toBe("function")
-
-        it "legacy functions should work identically to new names", ->
-
-            # Test buffer functions.
-            oldBuffer = nbuf2(1)
-            newBuffer = createVector2Buffer(1)
-
-            oldBuffer.write(vec2(1, 2))
-            newBuffer.write(vec2(1, 2))
-
-            expect(oldBuffer.array[0]).toBe(newBuffer.array[0])
-            expect(oldBuffer.array[1]).toBe(newBuffer.array[1])
