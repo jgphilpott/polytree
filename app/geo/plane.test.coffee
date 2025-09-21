@@ -26,7 +26,7 @@ describe "Plane", ->
 
         it "should create plane with normalized normal", ->
 
-            normalVector = createVector3(0, 2, 0) # Will be normalized in practice
+            normalVector = createVector3(0, 2, 0) # Will be normalized in practice.
             distanceFromOriginValue = 3.0
             testPlane = new Plane(normalVector, distanceFromOriginValue)
 
@@ -61,7 +61,7 @@ describe "Plane", ->
             expect(clonedPlane.normal).toEqual(originalPlane.normal)
             expect(clonedPlane.distanceFromOrigin).toBe(originalPlane.distanceFromOrigin)
 
-            # Verify it's a deep copy
+            # Verify it's a deep copy.
             expect(clonedPlane.normal).not.toBe(originalPlane.normal)
             expect(clonedPlane).not.toBe(originalPlane)
 
@@ -221,7 +221,7 @@ describe "Plane", ->
 
             testPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
 
-            # Should create plane with normal pointing in +Z direction
+            # Should create plane with normal pointing in +Z direction.
             expect(testPlane.normal.x).toBeCloseTo(0, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(1, 5)
@@ -235,7 +235,7 @@ describe "Plane", ->
 
             testPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
 
-            # Should create plane with normal pointing in +Z direction
+            # Should create plane with normal pointing in +Z direction.
             expect(testPlane.normal.x).toBeCloseTo(0, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(1, 5)
@@ -249,7 +249,7 @@ describe "Plane", ->
 
             testPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
 
-            # Should create plane with normal pointing in +X direction
+            # Should create plane with normal pointing in +X direction.
             expect(testPlane.normal.x).toBeCloseTo(1, 5)
             expect(testPlane.normal.y).toBeCloseTo(0, 5)
             expect(testPlane.normal.z).toBeCloseTo(0, 5)
@@ -263,7 +263,7 @@ describe "Plane", ->
 
             testPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
 
-            # Points should lie on the plane
+            # Points should lie on the plane.
             expect(testPlane.normal.dot(firstPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
             expect(testPlane.normal.dot(secondPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
             expect(testPlane.normal.dot(thirdPoint)).toBeCloseTo(testPlane.distanceFromOrigin, 5)
@@ -277,7 +277,7 @@ describe "Plane", ->
             firstPlane = Plane.fromPoints(firstPoint, secondPoint, thirdPoint)
             secondPlane = Plane.fromPoints(firstPoint, thirdPoint, secondPoint) # Different order
 
-            # Normals should be opposite due to winding
+            # Normals should be opposite due to winding.
             expect(firstPlane.normal.x).toBeCloseTo(-secondPlane.normal.x, 5)
             expect(firstPlane.normal.y).toBeCloseTo(-secondPlane.normal.y, 5)
             expect(firstPlane.normal.z).toBeCloseTo(-secondPlane.normal.z, 5)
@@ -316,7 +316,7 @@ describe "Plane", ->
             secondPoint = createVector3(1, 0, 0)
             thirdPoint = createVector3(2, 0, 0) # Collinear
 
-            # Should still create a plane object, though normal may be zero
+            # Should still create a plane object, though normal may be zero.
             expect(() -> Plane.fromPoints(firstPoint, secondPoint, thirdPoint)).not.toThrow()
 
         it "should handle fromPoints with identical points", ->
@@ -325,7 +325,7 @@ describe "Plane", ->
             secondPoint = createVector3(1, 1, 1)
             thirdPoint = createVector3(1, 1, 1)
 
-            # Should still create a plane object
+            # Should still create a plane object.
             expect(() -> Plane.fromPoints(firstPoint, secondPoint, thirdPoint)).not.toThrow()
 
     describe "Integration with Vector3 Methods", ->
@@ -334,10 +334,10 @@ describe "Plane", ->
 
             testPlane = createPlane(1, 0, 0, 5.0)
 
-            # Test normal vector operations
+            # Test normal vector operations.
             expect(testPlane.normal.length()).toBeCloseTo(1, 5)
 
-            # Test that normal is a proper Vector3
+            # Test that normal is a proper Vector3.
             expect(testPlane.normal.clone).toBeDefined()
             expect(testPlane.normal.normalize).toBeDefined()
 

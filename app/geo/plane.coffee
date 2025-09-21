@@ -11,8 +11,8 @@ class Plane
     constructor: (normal, distanceFromOrigin) ->
 
         # Core geometric properties.
-        @normal = normal                              # Normal vector defining plane orientation.
-        @distanceFromOrigin = distanceFromOrigin      # Distance parameter in plane equation.
+        @normal = normal                         # Normal vector defining plane orientation.
+        @distanceFromOrigin = distanceFromOrigin # Distance parameter in plane equation.
 
     # === OBJECT CREATION AND COPYING ===
 
@@ -25,6 +25,7 @@ class Plane
     flip: -> # Flip the plane orientation (reverse normal and negate distance).
 
         @normal.negate()
+
         @distanceFromOrigin = -@distanceFromOrigin
 
     # === COMPARISON OPERATIONS ===
@@ -46,6 +47,7 @@ class Plane
     delete: ->
 
         @normal = undefined
+
         @distanceFromOrigin = undefined
 
     # === STATIC FACTORY METHODS ===
@@ -62,4 +64,5 @@ class Plane
     @fromPoints: (firstPoint, secondPoint, thirdPoint) ->
 
         planeNormal = temporaryTriangleVertex.copy(secondPoint).sub(firstPoint).cross(temporaryTriangleVertexSecondary.copy(thirdPoint).sub(firstPoint)).normalize().clone()
+
         new Plane(planeNormal, planeNormal.dot(firstPoint))
