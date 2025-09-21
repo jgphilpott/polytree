@@ -5,6 +5,7 @@ cat \
   app/etc/helpers.js \
   app/etc/operations.js \
   app/polytree.js \
+  app/etc/mesh.js \
   app/csg/unite.js \
   app/csg/subtract.js \
   app/csg/intersect.js \
@@ -13,6 +14,5 @@ cat \
   app/geo/polygon.js \
   app/geo/triangle.js \
   app/geo/vertex.js \
-  app/geo/mesh.js \
   app/io/exports.js \
   > polytree.bundle.js

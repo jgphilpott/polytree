@@ -53,6 +53,8 @@ global.Matrix3 = Matrix3
     temporaryTriangleVertexSecondary
     temporaryMatrix3
     temporaryMatrixWithNormalCalc
+    meshOperationNormalVector
+    meshOperationVertexVector
 
     # CSG and Octree Operation Variables
     OCTREE_MAX_DEPTH
@@ -250,6 +252,14 @@ describe "Variables module", ->
 
             expect(temporaryMatrixWithNormalCalc).toBeInstanceOf(Matrix3)
             expect(typeof temporaryMatrixWithNormalCalc.getNormalMatrix).toBe("function")
+
+        it "meshOperationNormalVector should be a Vector3 instance", ->
+
+            expect(meshOperationNormalVector).toBeInstanceOf(Vector3)
+
+        it "meshOperationVertexVector should be a Vector3 instance", ->
+
+            expect(meshOperationVertexVector).toBeInstanceOf(Vector3)
 
     describe "CSG and Octree Operation Variables", ->
 
