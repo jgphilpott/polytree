@@ -45,7 +45,7 @@ createSphere = (radius = 1, x = 0, y = 0, z = 0) ->
 createSimplePolytree = () ->
 
     polytree = new Polytree()
-    
+
     # Create a simple triangle.
     vertices = [
         vertex(v3(0, 0, 0), v3(0, 0, 1))
@@ -111,7 +111,7 @@ describe "Mesh Conversion", ->
         it "should preserve UV coordinates when present", ->
 
             polytree = new Polytree()
-            
+
             # Create triangle with UV coordinates.
             vertices = [
                 vertex(v3(0, 0, 0), v3(0, 0, 1), v2(0, 0))
@@ -130,7 +130,7 @@ describe "Mesh Conversion", ->
         it "should preserve vertex colors when present", ->
 
             polytree = new Polytree()
-            
+
             # Create triangle with colors.
             vertices = [
                 vertex(v3(0, 0, 0), v3(0, 0, 1), null, { x: 1, y: 0, z: 0 })
@@ -149,7 +149,7 @@ describe "Mesh Conversion", ->
         it "should handle material groups correctly", ->
 
             polytree = new Polytree()
-            
+
             # Create triangles with different materials.
             vertices1 = [
                 vertex(v3(0, 0, 0), v3(0, 0, 1))
@@ -165,7 +165,7 @@ describe "Mesh Conversion", ->
 
             polygon1 = tri(vertices1, 0)
             polygon2 = tri(vertices2, 1)
-            
+
             polytree.addPolygon(polygon1)
             polytree.addPolygon(polygon2)
 
@@ -268,7 +268,7 @@ describe "Mesh Conversion", ->
         it "should handle mesh with no geometry gracefully", ->
 
             mesh = new Mesh()
-            
+
             expect(() -> Polytree.fromMesh(mesh)).toThrow()
 
         it "should preserve material indices from geometry groups", ->
@@ -282,8 +282,8 @@ describe "Mesh Conversion", ->
 
             # Add material groups.
             geometry.clearGroups()
-            geometry.addGroup(0, 18, 0)  # First 6 triangles
-            geometry.addGroup(18, 18, 1) # Last 6 triangles
+            geometry.addGroup(0, 18, 0)  # First 6 triangles.
+            geometry.addGroup(18, 18, 1) # Last 6 triangles.
 
             mesh = new Mesh(geometry, materials)
             mesh.updateMatrixWorld()
@@ -299,7 +299,7 @@ describe "Mesh Conversion", ->
         it "should handle buildTargetPolytree parameter", ->
 
             box = createBox()
-            
+
             # Test with buildTargetPolytree = false.
             polytree1 = Polytree.fromMesh(box, 0, new Polytree(), false)
             expect(polytree1).toBeDefined()
@@ -327,7 +327,7 @@ describe "Mesh Conversion", ->
         it "should handle mesh -> polytree -> mesh conversion", ->
 
             originalMesh = createBox()
-            
+
             # Convert to polytree and back.
             polytree = Polytree.fromMesh(originalMesh)
             newMesh = Polytree.toMesh(polytree, originalMesh.material)
@@ -351,7 +351,7 @@ describe "Mesh Conversion", ->
         it "should handle corrupted geometry data", ->
 
             mesh = createBox()
-            
+
             # Corrupt the position attribute.
             mesh.geometry.attributes.position = null
 
@@ -416,7 +416,7 @@ describe "Mesh Conversion", ->
 
             # Create a mesh with tiny triangles.
             box = createBox(0.001, 0.001, 0.001)
-            
+
             expect(() -> Polytree.fromMesh(box)).not.toThrow()
 
             polytree = Polytree.fromMesh(box)

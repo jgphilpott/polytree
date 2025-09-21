@@ -1,20 +1,23 @@
 # Convert a Polytree instance to a THREE.js BufferGeometry.
 # This method extracts polygon data from the polytree and creates a proper
 # THREE.js geometry with positions, normals, UVs, colors, and material groups.
+#
 # @param polytree - The Polytree instance to convert.
+#
 # @return THREE.js BufferGeometry ready for rendering.
 Polytree.toGeometry = (polytree) ->
 
-    polygons = polytree.getPolygons()
-    triangleCount = polygons.length
-
-    # Initialize buffer arrays for geometry attributes.
-    positions = nbuf3(triangleCount * 3 * 3)
-    normals = nbuf3(triangleCount * 3 * 3)
-    uvs = undefined
-    colors = undefined
     groups = []
     defaultGroup = []
+
+    uvs = undefined
+    colors = undefined
+
+    triangleCount = polygons.length
+    polygons = polytree.getPolygons()
+
+    normals = nbuf3(triangleCount * 3 * 3)
+    positions = nbuf3(triangleCount * 3 * 3)
 
     for polygon in polygons
 
@@ -45,12 +48,12 @@ Polytree.toGeometry = (polytree) ->
 
             # Add triangle indices to appropriate group (material-based or default).
             (if polygon.shared is undefined then defaultGroup else groups[polygon.shared]).push(positions.top / 3, (positions.top / 3) + 1, (positions.top / 3) + 2)
-            
+
             # Write vertex positions for the triangle.
             positions.write(vertices[0].pos)
             positions.write(vertices[i - 2].pos)
             positions.write(vertices[i - 1].pos)
-            
+
             # Write vertex normals for the triangle.
             normals.write(vertices[0].normal)
             normals.write(vertices[i - 2].normal)
@@ -70,8 +73,7 @@ Polytree.toGeometry = (polytree) ->
                 colors.write(vertices[i - 2].color)
                 colors.write(vertices[i - 1].color)
 
-    # Create THREE.js BufferGeometry and set attributes.
-    geometry = new BufferGeometry()
+    geometry = new BufferGeometry() # Create THREE.js BufferGeometry and set attributes.
     geometry.setAttribute('position', new BufferAttribute(positions.array, 3))
     geometry.setAttribute('normal', new BufferAttribute(normals.array, 3))
     uvs and geometry.setAttribute('uv', new BufferAttribute(uvs.array, 2))
@@ -103,21 +105,26 @@ Polytree.toGeometry = (polytree) ->
 
 # Convert a Polytree instance to a complete THREE.js Mesh.
 # This is a convenience method that combines geometry creation with material assignment.
+#
 # @param polytree - The Polytree instance to convert.
 # @param toMaterial - The THREE.js material to apply to the mesh.
+#
 # @return THREE.js Mesh ready for scene addition.
 Polytree.toMesh = (polytree, toMaterial) ->
 
     geometry = Polytree.toGeometry(polytree)
+
     return new Mesh(geometry, toMaterial)
 
 # Convert a THREE.js Mesh to a Polytree instance.
 # This method extracts geometry data from a THREE.js mesh and creates polygon objects
 # for use in CSG operations. Handles material groups, transformations, and validation.
+#
 # @param obj - The THREE.js Mesh object to convert.
 # @param objectIndex - Material index to assign to all polygons (optional).
 # @param polytree - Existing Polytree to add polygons to (optional, creates new if not provided).
 # @param buildTargetPolytree - Whether to build the spatial tree structure (default: true).
+#
 # @return Polytree instance containing the mesh data as polygons.
 Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPolytree = true) ->
 
@@ -130,26 +137,24 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
         polytree.originalMatrixWorld = obj.matrixWorld.clone()
 
     # Update transformation matrices and extract geometry attributes.
-    obj.updateWorldMatrix(true, true)
-    geometry = obj.geometry
+    obj.updateWorldMatrix(true, true); geometry = obj.geometry
     temporaryMatrixWithNormalCalc.getNormalMatrix(obj.matrix)
-    posattr = geometry.attributes.position
-    normalattr = geometry.attributes.normal
+
+    groups = geometry.groups
     uvattr = geometry.attributes.uv
     colorattr = geometry.attributes.color
-    groups = geometry.groups
-    
+    posattr = geometry.attributes.position
+    normalattr = geometry.attributes.normal
+
     # Generate index array (explicit or implicit).
     index = if geometry.index then geometry.index.array else (Array((posattr.array.length / posattr.itemSize) | 0).fill().map((_, i) -> i))
-    polys = []
 
-    # Process each triangle in the geometry.
+    polys = [] # Process each triangle in the geometry.
     for i in [0...index.length] by 3
 
         vertices = []
 
-        # Create vertices for each triangle corner.
-        for j in [0...3]
+        for j in [0...3] # Create vertices for each triangle corner.
 
             vertexIndex = index[i + j]
             positionIndex = vertexIndex * 3
@@ -164,16 +169,24 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 
             # Extract UV coordinates if available.
             uvCoords =
+
                 if uvattr
+
                     { x: uvattr.array[uvIndex], y: uvattr.array[uvIndex + 1] }
+
                 else
+
                     undefined
 
             # Extract vertex color if available.
             color =
+
                 if colorattr
+
                     { x: colorattr.array[uvIndex], y: colorattr.array[uvIndex + 1], z: colorattr.array[uvIndex + 2] }
+
                 else
+
                     undefined
 
             vertices.push(new Vertex(pos, normal, uvCoords, color))
