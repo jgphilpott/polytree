@@ -18,7 +18,7 @@ class Polytree
     # ----- Static Methods -----
 
     @operation = operationHandler
-    @rayIntersectsTriangle = rayIntersectsTriangle
+    @rayIntersectsTriangle = testRayTriangleIntersection
 
     # Main constructor for creating Polytree nodes.
     # Initializes core properties and sets up polygon array management.
@@ -403,7 +403,7 @@ class Polytree
 
             else
 
-                result = rayIntersectsTriangle(ray, polygons[i].triangle, temporaryVector3Primary)
+                result = testRayTriangleIntersection(ray, polygons[i].triangle, temporaryVector3Primary)
 
                 if result
 
@@ -417,7 +417,7 @@ class Polytree
 
                         intersects.push({ distance: distance, polygon: polygons[i], position: result.clone().add(ray.origin) })
 
-        intersects.length and intersects.sort(raycastIntersectAscSort)
+        intersects.length and intersects.sort(sortRaycastIntersectionsByDistance)
 
         return intersects
 
@@ -708,11 +708,11 @@ class Polytree
 
                     if Polytree.useWindingNumber is true
 
-                        inside = polyInside_WindingNumber_buffer(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
+                        inside = testPolygonInsideUsingWindingNumber(targetPolytreeBuffer, currentPolygon.getMidpoint(), currentPolygon.coplanar)
 
                     else
 
-                        point = pointRounding(temporaryVector3Secondary.copy(currentPolygon.getMidpoint()))
+                        point = roundPointCoordinates(temporaryVector3Secondary.copy(currentPolygon.getMidpoint()))
 
                         if Polytree.usePolytreeRay isnt true and targetPolytree.mesh
 

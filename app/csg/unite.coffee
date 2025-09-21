@@ -89,7 +89,7 @@ Polytree.unite = (mesh1, mesh2, targetMaterial = null) ->
         resultPolytree = this.uniteCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
 
-        disposePolytree(polytreeA, polytreeB, resultPolytree)
+        disposePolytreeResources(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh
 

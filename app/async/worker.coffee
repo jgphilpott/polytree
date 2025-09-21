@@ -17,7 +17,7 @@ onmessage = (e) ->
 
         postMessage
             type: type
-            result: polyInside_WindingNumber_buffer(trianglesArr, point, coplanar)
+            result: testPolygonInsideUsingWindingNumber(trianglesArr, point, coplanar)
 
     else
 
@@ -58,21 +58,21 @@ wNPI = 4 * Math.PI
 #              a.x * b.y * c.z );
 # }
 
-returnXYZ = (arr, index) ->
+extractCoordinatesFromArray = (arr, index) ->
 
     x: arr[index]
     y: arr[index + 1]
     z: arr[index + 2]
 
-calcWindingNumber_buffer = (trianglesArr, point) ->
+calculateWindingNumberFromBuffer = (trianglesArr, point) ->
 
     wN = 0
 
     for i in [0...trianglesArr.length] by 9
 
-        _wV1.subVectors(returnXYZ(trianglesArr, i), point)
-        _wV2.subVectors(returnXYZ(trianglesArr, i + 3), point)
-        _wV3.subVectors(returnXYZ(trianglesArr, i + 6), point)
+        _wV1.subVectors(extractCoordinatesFromArray(trianglesArr, i), point)
+        _wV2.subVectors(extractCoordinatesFromArray(trianglesArr, i + 3), point)
+        _wV3.subVectors(extractCoordinatesFromArray(trianglesArr, i + 6), point)
 
         lenA = _wV1.length()
         lenB = _wV2.length()
@@ -86,11 +86,11 @@ calcWindingNumber_buffer = (trianglesArr, point) ->
 
     return wN
 
-polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
+testPolygonInsideUsingWindingNumber = (trianglesArr, point, coplanar) ->
 
     result = false
     _wP.copy(point)
-    wN = calcWindingNumber_buffer(trianglesArr, _wP)
+    wN = calculateWindingNumberFromBuffer(trianglesArr, _wP)
     coplanarFound = false
 
     if wN is 0
@@ -102,7 +102,7 @@ polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
                 # console.warn("DOES IT GET HERE?");
                 _wP.copy(point).add(_wP_EPS_ARR[j])
-                wN = calcWindingNumber_buffer(trianglesArr, _wP)
+                wN = calculateWindingNumberFromBuffer(trianglesArr, _wP)
 
                 if wN isnt 0
 

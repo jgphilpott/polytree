@@ -15,7 +15,7 @@ Polytree.async =
 
                 result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposePolytree(polytreeA, polytreeB)
+                disposePolytreeResources(polytreeA, polytreeB)
 
             catch e
 
@@ -29,7 +29,7 @@ Polytree.async =
 
                 result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposePolytree(polytreeA, polytreeB)
+                disposePolytreeResources(polytreeA, polytreeB)
 
             catch e
 
@@ -43,7 +43,7 @@ Polytree.async =
 
                 result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
                 resolve(result)
-                disposePolytree(polytreeA, polytreeB)
+                disposePolytreeResources(polytreeA, polytreeB)
 
             catch e
 

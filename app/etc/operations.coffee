@@ -97,7 +97,7 @@ _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun
 
                             unless returnPolytrees
 
-                                disposePolytree(resultPolytree)
+                                disposePolytreeResources(resultPolytree)
 
                             resolve(if returnPolytrees then { result: mesh, operationTree: obj } else mesh)
 
@@ -111,7 +111,7 @@ _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun
 
                         unless returnPolytrees
 
-                            disposePolytree(polytreeA, polytreeB)
+                            disposePolytreeResources(polytreeA, polytreeB)
 
                     .catch (e) -> reject(e)
 
@@ -164,12 +164,12 @@ _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun
 
         unless returnPolytrees
 
-            disposePolytree(polytreeA, polytreeB)
+            disposePolytreeResources(polytreeA, polytreeB)
 
         if firstRun and material
 
             mesh = Polytree.toMesh(resultPolytree, material)
-            disposePolytree(resultPolytree)
+            disposePolytreeResources(resultPolytree)
 
             return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
 

@@ -9,7 +9,7 @@ module.exports.createVector3Buffer = createVector3Buffer
 
 module.exports.isValidTriangle = isValidTriangle
 module.exports.isUniqueTriangle = isUniqueTriangle
-module.exports.rayIntersectsTriangle = rayIntersectsTriangle
+module.exports.rayIntersectsTriangle = testRayTriangleIntersection
 module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
 
 module.exports.resolveTriangleIntersection = resolveTriangleIntersection
