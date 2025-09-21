@@ -1,57 +1,102 @@
-# Helper buffer for 2D vectors.
-nbuf2 = (ct) ->
+# === BUFFER UTILITIES ===
+
+# Create a 2D vector buffer with write functionality.
+# This helper provides efficient storage and writing of 2D vector data.
+# @param vectorCount - The number of vectors this buffer can hold.
+# @return Buffer object with write method and Float32Array storage.
+createVector2Buffer = (vectorCount) ->
 
     top: 0
-    array: new Float32Array(ct)
+    array: new Float32Array(vectorCount * 2)
 
-    write: (v) ->
+    write: (vector) ->
 
-        @array[@top++] = v.x
-        @array[@top++] = v.y
+        @array[@top++] = vector.x
+        @array[@top++] = vector.y
 
-# Helper buffer for 3D vectors.
-nbuf3 = (ct) ->
+
+# Create a 3D vector buffer with write functionality.
+# This helper provides efficient storage and writing of 3D vector data.
+# @param vectorCount - The number of vectors this buffer can hold.
+# @return Buffer object with write method and Float32Array storage.
+createVector3Buffer = (vectorCount) ->
 
     top: 0
-    array: new Float32Array(ct)
+    array: new Float32Array(vectorCount * 3)
 
-    write: (v) ->
+    write: (vector) ->
 
-        @array[@top++] = v.x
-        @array[@top++] = v.y
-        @array[@top++] = v.z
+        @array[@top++] = vector.x
+        @array[@top++] = vector.y
+        @array[@top++] = vector.z
 
-# Raycast sorting function.
-raycastIntersectAscSort = (a, b) -> a.distance - b.distance
 
-# Point rounding utility.
-pointRounding = (point, num = 15) ->
+# === POINT AND GEOMETRIC UTILITIES ===
 
-    point.x = +point.x.toFixed(num)
-    point.y = +point.y.toFixed(num)
-    point.z = +point.z.toFixed(num)
+# Sort raycast intersections by distance in ascending order.
+# Used for ordering ray intersection results from closest to farthest.
+# @param intersectionA - First intersection object with distance property.
+# @param intersectionB - Second intersection object with distance property.
+# @return Comparison result for sorting (-1, 0, or 1).
+sortRaycastIntersectionsByDistance = (intersectionA, intersectionB) ->
+
+    intersectionA.distance - intersectionB.distance
+
+
+# Round point coordinates to specified decimal precision.
+# This helps eliminate floating point precision errors in geometric calculations.
+# @param point - Vector3 point to round.
+# @param decimalPlaces - Number of decimal places to round to (default: 15).
+# @return The same point object with rounded coordinates.
+roundPointCoordinates = (point, decimalPlaces = 15) ->
+
+    point.x = +point.x.toFixed(decimalPlaces)
+    point.y = +point.y.toFixed(decimalPlaces)
+    point.z = +point.z.toFixed(decimalPlaces)
 
     return point
 
-# Split polygon by plane.
+
+# Extract XYZ coordinates from a flat array at the specified index.
+# Helper for working with triangle buffer data in winding number calculations.
+# @param coordinatesArray - Float32Array containing XYZ coordinates.
+# @param startIndex - Starting index in the array.
+# @return Object with x, y, z properties.
+extractCoordinatesFromArray = (coordinatesArray, startIndex) ->
+
+    x: coordinatesArray[startIndex]
+    y: coordinatesArray[startIndex + 1]
+    z: coordinatesArray[startIndex + 2]
+
+
+# === POLYGON OPERATIONS ===
+
+# Split a polygon by a plane into front and back fragments.
+# This is a core CSG operation that classifies polygon parts relative to a plane.
+# The algorithm handles coplanar, front, back, and spanning polygon cases.
+# @param polygon - The polygon to split.
+# @param plane - The cutting plane with normal and distance properties.
+# @param result - Array to store results (optional).
+# @return Array of polygon fragments with classification types.
 splitPolygonByPlane = (polygon, plane, result = []) ->
 
     returnPolygon =
-
         polygon: polygon
         type: "undecided"
 
     polygonType = 0
-    types = []
+    vertexTypes = []
 
-    for i in [0...polygon.vertices.length]
+    # Classify each vertex relative to the plane.
+    for vertexIndex in [0...polygon.vertices.length]
 
-        distanceToPlane = plane.normal.dot(polygon.vertices[i].pos) - plane.distanceFromOrigin
-        type = if distanceToPlane < -GEOMETRIC_EPSILON then POLYGON_BACK else if distanceToPlane > GEOMETRIC_EPSILON then POLYGON_FRONT else POLYGON_COPLANAR
+        distanceToPlane = plane.normal.dot(polygon.vertices[vertexIndex].pos) - plane.distanceFromOrigin
+        vertexType = if distanceToPlane < -GEOMETRIC_EPSILON then POLYGON_BACK else if distanceToPlane > GEOMETRIC_EPSILON then POLYGON_FRONT else POLYGON_COPLANAR
 
-        polygonType |= type
-        types.push(type)
+        polygonType |= vertexType
+        vertexTypes.push(vertexType)
 
+    # Handle polygon classification based on vertex types.
     switch polygonType
 
         when POLYGON_COPLANAR
@@ -74,40 +119,45 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
             frontVertices = []
             backVertices = []
 
-            for i in [0...polygon.vertices.length]
+            # Process each edge to build front and back vertex lists.
+            for vertexIndex in [0...polygon.vertices.length]
 
-                nextIndex = (i + 1) % polygon.vertices.length
-                currentType = types[i]
-                nextType = types[nextIndex]
-                currentVertex = polygon.vertices[i]
-                nextVertex = polygon.vertices[nextIndex]
+                nextVertexIndex = (vertexIndex + 1) % polygon.vertices.length
+                currentVertexType = vertexTypes[vertexIndex]
+                nextVertexType = vertexTypes[nextVertexIndex]
+                currentVertex = polygon.vertices[vertexIndex]
+                nextVertex = polygon.vertices[nextVertexIndex]
 
-                if currentType != POLYGON_BACK
+                # Add vertex to front list if not behind plane.
+                if currentVertexType != POLYGON_BACK
 
                     frontVertices.push(currentVertex)
 
-                if currentType != POLYGON_FRONT
+                # Add vertex to back list if not in front of plane.
+                if currentVertexType != POLYGON_FRONT
 
-                    backVertices.push(if currentType != POLYGON_BACK then currentVertex.clone() else currentVertex)
+                    backVertices.push(if currentVertexType != POLYGON_BACK then currentVertex.clone() else currentVertex)
 
-                if (currentType | nextType) == POLYGON_SPANNING
+                # Handle edge intersections with the plane.
+                if (currentVertexType | nextVertexType) == POLYGON_SPANNING
 
                     intersectionParameter = (plane.distanceFromOrigin - plane.normal.dot(currentVertex.pos)) / plane.normal.dot(temporaryTriangleVertex.copy(nextVertex.pos).sub(currentVertex.pos))
-                    vertexParameter = currentVertex.interpolate(nextVertex, intersectionParameter)
+                    interpolatedVertex = currentVertex.interpolate(nextVertex, intersectionParameter)
 
-                    frontVertices.push(vertexParameter)
-                    backVertices.push(vertexParameter.clone())
+                    frontVertices.push(interpolatedVertex)
+                    backVertices.push(interpolatedVertex.clone())
 
+            # Create front polygon fragments if we have enough vertices.
             if frontVertices.length >= 3
 
                 if frontVertices.length > 3
 
-                    newPolygons = splitPolygonArr(frontVertices)
+                    frontPolygonFragments = splitPolygonVertexArray(frontVertices)
 
-                    for polygonIndex in [0...newPolygons.length]
+                    for fragmentIndex in [0...frontPolygonFragments.length]
 
                         result.push(
-                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
+                            polygon: new Polygon(frontPolygonFragments[fragmentIndex], polygon.shared)
                             type: "front"
                         )
 
@@ -118,16 +168,17 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
                         type: "front"
                     )
 
+            # Create back polygon fragments if we have enough vertices.
             if backVertices.length >= 3
 
                 if backVertices.length > 3
 
-                    newPolygons = splitPolygonArr(backVertices)
+                    backPolygonFragments = splitPolygonVertexArray(backVertices)
 
-                    for polygonIndex in [0...newPolygons.length]
+                    for fragmentIndex in [0...backPolygonFragments.length]
 
                         result.push(
-                            polygon: new Polygon(newPolygons[polygonIndex], polygon.shared)
+                            polygon: new Polygon(backPolygonFragments[fragmentIndex], polygon.shared)
                             type: "back"
                         )
 
@@ -138,190 +189,278 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
                         type: "back"
                     )
 
+    # If no fragments were created, return the original polygon.
     if result.length == 0
 
         result.push(returnPolygon)
 
     return result
 
-# Split polygon array utility.
-splitPolygonArr = (arr) ->
 
-    resultArr = []
+# Split a polygon vertex array into triangulated fragments.
+# This handles polygons with more than 3 vertices by creating triangle fans.
+# @param vertexArray - Array of vertices to triangulate.
+# @return Array of vertex arrays, each representing a triangle.
+splitPolygonVertexArray = (vertexArray) ->
 
-    if arr.length > 4
+    triangleFragments = []
 
-        console.warn("[splitPolygonArr] arr.length > 4", arr.length)
+    # Handle polygons with more than 4 vertices using fan triangulation.
+    if vertexArray.length > 4
 
-        for j in [3..arr.length]
+        console.warn("[splitPolygonVertexArray] vertexArray.length > 4", vertexArray.length)
 
-            result = []
-            result.push(arr[0].clone())
-            result.push(arr[j - 2].clone())
-            result.push(arr[j - 1].clone())
-            resultArr.push(result)
+        for triangleIndex in [3..vertexArray.length]
+
+            triangleVertices = []
+            triangleVertices.push(vertexArray[0].clone())
+            triangleVertices.push(vertexArray[triangleIndex - 2].clone())
+            triangleVertices.push(vertexArray[triangleIndex - 1].clone())
+            triangleFragments.push(triangleVertices)
 
     else
 
-        if arr[0].pos.distanceTo(arr[2].pos) <= arr[1].pos.distanceTo(arr[3].pos)
+        # For quadrilaterals, choose the best diagonal based on distance.
+        if vertexArray[0].pos.distanceTo(vertexArray[2].pos) <= vertexArray[1].pos.distanceTo(vertexArray[3].pos)
 
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[2].clone()], [arr[0].clone(), arr[2].clone(), arr[3].clone()])
+            triangleFragments.push(
+                [vertexArray[0].clone(), vertexArray[1].clone(), vertexArray[2].clone()],
+                [vertexArray[0].clone(), vertexArray[2].clone(), vertexArray[3].clone()]
+            )
 
         else
 
-            resultArr.push([arr[0].clone(), arr[1].clone(), arr[3].clone()], [arr[1].clone(), arr[2].clone(), arr[3].clone()])
+            triangleFragments.push(
+                [vertexArray[0].clone(), vertexArray[1].clone(), vertexArray[3].clone()],
+                [vertexArray[1].clone(), vertexArray[2].clone(), vertexArray[3].clone()]
+            )
 
-        return resultArr
+    return triangleFragments
 
-    return resultArr
+# === WINDING NUMBER CALCULATIONS ===
 
-# Return XYZ helper for winding number.
-returnXYZ = (arr, index) ->
+# Calculate the winding number for a point relative to triangle mesh data.
+# The winding number determines how many times the mesh winds around the test point.
+# This is used for robust inside/outside testing of complex 3D geometry.
+# @param triangleDataArray - Float32Array containing triangle vertex coordinates.
+# @param testPoint - Point to test for winding number.
+# @return Integer winding number (0 = outside, non-zero = inside).
+calculateWindingNumberFromBuffer = (triangleDataArray, testPoint) ->
 
-    x: arr[index]
-    y: arr[index + 1]
-    z: arr[index + 2]
+    windingNumber = 0
 
-# Calculate winding number from buffer.
-calcWindingNumber_buffer = (trianglesArr, point) ->
+    # Process each triangle in the buffer (9 floats per triangle: 3 vertices × 3 coordinates).
+    for triangleStartIndex in [0...triangleDataArray.length] by 9
 
-    wN = 0
+        windingNumberVector1.subVectors(extractCoordinatesFromArray(triangleDataArray, triangleStartIndex), testPoint)
+        windingNumberVector2.subVectors(extractCoordinatesFromArray(triangleDataArray, triangleStartIndex + 3), testPoint)
+        windingNumberVector3.subVectors(extractCoordinatesFromArray(triangleDataArray, triangleStartIndex + 6), testPoint)
 
-    for i in [0...trianglesArr.length] by 9
+        vectorLengthA = windingNumberVector1.length()
+        vectorLengthB = windingNumberVector2.length()
+        vectorLengthC = windingNumberVector3.length()
 
-        windingNumberVector1.subVectors(returnXYZ(trianglesArr, i), point)
-        windingNumberVector2.subVectors(returnXYZ(trianglesArr, i + 3), point)
-        windingNumberVector3.subVectors(returnXYZ(trianglesArr, i + 6), point)
+        # Calculate the solid angle using the determinant formula.
+        windingNumberMatrix3.set(
+            windingNumberVector1.x, windingNumberVector1.y, windingNumberVector1.z,
+            windingNumberVector2.x, windingNumberVector2.y, windingNumberVector2.z,
+            windingNumberVector3.x, windingNumberVector3.y, windingNumberVector3.z
+        )
 
-        lenA = windingNumberVector1.length()
-        lenB = windingNumberVector2.length()
-        lenC = windingNumberVector3.length()
+        solidAngle = 2 * Math.atan2(
+            windingNumberMatrix3.determinant(),
+            (vectorLengthA * vectorLengthB * vectorLengthC +
+             windingNumberVector1.dot(windingNumberVector2) * vectorLengthC +
+             windingNumberVector2.dot(windingNumberVector3) * vectorLengthA +
+             windingNumberVector3.dot(windingNumberVector1) * vectorLengthB)
+        )
 
-        windingNumberMatrix3.set(windingNumberVector1.x, windingNumberVector1.y, windingNumberVector1.z, windingNumberVector2.x, windingNumberVector2.y, windingNumberVector2.z, windingNumberVector3.x, windingNumberVector3.y, windingNumberVector3.z)
-        omega = 2 * Math.atan2(windingNumberMatrix3.determinant(), (lenA * lenB * lenC + windingNumberVector1.dot(windingNumberVector2) * lenC + windingNumberVector2.dot(windingNumberVector3) * lenA + windingNumberVector3.dot(windingNumberVector1) * lenB))
-        wN += omega
+        windingNumber += solidAngle
 
-    wN = Math.round(wN / WINDING_NUMBER_FULL_ROTATION)
+    # Round to nearest integer to get the final winding number.
+    windingNumber = Math.round(windingNumber / WINDING_NUMBER_FULL_ROTATION)
 
-    return wN
+    return windingNumber
 
-# Check if polygon is inside using winding number.
-polyInside_WindingNumber_buffer = (trianglesArr, point, coplanar) ->
 
-    result = false
-    _wP.copy(point)
-    wN = calcWindingNumber_buffer(trianglesArr, _wP)
+# Test if a polygon is inside a mesh using winding number algorithm.
+# This provides robust inside/outside testing that handles complex cases.
+# For coplanar polygons, epsilon offsets are tested to resolve ambiguity.
+# @param triangleDataArray - Float32Array containing mesh triangle data.
+# @param testPoint - Point to test for inside/outside status.
+# @param isCoplanar - Whether the polygon is coplanar with mesh surfaces.
+# @return Boolean indicating if the polygon is inside the mesh.
+testPolygonInsideUsingWindingNumber = (triangleDataArray, testPoint, isCoplanar) ->
 
-    if wN is 0
+    isInside = false
+    windingNumberTestPoint.copy(testPoint)
+    windingNumber = calculateWindingNumberFromBuffer(triangleDataArray, windingNumberTestPoint)
 
-        if coplanar
+    # For non-coplanar cases, winding number directly indicates inside/outside.
+    if windingNumber is 0
 
-            for j in [0..._wP_EPS_ARR_COUNT]
+        if isCoplanar
 
-                _wP.copy(point).add(_wP_EPS_ARR[j])
-                wN = calcWindingNumber_buffer(trianglesArr, _wP)
+            # For coplanar cases, test multiple epsilon-offset points.
+            for offsetIndex in [0...windingNumberEpsilonOffsetsCount]
 
-                if wN isnt 0
+                windingNumberTestPoint.copy(testPoint).add(windingNumberEpsilonOffsets[offsetIndex])
+                windingNumber = calculateWindingNumberFromBuffer(triangleDataArray, windingNumberTestPoint)
 
-                    result = true
+                if windingNumber isnt 0
 
+                    isInside = true
                     break
 
     else
 
-        result = true
+        isInside = true
 
-    return result
+    return isInside
 
-# Prepare triangle buffer for winding number calculations.
-prepareTriangleBuffer = (polygons) ->
 
-    numOfTriangles = polygons.length
-    array = new Float32Array(numOfTriangles * 3 * 3)
+# Prepare a triangle buffer from polygon array for winding number calculations.
+# This converts polygon data into a flat Float32Array for efficient processing.
+# @param polygonArray - Array of polygons to convert.
+# @return Float32Array containing triangle vertex coordinates.
+prepareTriangleBufferFromPolygons = (polygonArray) ->
+
+    triangleCount = polygonArray.length
+    coordinateArray = new Float32Array(triangleCount * 3 * 3) # 3 vertices × 3 coordinates per triangle
     bufferIndex = 0
 
-    for i in [0...numOfTriangles]
+    for polygonIndex in [0...triangleCount]
 
-        triangle = polygons[i].triangle
+        triangle = polygonArray[polygonIndex].triangle
 
-        array[bufferIndex++] = triangle.a.x
-        array[bufferIndex++] = triangle.a.y
-        array[bufferIndex++] = triangle.a.z
+        # Store first vertex coordinates.
+        coordinateArray[bufferIndex++] = triangle.a.x
+        coordinateArray[bufferIndex++] = triangle.a.y
+        coordinateArray[bufferIndex++] = triangle.a.z
 
-        array[bufferIndex++] = triangle.b.x
-        array[bufferIndex++] = triangle.b.y
-        array[bufferIndex++] = triangle.b.z
+        # Store second vertex coordinates.
+        coordinateArray[bufferIndex++] = triangle.b.x
+        coordinateArray[bufferIndex++] = triangle.b.y
+        coordinateArray[bufferIndex++] = triangle.b.z
 
-        array[bufferIndex++] = triangle.c.x
-        array[bufferIndex++] = triangle.c.y
-        array[bufferIndex++] = triangle.c.z
+        # Store third vertex coordinates.
+        coordinateArray[bufferIndex++] = triangle.c.x
+        coordinateArray[bufferIndex++] = triangle.c.y
+        coordinateArray[bufferIndex++] = triangle.c.z
 
-    return array
+    return coordinateArray
 
-# Ray-triangle intersection using Möller–Trumbore algorithm.
-rayIntersectsTriangle = (ray, triangle, target = new Vector3()) ->
+# === RAY-TRIANGLE INTERSECTION ===
 
+# Test ray-triangle intersection using the Möller–Trumbore algorithm.
+# This is a fast, efficient algorithm for ray-triangle intersection testing.
+# Returns the intersection point if found, or null if no intersection exists.
+# @param ray - Ray object with origin and direction properties.
+# @param triangle - Triangle object with a, b, c vertex properties.
+# @param targetVector - Optional Vector3 to store the intersection point.
+# @return Vector3 intersection point or null if no intersection.
+testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
+
+    # Calculate triangle edge vectors.
     rayTriangleEdge1.subVectors(triangle.b, triangle.a)
     rayTriangleEdge2.subVectors(triangle.c, triangle.a)
 
+    # Calculate determinant to check if ray is parallel to triangle.
     rayTriangleHVector.crossVectors(ray.direction, rayTriangleEdge2)
-    a = rayTriangleEdge1.dot(rayTriangleHVector)
+    determinant = rayTriangleEdge1.dot(rayTriangleHVector)
 
-    if a > -RAY_INTERSECTION_EPSILON and a < RAY_INTERSECTION_EPSILON
+    # If determinant is near zero, ray is parallel to triangle plane.
+    if determinant > -RAY_INTERSECTION_EPSILON and determinant < RAY_INTERSECTION_EPSILON
 
-        return null # Ray is parallel to the triangle.
+        return null
 
-    f = 1 / a
+    inverseDeterminant = 1 / determinant
     rayTriangleSVector.subVectors(ray.origin, triangle.a)
-    u = f * rayTriangleSVector.dot(rayTriangleHVector)
+    firstBarycentricCoordinate = inverseDeterminant * rayTriangleSVector.dot(rayTriangleHVector)
 
-    if u < 0 or u > 1
+    # Check if intersection point is outside triangle (first barycentric test).
+    if firstBarycentricCoordinate < 0 or firstBarycentricCoordinate > 1
 
         return null
 
     rayTriangleQVector.crossVectors(rayTriangleSVector, rayTriangleEdge1)
-    v = f * ray.direction.dot(rayTriangleQVector)
+    secondBarycentricCoordinate = inverseDeterminant * ray.direction.dot(rayTriangleQVector)
 
-    if v < 0 or u + v > 1
+    # Check if intersection point is outside triangle (second barycentric test).
+    if secondBarycentricCoordinate < 0 or firstBarycentricCoordinate + secondBarycentricCoordinate > 1
 
         return null
 
-    t = f * rayTriangleEdge2.dot(rayTriangleQVector)
+    # Calculate intersection distance along ray.
+    intersectionDistance = inverseDeterminant * rayTriangleEdge2.dot(rayTriangleQVector)
 
-    if t > RAY_INTERSECTION_EPSILON
+    # Check if intersection is in front of ray origin.
+    if intersectionDistance > RAY_INTERSECTION_EPSILON
 
-        return target.copy(ray.direction).multiplyScalar(t).add(ray.origin)
+        return targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
 
     return null
 
-# Handle intersecting polytrees.
-handleIntersectingPolytrees = (polytreeA, polytreeB, bothPolytrees = true) ->
+# === POLYTREE MANAGEMENT ===
 
-    polytreeA_buffer = undefined
-    polytreeB_buffer = undefined
+# Handle intersection processing between two polytrees.
+# This coordinates the CSG intersection algorithm by preparing triangle buffers
+# and calling intersection handling methods on the polytree instances.
+# @param polytreeA - First polytree for intersection processing.
+# @param polytreeB - Second polytree for intersection processing.
+# @param processBothDirections - Whether to process intersections in both directions.
+handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = true) ->
 
+    polytreeABuffer = undefined
+    polytreeBBuffer = undefined
+
+    # Prepare triangle buffers if winding number algorithm is enabled.
     if Polytree.useWindingNumber is true
 
-        if bothPolytrees
+        if processBothDirections
 
-            polytreeA_buffer = prepareTriangleBuffer(polytreeA.getPolygons())
+            polytreeABuffer = prepareTriangleBufferFromPolygons(polytreeA.getPolygons())
 
-        polytreeB_buffer = prepareTriangleBuffer(polytreeB.getPolygons())
+        polytreeBBuffer = prepareTriangleBufferFromPolygons(polytreeB.getPolygons())
 
-    polytreeA.handleIntersectingPolygons(polytreeB, polytreeB_buffer)
+    # Process intersections from A's perspective.
+    polytreeA.handleIntersectingPolygons(polytreeB, polytreeBBuffer)
 
-    if bothPolytrees
+    # Process intersections from B's perspective if requested.
+    if processBothDirections
 
-        polytreeB.handleIntersectingPolygons(polytreeA, polytreeA_buffer)
+        polytreeB.handleIntersectingPolygons(polytreeA, polytreeABuffer)
 
-    if polytreeA_buffer isnt undefined
+    # Clean up buffers to free memory.
+    if polytreeABuffer isnt undefined
 
-        polytreeA_buffer = undefined
-        polytreeB_buffer = undefined
+        polytreeABuffer = undefined
+        polytreeBBuffer = undefined
 
-# Dispose polytree utility.
-disposePolytree = (...polytrees) ->
+
+# Dispose of polytree resources to prevent memory leaks.
+# This utility safely calls the delete method on polytree instances
+# if the disposal feature is enabled in the Polytree configuration.
+# @param polytreeInstances - Variable number of polytree instances to dispose.
+disposePolytreeResources = (...polytreeInstances) ->
 
     if Polytree.disposePolytree
 
-        polytrees.forEach((polytree) -> polytree.delete())
+        polytreeInstances.forEach((polytreeInstance) -> polytreeInstance.delete())
+
+
+# === BACKWARD COMPATIBILITY ALIASES ===
+
+# Legacy function name aliases for backward compatibility.
+# These maintain existing API while using the new descriptive names internally.
+nbuf2 = createVector2Buffer
+nbuf3 = createVector3Buffer
+raycastIntersectAscSort = sortRaycastIntersectionsByDistance
+pointRounding = roundPointCoordinates
+returnXYZ = extractCoordinatesFromArray
+calcWindingNumber_buffer = calculateWindingNumberFromBuffer
+polyInside_WindingNumber_buffer = testPolygonInsideUsingWindingNumber
+prepareTriangleBuffer = prepareTriangleBufferFromPolygons
+rayIntersectsTriangle = testRayTriangleIntersection
+disposePolytree = disposePolytreeResources
+splitPolygonArr = splitPolygonVertexArray
