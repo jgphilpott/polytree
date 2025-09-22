@@ -313,38 +313,40 @@ class Polytree
 
     # === POLYGON QUERIES AND INTERSECTION TESTING ===
 
-    # Find all polygons that intersect with a target polygon using spatial partitioning.
-    getPolygonsIntersectingPolygon: (targetPolygon, polygons = []) ->
+    # Invert all polygons by flipping their face normals.
+    invert: ->
 
-        if @box.intersectsTriangle(targetPolygon.triangle)
+        @polygonArrays.forEach (polygonsArray) ->
 
-            if @polygons.length > 0
+            if polygonsArray.length
 
-                allPolygons = @polygons.slice()
+                polygonsArray.forEach (polygon) -> polygon.flip()
 
-                if @replacedPolygons.length > 0
+    # Get all valid polygons from all polygon arrays in this tree.
+    getPolygons: (polygons = []) ->
 
-                    for i in [0...@replacedPolygons.length]
+        @polygonArrays.forEach (polygonsArray) ->
 
-                        allPolygons.push(@replacedPolygons[i])
+            if polygonsArray.length
 
-                for i in [0...allPolygons.length]
+                for i in [0...polygonsArray.length]
 
-                    polygon = allPolygons[i]
+                    if polygonsArray[i].valid
 
-                    unless polygon.originalValid and polygon.valid and polygon.intersects
+                        if polygons.indexOf(polygonsArray[i]) is -1
 
-                        continue
-
-                    if triangleIntersectsTriangle(targetPolygon.triangle, polygon.triangle)
-
-                        polygons.push(polygon)
-
-        for i in [0...@subTrees.length]
-
-            @subTrees[i].getPolygonsIntersectingPolygon(targetPolygon, polygons)
+                            polygons.push(polygonsArray[i])
 
         return polygons
+
+    # Extract triangles from all valid polygons in the tree.
+    # This provides triangle data format as complement to getPolygons().
+    getTriangles: (triangles = []) ->
+
+        polygons = @getPolygons()
+        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
+
+        return triangles
 
     # Collect polygons that intersect with a ray for raycasting operations.
     getRayPolygons: (ray, polygons = []) ->
@@ -370,6 +372,15 @@ class Polytree
                 @subTrees[i].getRayPolygons(ray, polygons)
 
         return polygons
+
+    # Extract triangles from polygons that intersect with a ray.
+    # This provides triangle data format as complement to getRayPolygons().
+    getRayTriangles: (ray, triangles = []) ->
+
+        polygons = @getRayPolygons(ray)
+        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
+
+        return triangles
 
     # Perform ray intersection testing against all polygons in the tree.
     # Returns array of intersection results sorted by distance.
@@ -436,49 +447,38 @@ class Polytree
 
         return polygons
 
-    # Get all valid polygons from all polygon arrays in this tree.
-    getPolygons: (polygons = []) ->
+    # Find all polygons that intersect with a target polygon using spatial partitioning.
+    getPolygonsIntersectingPolygon: (targetPolygon, polygons = []) ->
 
-        @polygonArrays.forEach (polygonsArray) ->
+        if @box.intersectsTriangle(targetPolygon.triangle)
 
-            if polygonsArray.length
+            if @polygons.length > 0
 
-                for i in [0...polygonsArray.length]
+                allPolygons = @polygons.slice()
 
-                    if polygonsArray[i].valid
+                if @replacedPolygons.length > 0
 
-                        if polygons.indexOf(polygonsArray[i]) is -1
+                    for i in [0...@replacedPolygons.length]
 
-                            polygons.push(polygonsArray[i])
+                        allPolygons.push(@replacedPolygons[i])
+
+                for i in [0...allPolygons.length]
+
+                    polygon = allPolygons[i]
+
+                    unless polygon.originalValid and polygon.valid and polygon.intersects
+
+                        continue
+
+                    if triangleIntersectsTriangle(targetPolygon.triangle, polygon.triangle)
+
+                        polygons.push(polygon)
+
+        for i in [0...@subTrees.length]
+
+            @subTrees[i].getPolygonsIntersectingPolygon(targetPolygon, polygons)
 
         return polygons
-
-    # Extract triangles from all valid polygons in the tree.
-    # This provides triangle data format as complement to getPolygons().
-    getTriangles: (triangles = []) ->
-
-        polygons = @getPolygons()
-        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
-
-        return triangles
-
-    # Extract triangles from polygons that intersect with a ray.
-    # This provides triangle data format as complement to getRayPolygons().
-    getRayTriangles: (ray, triangles = []) ->
-
-        polygons = @getRayPolygons(ray)
-        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
-
-        return triangles
-
-    # Invert all polygons by flipping their face normals.
-    invert: ->
-
-        @polygonArrays.forEach (polygonsArray) ->
-
-            if polygonsArray.length
-
-                polygonsArray.forEach (polygon) -> polygon.flip()
 
     # === POLYGON MODIFICATION AND STATE MANAGEMENT ===
 
@@ -833,42 +833,6 @@ class Polytree
 
             @processTree()
 
-    # === CLEANUP AND DISPOSAL METHODS ===
-
-    # Clean up replaced polygons from CSG operations.
-    deleteReplacedPolygons: ->
-
-        if @replacedPolygons.length > 0
-
-            @replacedPolygons.forEach (polygon) -> polygon.delete()
-            @replacedPolygons.length = 0
-
-        for i in [0...@subTrees.length]
-
-            @subTrees[i].deleteReplacedPolygons()
-
-    # Mark all polygons as original (not generated by CSG operations).
-    markPolygonsAsOriginal: ->
-
-        @polygonArrays.forEach (polygonsArray) ->
-
-            if polygonsArray.length
-
-                polygonsArray.forEach (polygon) -> polygon.originalValid = true
-
-    # Get polygon clones via callback for CSG operations.
-    getPolygonCloneCallback: (cbFunc, trianglesSet) ->
-
-        @polygonArrays.forEach (polygonsArray) ->
-
-            if polygonsArray.length
-
-                for i in [0...polygonsArray.length]
-
-                    if polygonsArray[i].valid
-
-                        cbFunc(polygonsArray[i].clone(), trianglesSet)
-
     # === ADVANCED COLLISION DETECTION ===
 
     # Test intersection between a sphere and a triangle.
@@ -966,7 +930,7 @@ class Polytree
         collisionDetected = false
         intersectionResult = undefined
         intersectingTriangles = []
-        
+
         adjustedSphere = new Sphere()
         adjustedSphere.copy(sphere)
 
@@ -1012,6 +976,40 @@ class Polytree
         @buildTree()
 
     # === CLEANUP AND DISPOSAL METHODS ===
+
+    # Clean up replaced polygons from CSG operations.
+    deleteReplacedPolygons: ->
+
+        if @replacedPolygons.length > 0
+
+            @replacedPolygons.forEach (polygon) -> polygon.delete()
+            @replacedPolygons.length = 0
+
+        for i in [0...@subTrees.length]
+
+            @subTrees[i].deleteReplacedPolygons()
+
+    # Mark all polygons as original (not generated by CSG operations).
+    markPolygonsAsOriginal: ->
+
+        @polygonArrays.forEach (polygonsArray) ->
+
+            if polygonsArray.length
+
+                polygonsArray.forEach (polygon) -> polygon.originalValid = true
+
+    # Get polygon clones via callback for CSG operations.
+    getPolygonCloneCallback: (cbFunc, trianglesSet) ->
+
+        @polygonArrays.forEach (polygonsArray) ->
+
+            if polygonsArray.length
+
+                for i in [0...polygonsArray.length]
+
+                    if polygonsArray[i].valid
+
+                        cbFunc(polygonsArray[i].clone(), trianglesSet)
 
     # Delete this tree and all its data (primary cleanup method).
     delete: (deletePolygons = true) ->
