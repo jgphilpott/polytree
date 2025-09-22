@@ -4,13 +4,13 @@
 # =============================================================================
 
 # Floating-point tolerance for general geometric operations.
-GEOMETRIC_EPSILON = 1e-5
+GEOMETRIC_EPSILON = 1e-8
 
 # Ultra-high precision tolerance for ray-triangle intersection calculations.
-RAY_INTERSECTION_EPSILON = 1e-7
+RAY_INTERSECTION_EPSILON = 1e-12
 
 # 2D geometry tolerance for triangle overlap calculations.
-TRIANGLE_2D_EPSILON = 1e-10
+TRIANGLE_2D_EPSILON = 1e-14
 
 # Full rotation constant (4π) used in winding number calculations.
 WINDING_NUMBER_FULL_ROTATION = 4 * Math.PI
@@ -150,19 +150,19 @@ meshOperationVertexVector = new Vector3()
 # =============================================================================
 
 # Maximum subdivision depth for octree structures.
-OCTREE_MAX_DEPTH = 10
+OCTREE_MAX_DEPTH = 50
 
 # Maximum polygons per octree node before subdivision.
-OCTREE_MAX_POLYGONS_PER_NODE = 50
+OCTREE_MAX_POLYGONS_PER_NODE = 1000
 
 # Minimum octree node size to prevent excessive subdivision.
-OCTREE_MIN_NODE_SIZE = 0.001
+OCTREE_MIN_NODE_SIZE = 1e-6
 
 # Default material index for CSG operations.
 DEFAULT_MATERIAL_INDEX = 0
 
 # Maximum iterations for iterative refinement algorithms.
-MAX_REFINEMENT_ITERATIONS = 100
+MAX_REFINEMENT_ITERATIONS = 1000
 
 # =============================================================================
 # PERFORMANCE AND OPTIMIZATION VARIABLES
@@ -173,24 +173,24 @@ MAX_REFINEMENT_ITERATIONS = 100
 DEFAULT_COORDINATE_PRECISION = 15
 
 # Threshold for considering two points as identical.
-POINT_COINCIDENCE_THRESHOLD = 1e-12
+POINT_COINCIDENCE_THRESHOLD = 1e-15
 
 # Buffer size for batch processing operations.
-DEFAULT_BUFFER_SIZE = 1024
+DEFAULT_BUFFER_SIZE = 16384
 
 # Maximum number of worker threads for parallel processing.
-MAX_WORKER_THREADS = 4
+MAX_WORKER_THREADS = 16
 
 # Timeout for async operations (in milliseconds).
-ASYNC_OPERATION_TIMEOUT = 30000
+ASYNC_OPERATION_TIMEOUT = 300000
 
 # Memory management thresholds.
-GARBAGE_COLLECTION_THRESHOLD = 10000
-MEMORY_USAGE_WARNING_LIMIT = 0.8
+GARBAGE_COLLECTION_THRESHOLD = 100000
+MEMORY_USAGE_WARNING_LIMIT = 0.95
 
 # Cache size limits.
-GEOMETRY_CACHE_SIZE = 1000
-INTERSECTION_CACHE_SIZE = 5000
+GEOMETRY_CACHE_SIZE = 50000
+INTERSECTION_CACHE_SIZE = 100000
 
 # =============================================================================
 # POLYGON ID MANAGEMENT

@@ -8,7 +8,7 @@ Polytree.async =
 
     # Default batch size for processing large arrays of objects.
     # Objects arrays larger than this size will be processed in batches to prevent memory issues.
-    batchSize: 100
+    batchSize: DEFAULT_BUFFER_SIZE
 
     # Perform asynchronous union operation between two polytree objects.
     # Creates a new polytree containing the combined volume of both input polytrees.
@@ -22,14 +22,21 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
+            # Set up operation timeout.
+            timeoutId = setTimeout ->
+                reject(new Error("Union operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+            , ASYNC_OPERATION_TIMEOUT
+
             try
 
                 result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
+                clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
+                clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 
@@ -45,14 +52,21 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
+            # Set up operation timeout.
+            timeoutId = setTimeout ->
+                reject(new Error("Subtract operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+            , ASYNC_OPERATION_TIMEOUT
+
             try
 
                 result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
+                clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
+                clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 
@@ -68,14 +82,21 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
+            # Set up operation timeout.
+            timeoutId = setTimeout ->
+                reject(new Error("Intersect operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+            , ASYNC_OPERATION_TIMEOUT
+
             try
 
                 result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
+                clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
+                clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 

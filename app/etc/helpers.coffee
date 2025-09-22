@@ -1,12 +1,59 @@
 # === BUFFER UTILITIES ===
 
+# Simple LRU cache for intersection results to improve performance.
+intersectionCache = new Map()
+intersectionCacheKeys = []
+
+# Operation counter for garbage collection threshold tracking.
+operationCounter = 0
+
+# Clear intersection cache when it exceeds size limit.
+clearIntersectionCache = ->
+    
+    if intersectionCache.size > INTERSECTION_CACHE_SIZE
+        
+        # Remove oldest entries (simple FIFO approach).
+        keysToRemove = intersectionCacheKeys.splice(0, Math.floor(INTERSECTION_CACHE_SIZE / 2))
+        
+        for key in keysToRemove
+            intersectionCache.delete(key)
+
+# Create cache key from two polygons.
+createIntersectionCacheKey = (polygonA, polygonB) ->
+    
+    "#{polygonA.id}_#{polygonB.id}"
+
+# Memory management utilities.
+checkMemoryUsage = ->
+    
+    if typeof process != 'undefined' and process.memoryUsage
+        
+        memoryUsage = process.memoryUsage()
+        heapUsedMB = memoryUsage.heapUsed / 1024 / 1024
+        heapTotalMB = memoryUsage.heapTotal / 1024 / 1024
+        usageRatio = memoryUsage.heapUsed / memoryUsage.heapTotal
+        
+        if DEBUG_VERBOSE_LOGGING
+            console.log("Memory usage: #{heapUsedMB.toFixed(2)}MB / #{heapTotalMB.toFixed(2)}MB (#{(usageRatio * 100).toFixed(1)}%)")
+        
+        if usageRatio > MEMORY_USAGE_WARNING_LIMIT
+            console.warn("Memory usage is high: #{(usageRatio * 100).toFixed(1)}%")
+            
+            if typeof global?.gc == 'function'
+                console.log("Triggering garbage collection...")
+                global.gc()
+        
+        return usageRatio
+    
+    return 0
+
 # Create a 2D vector buffer with write functionality.
 # This helper provides efficient storage and writing of 2D vector data.
 #
-# @param vectorCount - The number of vectors this buffer can hold.
+# @param vectorCount - The number of vectors this buffer can hold (defaults to DEFAULT_BUFFER_SIZE).
 #
 # @return Buffer object with write method and Float32Array storage.
-createVector2Buffer = (vectorCount) ->
+createVector2Buffer = (vectorCount = DEFAULT_BUFFER_SIZE) ->
 
     top: 0
     array: new Float32Array(vectorCount * 2)
@@ -19,10 +66,10 @@ createVector2Buffer = (vectorCount) ->
 # Create a 3D vector buffer with write functionality.
 # This helper provides efficient storage and writing of 3D vector data.
 #
-# @param vectorCount - The number of vectors this buffer can hold.
+# @param vectorCount - The number of vectors this buffer can hold (defaults to DEFAULT_BUFFER_SIZE).
 #
 # @return Buffer object with write method and Float32Array storage.
-createVector3Buffer = (vectorCount) ->
+createVector3Buffer = (vectorCount = DEFAULT_BUFFER_SIZE) ->
 
     top: 0
     array: new Float32Array(vectorCount * 3)
@@ -53,7 +100,7 @@ sortRaycastIntersectionsByDistance = (intersectionA, intersectionB) ->
 # @param decimalPlaces - Number of decimal places to round to (default: 15).
 #
 # @return The same point object with rounded coordinates.
-roundPointCoordinates = (point, decimalPlaces = 15) ->
+roundPointCoordinates = (point, decimalPlaces = DEFAULT_COORDINATE_PRECISION) ->
 
     point.x = +point.x.toFixed(decimalPlaces)
     point.y = +point.y.toFixed(decimalPlaces)
@@ -271,6 +318,12 @@ calculateWindingNumberFromBuffer = (triangleDataArray, testPoint) ->
         vectorLengthB = windingNumberVector2.length()
         vectorLengthC = windingNumberVector3.length()
 
+        # Skip degenerate triangles that are too small to contribute meaningfully.
+        if vectorLengthA < POINT_COINCIDENCE_THRESHOLD or 
+           vectorLengthB < POINT_COINCIDENCE_THRESHOLD or 
+           vectorLengthC < POINT_COINCIDENCE_THRESHOLD
+            continue
+
         # Calculate the solid angle using the determinant formula.
         windingNumberMatrix3.set(
             windingNumberVector1.x, windingNumberVector1.y, windingNumberVector1.z,
@@ -314,7 +367,9 @@ testPolygonInsideUsingWindingNumber = (triangleDataArray, testPoint, isCoplanar)
         if isCoplanar
 
             # For coplanar cases, test multiple epsilon-offset points.
-            for offsetIndex in [0...windingNumberEpsilonOffsetsCount]
+            # Limit iterations to prevent infinite loops in degenerate cases.
+            maxOffsetTests = Math.min(windingNumberEpsilonOffsetsCount, MAX_REFINEMENT_ITERATIONS)
+            for offsetIndex in [0...maxOffsetTests]
 
                 windingNumberTestPoint.copy(testPoint).add(windingNumberEpsilonOffsets[offsetIndex])
                 windingNumber = calculateWindingNumberFromBuffer(triangleDataArray, windingNumberTestPoint)
@@ -377,6 +432,9 @@ prepareTriangleBufferFromPolygons = (polygonArray) ->
 # @return Vector3 intersection point or null if no intersection.
 testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
 
+    if DEBUG_VERBOSE_LOGGING
+        console.log("Testing ray-triangle intersection with ray origin:", ray.origin, "direction:", ray.direction)
+
     # Calculate triangle edge vectors.
     rayTriangleEdge1.subVectors(triangle.b, triangle.a)
     rayTriangleEdge2.subVectors(triangle.c, triangle.a)
@@ -428,6 +486,15 @@ testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
 # @param processBothDirections - Whether to process intersections in both directions.
 handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = true) ->
 
+    startTime = if DEBUG_PERFORMANCE_TIMING then performance.now() else 0
+
+    # Increment operation counter and check for GC threshold.
+    operationCounter++
+    if operationCounter >= GARBAGE_COLLECTION_THRESHOLD
+        operationCounter = 0
+        clearIntersectionCache()
+        checkMemoryUsage()
+
     polytreeABuffer = undefined
     polytreeBBuffer = undefined
 
@@ -452,6 +519,14 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
     if polytreeABuffer isnt undefined
 
         polytreeABuffer = undefined
+
+    if polytreeBBuffer isnt undefined
+
+        polytreeBBuffer = undefined
+
+    if DEBUG_PERFORMANCE_TIMING
+        endTime = performance.now()
+        console.log("handleIntersectingPolytrees took #{endTime - startTime} milliseconds")
         polytreeBBuffer = undefined
 
 # Dispose of polytree resources to prevent memory leaks.

@@ -305,8 +305,8 @@ describe "Polytree", ->
 
         it "should have expected static properties", ->
 
-            expect(Polytree.maxLevel).toBe(16)
-            expect(Polytree.polygonsPerTree).toBe(100)
+            expect(Polytree.maxLevel).toBe(50)
+            expect(Polytree.polygonsPerTree).toBe(1000)
             expect(Polytree.usePolytreeRay).toBe(true)
             expect(Polytree.disposePolytree).toBe(true)
             expect(Polytree.useWindingNumber).toBe(false)

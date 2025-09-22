@@ -6,8 +6,8 @@ class Polytree
 
     # ----- Static Properties -----
 
-    @maxLevel = 16
-    @polygonsPerTree = 100
+    @maxLevel = 50
+    @polygonsPerTree = 1000
 
     @usePolytreeRay = true
     @disposePolytree = true
@@ -200,7 +200,7 @@ class Polytree
 
         @box = @bounds.clone()
 
-        offset = 0.001 # Offset small amount to guarantee that all polygons (even those with vertices exactly on the box boundary) are included in queries.
+        offset = OCTREE_MIN_NODE_SIZE # Use configurable minimum node size to guarantee that all polygons are included in queries.
 
         @box.min.x -= offset
         @box.min.y -= offset
@@ -265,8 +265,14 @@ class Polytree
             subTrees[i].level = level + 1
             len = subTrees[i].polygons.length
 
-            # Continue subdivision if polygon count exceeds threshold and max depth not reached.
-            if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
+            # Calculate node size to check minimum size constraint.
+            nodeSize = subTrees[i].box.getSize(temporaryVector3Tertiary).length()
+
+            # Continue subdivision if polygon count exceeds threshold, max depth not reached, and node size is above minimum.
+            # Use the more restrictive of the two depth limits and polygon limits for maximum performance control.
+            maxDepthLimit = Math.min(Polytree.maxLevel, OCTREE_MAX_DEPTH)
+            polygonLimit = Math.min(Polytree.polygonsPerTree, OCTREE_MAX_POLYGONS_PER_NODE)
+            if len > polygonLimit and level < maxDepthLimit and nodeSize > OCTREE_MIN_NODE_SIZE
 
                 subTrees[i].split(level + 1)
 
