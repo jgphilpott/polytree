@@ -881,10 +881,10 @@ class Polytree
     triangleSphereIntersect: (sphere, triangle) ->
 
         # Create temporary objects for calculations.
-        plane = new Plane()
         v1 = new Vector3()
         v2 = new Vector3()
         line = new Line3()
+        plane = new Plane()
 
         triangle.getPlane(plane)
 
@@ -899,9 +899,9 @@ class Polytree
 
             return
 
+                depth: Math.abs(plane.distanceToSphere(sphere))
                 normal: plane.normal.clone()
                 point: plainPoint.clone()
-                depth: Math.abs(plane.distanceToSphere(sphere))
 
         lines = [
             [triangle.a, triangle.b]
@@ -913,15 +913,16 @@ class Polytree
 
             line.set(lines[i][0], lines[i][1])
             line.closestPointToPoint(plainPoint, true, v2)
+
             d = v2.distanceToSquared(sphere.center)
 
             if d < r2
 
                 return
 
+                    depth: sphere.radius - Math.sqrt(d)
                     normal: sphere.center.clone().sub(v2).normalize()
                     point: v2.clone()
-                    depth: sphere.radius - Math.sqrt(d)
 
         return false
 
@@ -935,6 +936,7 @@ class Polytree
         for i in [0...@subTrees.length]
 
             subTree = @subTrees[i]
+
             continue unless sphere.intersectsBox(subTree.box)
 
             if subTree.polygons.length > 0
@@ -959,11 +961,13 @@ class Polytree
     # @return Object with normal and depth properties or false if no collision.
     sphereIntersect: (sphere) ->
 
+        hit = false
+        result = undefined
+
+        triangles = []
+
         workingSphere = new Sphere()
         workingSphere.copy(sphere)
-        triangles = []
-        result = undefined
-        hit = false
 
         @getSphereTriangles(sphere, triangles)
 
@@ -971,8 +975,7 @@ class Polytree
 
             if result = @triangleSphereIntersect(workingSphere, triangles[i])
 
-                hit = true
-                workingSphere.center.add(result.normal.multiplyScalar(result.depth))
+                hit = true; workingSphere.center.add(result.normal.multiplyScalar(result.depth))
 
         if hit
 

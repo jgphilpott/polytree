@@ -330,7 +330,8 @@ describe "Polytree", ->
             polytree = Polytree.fromMesh(mesh)
             triangles = polytree.getTriangles()
 
-            expect(triangles.length).toBe(12) # Box has 12 triangles (6 faces × 2 triangles)
+            expect(triangles.length).toBe(12) # Box has 12 triangles (6 faces × 2 triangles).
+
             expect(triangles[0].a).toBeDefined()
             expect(triangles[0].b).toBeDefined()
             expect(triangles[0].c).toBeDefined()
@@ -346,6 +347,7 @@ describe "Polytree", ->
             rayTriangles = polytree.getRayTriangles(ray)
 
             expect(rayTriangles.length).toBeGreaterThan(0)
+
             expect(rayTriangles[0].a).toBeDefined()
             expect(rayTriangles[0].b).toBeDefined()
             expect(rayTriangles[0].c).toBeDefined()

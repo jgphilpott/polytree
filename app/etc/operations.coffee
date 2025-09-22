@@ -179,7 +179,7 @@ _handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun
 
         return resultPolytree
 
-# Handle object for operation.
+# Handle object for operation
 handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = true) ->
 
     if async
