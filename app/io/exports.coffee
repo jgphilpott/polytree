@@ -4,13 +4,28 @@ module.exports.Plane = Plane
 module.exports.Vertex = Vertex
 module.exports.Polygon = Polygon
 
+module.exports.createVector2Buffer = createVector2Buffer
+module.exports.createVector3Buffer = createVector3Buffer
+
 module.exports.isValidTriangle = isValidTriangle
 module.exports.isUniqueTriangle = isUniqueTriangle
-module.exports.rayIntersectsTriangle = rayIntersectsTriangle
+module.exports.rayIntersectsTriangle = testRayTriangleIntersection
 module.exports.triangleIntersectsTriangle = triangleIntersectsTriangle
 
 module.exports.resolveTriangleIntersection = resolveTriangleIntersection
 module.exports.resolveCoplanarTriangleIntersection = resolveCoplanarTriangleIntersection
+
+module.exports.sortRaycastIntersectionsByDistance = sortRaycastIntersectionsByDistance
+module.exports.roundPointCoordinates = roundPointCoordinates
+module.exports.extractCoordinatesFromArray = extractCoordinatesFromArray
+module.exports.splitPolygonByPlane = splitPolygonByPlane
+module.exports.splitPolygonVertexArray = splitPolygonVertexArray
+module.exports.calculateWindingNumberFromBuffer = calculateWindingNumberFromBuffer
+module.exports.testPolygonInsideUsingWindingNumber = testPolygonInsideUsingWindingNumber
+module.exports.prepareTriangleBufferFromPolygons = prepareTriangleBufferFromPolygons
+module.exports.testRayTriangleIntersection = testRayTriangleIntersection
+module.exports.handleIntersectingPolytrees = handleIntersectingPolytrees
+module.exports.disposePolytreeResources = disposePolytreeResources
 
 module.exports.trianglesOverlap2D = trianglesOverlap2D
 module.exports.triangleOrientation2D = triangleOrientation2D

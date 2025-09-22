@@ -13,11 +13,16 @@ Polytree.toGeometry = (polytree) ->
     uvs = undefined
     colors = undefined
 
+    totalTriangles = 0
     polygons = polytree.getPolygons()
-    triangleCount = polygons.length
 
-    positions = nbuf3(triangleCount * 3 * 3)
-    normals = nbuf3(triangleCount * 3 * 3)
+    # Calculate the total number of triangles that will be generated.
+    for polygon in polygons
+
+        totalTriangles += Math.max(0, polygon.vertices.length - 2)
+
+    positions = createVector3Buffer(totalTriangles * 3)
+    normals = createVector3Buffer(totalTriangles * 3)
 
     for polygon in polygons
 
@@ -36,11 +41,11 @@ Polytree.toGeometry = (polytree) ->
 
             if vertices[0].uv isnt undefined
 
-                uvs or= nbuf2(triangleCount * 2 * 3)
+                uvs or= createVector2Buffer(totalTriangles * 3)
 
             if vertices[0].color isnt undefined
 
-                colors or= nbuf3(triangleCount * 3 * 3)
+                colors or= createVector3Buffer(totalTriangles * 3)
 
         # Triangulate polygon by creating triangles from vertex fan.
         # Each triangle uses vertices[0] as the common vertex.

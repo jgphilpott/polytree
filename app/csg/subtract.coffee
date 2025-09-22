@@ -91,7 +91,7 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
         resultPolytree = this.subtractCore(polytreeA, polytreeB, false)
         resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
 
-        disposePolytree(polytreeA, polytreeB, resultPolytree)
+        disposePolytreeResources(polytreeA, polytreeB, resultPolytree)
 
         return resultMesh
 
