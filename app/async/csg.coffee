@@ -1,12 +1,23 @@
-# Async CSG operations for Polytree
-# This module contains all async operations that were moved from polytree.coffee
+# === ASYNC CSG OPERATIONS FOR POLYTREE ===
 
-# Use the unified handleObjectForOp function from polytree.coffee with async=true
+# This module provides asynchronous implementations of Constructive Solid Geometry (CSG) operations.
+# All operations are Promise-based and include proper resource management and error handling.
+# The async operations allow for better performance in web environments by preventing UI blocking.
 
 Polytree.async =
 
+    # Default batch size for processing large arrays of objects.
+    # Objects arrays larger than this size will be processed in batches to prevent memory issues.
     batchSize: 100
 
+    # Perform asynchronous union operation between two polytree objects.
+    # Creates a new polytree containing the combined volume of both input polytrees.
+    #
+    # @param polytreeA - First polytree operand for the union operation.
+    # @param polytreeB - Second polytree operand for the union operation.
+    # @param buildTargetPolytree - Whether to build the target polytree structure (default: true).
+    #
+    # @return Promise that resolves to the resulting polytree from the union operation.
     unite: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
@@ -14,13 +25,22 @@ Polytree.async =
             try
 
                 result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
-                resolve(result)
                 disposePolytreeResources(polytreeA, polytreeB)
+                resolve(result)
 
-            catch e
+            catch error
 
-                reject(e)
+                disposePolytreeResources(polytreeA, polytreeB)
+                reject(error)
 
+    # Perform asynchronous subtraction operation between two polytree objects.
+    # Creates a new polytree by removing the volume of polytreeB from polytreeA.
+    #
+    # @param polytreeA - The polytree to subtract from (minuend).
+    # @param polytreeB - The polytree to subtract (subtrahend).
+    # @param buildTargetPolytree - Whether to build the target polytree structure (default: true).
+    #
+    # @return Promise that resolves to the resulting polytree from the subtraction operation.
     subtract: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
@@ -28,13 +48,22 @@ Polytree.async =
             try
 
                 result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
-                resolve(result)
                 disposePolytreeResources(polytreeA, polytreeB)
+                resolve(result)
 
-            catch e
+            catch error
 
-                reject(e)
+                disposePolytreeResources(polytreeA, polytreeB)
+                reject(error)
 
+    # Perform asynchronous intersection operation between two polytree objects.
+    # Creates a new polytree containing only the overlapping volume of both input polytrees.
+    #
+    # @param polytreeA - First polytree operand for the intersection operation.
+    # @param polytreeB - Second polytree operand for the intersection operation.
+    # @param buildTargetPolytree - Whether to build the target polytree structure (default: true).
+    #
+    # @return Promise that resolves to the resulting polytree from the intersection operation.
     intersect: (polytreeA, polytreeB, buildTargetPolytree = true) ->
 
         new Promise (resolve, reject) ->
@@ -42,412 +71,234 @@ Polytree.async =
             try
 
                 result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
-                resolve(result)
                 disposePolytreeResources(polytreeA, polytreeB)
+                resolve(result)
 
-            catch e
+            catch error
 
-                reject(e)
+                disposePolytreeResources(polytreeA, polytreeB)
+                reject(error)
 
-    uniteArray: (objArr, materialIndexMax = Infinity) ->
+    # Perform asynchronous union operation on an array of objects.
+    # Efficiently processes large arrays using batching and parallel execution.
+    # This method can handle arrays of meshes or polytrees and will convert them as needed.
+    #
+    # @param objectArray - Array of meshes or polytrees to unite.
+    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
+    #
+    # @return Promise that resolves to a single polytree containing the union of all objects.
+    uniteArray: (objectArray, materialIndexMax = Infinity) ->
 
-        new Promise (resolve, reject) ->
+        Polytree.async.processArrayWithOperation(
+            objectArray,
+            materialIndexMax,
+            Polytree.async.unite,
+            Polytree.async.uniteArray,
+            'union'
+        )
 
-            try
+    # Perform asynchronous subtraction operation on an array of objects.
+    # Efficiently processes large arrays using batching and parallel execution.
+    # This method subtracts all subsequent objects from the first object in the array.
+    #
+    # @param objectArray - Array of meshes or polytrees to process with subtraction.
+    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
+    #
+    # @return Promise that resolves to a single polytree with all subtractions applied.
+    subtractArray: (objectArray, materialIndexMax = Infinity) ->
 
-                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
-                mainPolytree = undefined
-                mainPolytreeUsed = false
-                promises = []
+        Polytree.async.processArrayWithOperation(
+            objectArray,
+            materialIndexMax,
+            Polytree.async.subtract,
+            Polytree.async.subtractArray,
+            'subtraction'
+        )
 
-                if usingBatches
+    # Perform asynchronous intersection operation on an array of objects.
+    # Efficiently processes large arrays using batching and parallel execution.
+    # This method finds the overlapping volume common to all objects in the array.
+    #
+    # @param objectArray - Array of meshes or polytrees to intersect.
+    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
+    #
+    # @return Promise that resolves to a single polytree containing the intersection of all objects.
+    intersectArray: (objectArray, materialIndexMax = Infinity) ->
 
-                    batches = []
-                    currentIndex = 0
+        Polytree.async.processArrayWithOperation(
+            objectArray,
+            materialIndexMax,
+            Polytree.async.intersect,
+            Polytree.async.intersectArray,
+            'intersection'
+        )
 
-                    while currentIndex < objArr.length
+    # Main operation handler that delegates to the synchronous operation method.
+    # This provides a unified interface for complex CSG operations with async support.
+    #
+    # @param operationObject - Object containing the operation definition.
+    # @param returnPolytrees - Whether to return polytree objects instead of meshes.
+    # @param buildTargetPolytree - Whether to build the target polytree structure.
+    # @param options - Configuration options including objCounter for unique IDs.
+    # @param firstRun - Whether this is the top-level operation call.
+    #
+    # @return Result of the operation (mesh, polytree, or operation tree).
+    operation: (operationObject, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
 
-                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
-                        currentIndex += Polytree.async.batchSize
+        Polytree.operation(operationObject, returnPolytrees, buildTargetPolytree, options, firstRun, true)
 
-                    batch = batches.shift()
-
-                    while batch
-
-                        promise = Polytree.async.uniteArray(batch, 0)
-                        promises.push(promise)
-                        batch = batches.shift()
-
-                    usingBatches = true
-                    mainPolytreeUsed = true
-                    objArr.length = 0
-
-                else
-
-                    polytreesArray = []
-
-                    for i in [0...objArr.length]
-
-                        materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempPolytree = undefined
-
-                        if objArr[i].isMesh
-
-                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
-
-                        else
-
-                            tempPolytree = objArr[i]
-
-                            if materialIndexMax > -1
-
-                                tempPolytree.setPolygonIndex(materialIndex)
-
-                        tempPolytree.polytreeIndex = i
-                        polytreesArray.push(tempPolytree)
-
-                    mainPolytree = polytreesArray.shift()
-                    result = undefined
-                    hasLeftOver = false
-                    leftOverPolytree = undefined
-
-                    for i in [0...polytreesArray.length] by 2
-
-                        if i + 1 >= polytreesArray.length
-
-                            leftOverPolytree = polytreesArray[i]
-                            hasLeftOver = true
-                            break
-
-                        promise = Polytree.async.unite(polytreesArray[i], polytreesArray[i + 1])
-                        promises.push(promise)
-
-                    if leftOverPolytree
-
-                        promise = Polytree.async.unite(mainPolytree, leftOverPolytree)
-                        promises.push(promise)
-                        mainPolytreeUsed = true
-
-                Promise.allSettled(promises).then (results) ->
-
-                    polytrees = []
-
-                    results.forEach (r) ->
-
-                        if r.status is "fulfilled"
-
-                            polytrees.push(r.value)
-
-                    unless mainPolytreeUsed
-
-                        polytrees.unshift(mainPolytree)
-
-                    if polytrees.length > 0
-
-                        if polytrees.length is 1
-
-                            resolve(polytrees[0])
-
-                        else if polytrees.length > 3
-
-                            Polytree.async.uniteArray(polytrees, if usingBatches then 0 else -1).then (result) ->
-
-                                resolve(result)
-
-                            .catch (e) -> reject(e)
-
-                        else
-
-                            Polytree.async.unite(polytrees[0], polytrees[1]).then (result) ->
-
-                                if polytrees.length is 3
-
-                                    Polytree.async.unite(result, polytrees[2]).then (result) ->
-
-                                        resolve(result)
-
-                                    .catch (e) -> reject(e)
-
-                                else
-
-                                    resolve(result)
-
-                            .catch (e) -> reject(e)
-
-                    else
-
-                        reject('Unable to find any result polytree')
-
-            catch e
-
-                reject(e)
-
-    subtractArray: (objArr, materialIndexMax = Infinity) ->
+    # Generic helper method for processing array operations with any CSG operation.
+    # This reduces code duplication between uniteArray, subtractArray, and intersectArray.
+    #
+    # @param objectArray - Array of meshes or polytrees to process.
+    # @param materialIndexMax - Maximum material index for assignment.
+    # @param operationMethod - The async CSG method to use (unite, subtract, or intersect).
+    # @param arrayOperationMethod - The corresponding array method for recursive calls.
+    # @param operationName - Name of the operation for error messages.
+    #
+    # @return Promise that resolves to the final result polytree.
+    processArrayWithOperation: (objectArray, materialIndexMax, operationMethod, arrayOperationMethod, operationName) ->
 
         new Promise (resolve, reject) ->
 
             try
 
-                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
+                # Determine if we should use batching based on array size and batch configuration.
+                shouldUseBatching = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objectArray.length
                 mainPolytree = undefined
-                mainPolytreeUsed = false
-                promises = []
+                isMainPolytreeUsed = false
+                operationPromises = []
 
-                if usingBatches
+                if shouldUseBatching
 
-                    batches = []
-                    currentIndex = 0
+                    # Process large arrays in batches to prevent memory issues.
+                    batchArray = []
+                    currentBatchIndex = 0
 
-                    while currentIndex < objArr.length
+                    while currentBatchIndex < objectArray.length
 
-                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
-                        currentIndex += Polytree.async.batchSize
+                        batchArray.push objectArray.slice(currentBatchIndex, currentBatchIndex + Polytree.async.batchSize)
+                        currentBatchIndex += Polytree.async.batchSize
 
-                    batch = batches.shift()
+                    currentBatch = batchArray.shift()
 
-                    while batch
+                    while currentBatch
 
-                        promise = Polytree.async.subtractArray(batch, 0)
-                        promises.push(promise)
-                        batch = batches.shift()
+                        batchPromise = arrayOperationMethod(currentBatch, 0)
+                        operationPromises.push(batchPromise)
+                        currentBatch = batchArray.shift()
 
-                    usingBatches = true
-                    mainPolytreeUsed = true
-                    objArr.length = 0
+                    # Mark that we're using batching and clear the original array.
+                    shouldUseBatching = true
+                    isMainPolytreeUsed = true
+                    objectArray.length = 0
 
                 else
 
+                    # Process smaller arrays directly without batching.
                     polytreesArray = []
 
-                    for i in [0...objArr.length]
+                    for objectIndex in [0...objectArray.length]
 
-                        materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempPolytree = undefined
+                        materialIndex = if objectIndex > materialIndexMax then materialIndexMax else objectIndex
+                        convertedPolytree = undefined
 
-                        if objArr[i].isMesh
+                        # Convert mesh to polytree if necessary.
+                        if objectArray[objectIndex].isMesh
 
-                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
+                            convertedPolytree = Polytree.fromMesh(objectArray[objectIndex], if materialIndexMax > -1 then materialIndex else undefined)
 
                         else
 
-                            tempPolytree = objArr[i]
+                            convertedPolytree = objectArray[objectIndex]
 
                             if materialIndexMax > -1
 
-                                tempPolytree.setPolygonIndex(materialIndex)
+                                convertedPolytree.setPolygonIndex(materialIndex)
 
-                        tempPolytree.polytreeIndex = i
-                        polytreesArray.push(tempPolytree)
+                        # Set tracking index for debugging and traceability.
+                        convertedPolytree.polytreeIndex = objectIndex
+                        polytreesArray.push(convertedPolytree)
 
+                    # Extract the first polytree as the main polytree.
                     mainPolytree = polytreesArray.shift()
-                    result = undefined
-                    hasLeftOver = false
                     leftOverPolytree = undefined
 
-                    for i in [0...polytreesArray.length] by 2
+                    # Process polytrees in pairs for parallel execution.
+                    for pairStartIndex in [0...polytreesArray.length] by 2
 
-                        if i + 1 >= polytreesArray.length
+                        if pairStartIndex + 1 >= polytreesArray.length
 
-                            leftOverPolytree = polytreesArray[i]
-                            hasLeftOver = true
+                            # Handle odd number of polytrees - save the leftover.
+                            leftOverPolytree = polytreesArray[pairStartIndex]
                             break
 
-                        promise = Polytree.async.subtract(polytreesArray[i], polytreesArray[i + 1])
-                        promises.push(promise)
+                        pairPromise = operationMethod(polytreesArray[pairStartIndex], polytreesArray[pairStartIndex + 1])
+                        operationPromises.push(pairPromise)
 
+                    # If there's a leftover polytree, apply operation with the main polytree.
                     if leftOverPolytree
 
-                        promise = Polytree.async.subtract(mainPolytree, leftOverPolytree)
-                        promises.push(promise)
-                        mainPolytreeUsed = true
+                        leftOverPromise = operationMethod(mainPolytree, leftOverPolytree)
+                        operationPromises.push(leftOverPromise)
+                        isMainPolytreeUsed = true
 
-                Promise.allSettled(promises).then (results) ->
+                # Wait for all parallel operations to complete and process results.
+                Promise.allSettled(operationPromises).then (promiseResults) ->
 
-                    polytrees = []
+                    successfulPolytrees = []
 
-                    results.forEach (r) ->
+                    # Extract successful results from the promise results.
+                    promiseResults.forEach (promiseResult) ->
 
-                        if r.status is "fulfilled"
+                        if promiseResult.status is "fulfilled"
 
-                            polytrees.push(r.value)
+                            successfulPolytrees.push(promiseResult.value)
 
-                    unless mainPolytreeUsed
+                    # Add the main polytree if it wasn't used in operations.
+                    unless isMainPolytreeUsed
 
-                        polytrees.unshift(mainPolytree)
+                        successfulPolytrees.unshift(mainPolytree)
 
-                    if polytrees.length > 0
+                    # Process the final results based on count.
+                    if successfulPolytrees.length > 0
 
-                        if polytrees.length is 1
+                        if successfulPolytrees.length is 1
 
-                            resolve(polytrees[0])
+                            resolve(successfulPolytrees[0])
 
-                        else if polytrees.length > 3
+                        else if successfulPolytrees.length > 3
 
-                            Polytree.async.subtractArray(polytrees, if usingBatches then 0 else -1).then (result) ->
+                            # Use recursive processing for large result sets.
+                            arrayOperationMethod(successfulPolytrees, if shouldUseBatching then 0 else -1).then (finalResult) ->
 
-                                resolve(result)
+                                resolve(finalResult)
 
-                            .catch (e) -> reject(e)
+                            .catch (error) -> reject(error)
 
                         else
 
-                            Polytree.async.subtract(polytrees[0], polytrees[1]).then (result) ->
+                            # Handle 2-3 results directly for efficiency.
+                            operationMethod(successfulPolytrees[0], successfulPolytrees[1]).then (intermediateResult) ->
 
-                                if polytrees.length is 3
+                                if successfulPolytrees.length is 3
 
-                                    Polytree.async.subtract(result, polytrees[2]).then (result) ->
+                                    operationMethod(intermediateResult, successfulPolytrees[2]).then (finalResult) ->
 
-                                        resolve(result)
+                                        resolve(finalResult)
 
-                                    .catch (e) -> reject(e)
+                                    .catch (error) -> reject(error)
 
                                 else
 
-                                    resolve(result)
+                                    resolve(intermediateResult)
 
-                            .catch (e) -> reject(e)
-
-                    else
-
-                        reject('Unable to find any result polytree')
-
-            catch e
-
-                reject(e)
-
-    intersectArray: (objArr, materialIndexMax = Infinity) ->
-
-        new Promise (resolve, reject) ->
-
-            try
-
-                usingBatches = Polytree.async.batchSize > 4 and Polytree.async.batchSize < objArr.length
-                mainPolytree = undefined
-                mainPolytreeUsed = false
-                promises = []
-
-                if usingBatches
-
-                    batches = []
-                    currentIndex = 0
-
-                    while currentIndex < objArr.length
-
-                        batches.push objArr.slice(currentIndex, currentIndex + Polytree.async.batchSize)
-                        currentIndex += Polytree.async.batchSize
-
-                    batch = batches.shift()
-
-                    while batch
-
-                        promise = Polytree.async.intersectArray(batch, 0)
-                        promises.push(promise)
-                        batch = batches.shift()
-
-                    usingBatches = true
-                    mainPolytreeUsed = true
-                    objArr.length = 0
-
-                else
-
-                    polytreesArray = []
-
-                    for i in [0...objArr.length]
-
-                        materialIndex = if i > materialIndexMax then materialIndexMax else i
-                        tempPolytree = undefined
-
-                        if objArr[i].isMesh
-
-                            tempPolytree = Polytree.fromMesh(objArr[i], if materialIndexMax > -1 then materialIndex else undefined)
-
-                        else
-
-                            tempPolytree = objArr[i]
-
-                            if materialIndexMax > -1
-
-                                tempPolytree.setPolygonIndex(materialIndex)
-
-                        tempPolytree.polytreeIndex = i
-                        polytreesArray.push(tempPolytree)
-
-                    mainPolytree = polytreesArray.shift()
-                    result = undefined
-                    hasLeftOver = false
-                    leftOverPolytree = undefined
-
-                    for i in [0...polytreesArray.length] by 2
-
-                        if i + 1 >= polytreesArray.length
-
-                            leftOverPolytree = polytreesArray[i]
-                            hasLeftOver = true
-                            break
-
-                        promise = Polytree.async.intersect(polytreesArray[i], polytreesArray[i + 1])
-                        promises.push(promise)
-
-                    if leftOverPolytree
-
-                        promise = Polytree.async.intersect(mainPolytree, leftOverPolytree)
-                        promises.push(promise)
-                        mainPolytreeUsed = true
-
-                Promise.allSettled(promises).then (results) ->
-
-                    polytrees = []
-
-                    results.forEach (r) ->
-
-                        if r.status is "fulfilled"
-
-                            polytrees.push(r.value)
-
-                    unless mainPolytreeUsed
-
-                        polytrees.unshift(mainPolytree)
-
-                    if polytrees.length > 0
-
-                        if polytrees.length is 1
-
-                            resolve(polytrees[0])
-
-                        else if polytrees.length > 3
-
-                            Polytree.async.intersectArray(polytrees, if usingBatches then 0 else -1).then (result) ->
-
-                                resolve(result)
-
-                            .catch (e) -> reject(e)
-
-                        else
-
-                            Polytree.async.intersect(polytrees[0], polytrees[1]).then (result) ->
-
-                                if polytrees.length is 3
-
-                                    Polytree.async.intersect(result, polytrees[2]).then (result) ->
-
-                                        resolve(result)
-
-                                    .catch (e) -> reject(e)
-
-                                else
-
-                                    resolve(result)
-
-                            .catch (e) -> reject(e)
+                            .catch (error) -> reject(error)
 
                     else
 
-                        reject('Unable to find any result polytree')
+                        reject("Unable to find any result polytree after #{operationName} operation.")
 
-            catch e
+            catch error
 
-                reject(e)
-
-    operation: (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
-
-        Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, true)
+                reject(error)
