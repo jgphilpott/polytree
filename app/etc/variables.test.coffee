@@ -266,12 +266,12 @@ describe "Variables module", ->
         it "OCTREE_MAX_DEPTH should be a number", ->
 
             expect(typeof OCTREE_MAX_DEPTH).toBe("number")
-            expect(OCTREE_MAX_DEPTH).toBe(50)
+            expect(OCTREE_MAX_DEPTH).toBe(1000)
 
         it "OCTREE_MAX_POLYGONS_PER_NODE should be a number", ->
 
             expect(typeof OCTREE_MAX_POLYGONS_PER_NODE).toBe("number")
-            expect(OCTREE_MAX_POLYGONS_PER_NODE).toBe(1000)
+            expect(OCTREE_MAX_POLYGONS_PER_NODE).toBe(100000)
 
         it "OCTREE_MIN_NODE_SIZE should be a number", ->
 
@@ -286,7 +286,7 @@ describe "Variables module", ->
         it "MAX_REFINEMENT_ITERATIONS should be a number", ->
 
             expect(typeof MAX_REFINEMENT_ITERATIONS).toBe("number")
-            expect(MAX_REFINEMENT_ITERATIONS).toBe(1000)
+            expect(MAX_REFINEMENT_ITERATIONS).toBe(10000)
 
     describe "Performance and Optimization Variables", ->
 
@@ -308,12 +308,12 @@ describe "Variables module", ->
         it "MAX_WORKER_THREADS should be a number", ->
 
             expect(typeof MAX_WORKER_THREADS).toBe("number")
-            expect(MAX_WORKER_THREADS).toBe(16)
+            expect(MAX_WORKER_THREADS).toBe(Infinity)
 
         it "ASYNC_OPERATION_TIMEOUT should be a number", ->
 
             expect(typeof ASYNC_OPERATION_TIMEOUT).toBe("number")
-            expect(ASYNC_OPERATION_TIMEOUT).toBe(300000)
+            expect(ASYNC_OPERATION_TIMEOUT).toBe(Infinity)
 
         it "GARBAGE_COLLECTION_THRESHOLD should be a number", ->
 
@@ -328,12 +328,12 @@ describe "Variables module", ->
         it "GEOMETRY_CACHE_SIZE should be a number", ->
 
             expect(typeof GEOMETRY_CACHE_SIZE).toBe("number")
-            expect(GEOMETRY_CACHE_SIZE).toBe(50000)
+            expect(GEOMETRY_CACHE_SIZE).toBe(Infinity)
 
         it "INTERSECTION_CACHE_SIZE should be a number", ->
 
             expect(typeof INTERSECTION_CACHE_SIZE).toBe("number")
-            expect(INTERSECTION_CACHE_SIZE).toBe(100000)
+            expect(INTERSECTION_CACHE_SIZE).toBe(Infinity)
 
     describe "Polygon ID Management Variables", ->
 

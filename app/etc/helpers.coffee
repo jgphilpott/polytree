@@ -10,7 +10,7 @@ operationCounter = 0
 # Clear intersection cache when it exceeds size limit.
 clearIntersectionCache = ->
     
-    if intersectionCache.size > INTERSECTION_CACHE_SIZE
+    if INTERSECTION_CACHE_SIZE isnt Infinity and intersectionCache.size > INTERSECTION_CACHE_SIZE
         
         # Remove oldest entries (simple FIFO approach).
         keysToRemove = intersectionCacheKeys.splice(0, Math.floor(INTERSECTION_CACHE_SIZE / 2))

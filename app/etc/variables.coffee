@@ -150,10 +150,10 @@ meshOperationVertexVector = new Vector3()
 # =============================================================================
 
 # Maximum subdivision depth for octree structures.
-OCTREE_MAX_DEPTH = 50
+OCTREE_MAX_DEPTH = 1000
 
 # Maximum polygons per octree node before subdivision.
-OCTREE_MAX_POLYGONS_PER_NODE = 1000
+OCTREE_MAX_POLYGONS_PER_NODE = 100000
 
 # Minimum octree node size to prevent excessive subdivision.
 OCTREE_MIN_NODE_SIZE = 1e-6
@@ -162,7 +162,7 @@ OCTREE_MIN_NODE_SIZE = 1e-6
 DEFAULT_MATERIAL_INDEX = 0
 
 # Maximum iterations for iterative refinement algorithms.
-MAX_REFINEMENT_ITERATIONS = 1000
+MAX_REFINEMENT_ITERATIONS = 10000
 
 # =============================================================================
 # PERFORMANCE AND OPTIMIZATION VARIABLES
@@ -179,18 +179,18 @@ POINT_COINCIDENCE_THRESHOLD = 1e-15
 DEFAULT_BUFFER_SIZE = 16384
 
 # Maximum number of worker threads for parallel processing.
-MAX_WORKER_THREADS = 16
+MAX_WORKER_THREADS = Infinity
 
 # Timeout for async operations (in milliseconds).
-ASYNC_OPERATION_TIMEOUT = 300000
+ASYNC_OPERATION_TIMEOUT = Infinity
 
 # Memory management thresholds.
 GARBAGE_COLLECTION_THRESHOLD = 100000
 MEMORY_USAGE_WARNING_LIMIT = 0.95
 
 # Cache size limits.
-GEOMETRY_CACHE_SIZE = 50000
-INTERSECTION_CACHE_SIZE = 100000
+GEOMETRY_CACHE_SIZE = Infinity
+INTERSECTION_CACHE_SIZE = Infinity
 
 # =============================================================================
 # POLYGON ID MANAGEMENT

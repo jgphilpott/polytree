@@ -6,8 +6,8 @@ class Polytree
 
     # ----- Static Properties -----
 
-    @maxLevel = 50
-    @polygonsPerTree = 1000
+    @maxLevel = 1000
+    @polygonsPerTree = 100000
 
     @usePolytreeRay = true
     @disposePolytree = true
@@ -272,6 +272,7 @@ class Polytree
             # Use the more restrictive of the two depth limits and polygon limits for maximum performance control.
             maxDepthLimit = Math.min(Polytree.maxLevel, OCTREE_MAX_DEPTH)
             polygonLimit = Math.min(Polytree.polygonsPerTree, OCTREE_MAX_POLYGONS_PER_NODE)
+            
             if len > polygonLimit and level < maxDepthLimit and nodeSize > OCTREE_MIN_NODE_SIZE
 
                 subTrees[i].split(level + 1)

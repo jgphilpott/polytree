@@ -22,21 +22,23 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout.
-            timeoutId = setTimeout ->
-                reject(new Error("Union operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
-            , ASYNC_OPERATION_TIMEOUT
+            # Set up operation timeout only if not infinite.
+            timeoutId = null
+            if ASYNC_OPERATION_TIMEOUT isnt Infinity
+                timeoutId = setTimeout ->
+                    reject(new Error("Union operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+                , ASYNC_OPERATION_TIMEOUT
 
             try
 
                 result = Polytree.uniteCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 
@@ -52,21 +54,23 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout.
-            timeoutId = setTimeout ->
-                reject(new Error("Subtract operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
-            , ASYNC_OPERATION_TIMEOUT
+            # Set up operation timeout only if not infinite.
+            timeoutId = null
+            if ASYNC_OPERATION_TIMEOUT isnt Infinity
+                timeoutId = setTimeout ->
+                    reject(new Error("Subtract operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+                , ASYNC_OPERATION_TIMEOUT
 
             try
 
                 result = Polytree.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 
@@ -82,21 +86,23 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout.
-            timeoutId = setTimeout ->
-                reject(new Error("Intersect operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
-            , ASYNC_OPERATION_TIMEOUT
+            # Set up operation timeout only if not infinite.
+            timeoutId = null
+            if ASYNC_OPERATION_TIMEOUT isnt Infinity
+                timeoutId = setTimeout ->
+                    reject(new Error("Intersect operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+                , ASYNC_OPERATION_TIMEOUT
 
             try
 
                 result = Polytree.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
                 disposePolytreeResources(polytreeA, polytreeB)
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 resolve(result)
 
             catch error
 
-                clearTimeout(timeoutId)
+                if timeoutId then clearTimeout(timeoutId)
                 disposePolytreeResources(polytreeA, polytreeB)
                 reject(error)
 
