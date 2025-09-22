@@ -1,5 +1,19 @@
-# Main operation handler.
-operationHandler = (obj, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
+# Main operation handler for processing CSG operations on Polytree objects.
+# This function handles both synchronous and asynchronous CSG operations (unite, subtract, intersect)
+# and manages the conversion between meshes and polytrees as needed.
+#
+# @param operationObject - Object containing the operation definition with properties:
+#   - op: Operation type ('unite', 'subtract', 'intersect')
+#   - objA: First operand (mesh, polytree, or nested operation)
+#   - objB: Second operand (mesh, polytree, or nested operation)
+#   - material: Optional material for final mesh output
+# @param returnPolytrees - Whether to return polytree objects instead of meshes.
+# @param buildTargetPolytree - Whether to build the target polytree structure.
+# @param options - Configuration options including objCounter for unique IDs.
+# @param firstRun - Whether this is the top-level operation call.
+# @param async - Whether to execute asynchronously using promises.
+# @return Result mesh, polytree, or operation tree depending on parameters.
+operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
 
     if async
 
@@ -7,180 +21,321 @@ operationHandler = (obj, returnPolytrees = false, buildTargetPolytree = true, op
 
             try
 
-                _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async).then (result) ->
-
-                    resolve(result)
-
-                .catch (error) -> reject(error)
-
-            catch error
-
-                reject(error)
-
-    else
-
-        _handleOperation(obj, returnPolytrees, buildTargetPolytree, options, firstRun, async)
-
-_handleOperation = (obj, returnPolytrees, buildTargetPolytree, options, firstRun, async) ->
-
-    if async
-
-        new Promise (resolve, reject) ->
-
-            try
-
-                polytreeA = undefined
-                polytreeB = undefined
+                # Initialize variables for the two operands and result.
+                firstOperand = undefined
+                secondOperand = undefined
                 resultPolytree = undefined
-                material = undefined
+                materialForMesh = undefined
 
-                if obj.material
+                # Capture original material for default use before processing operands.
+                originalMaterialA = operationObject.objA?.material
+                originalMaterialB = operationObject.objB?.material
 
-                    material = obj.material
+                if operationObject.material
 
-                promises = []
+                    materialForMesh = operationObject.material
 
-                if obj.objA
+                # Process operands in parallel for async operations.
+                operandPromises = []
 
-                    promise = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, 0, async)
-                    promises.push(promise)
+                if operationObject.objA
 
-                if obj.objB
+                    operandPromise = handleObjectForOperation(operationObject.objA, returnPolytrees, buildTargetPolytree, options, 0, async)
+                    operandPromises.push(operandPromise)
 
-                    promise = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, 1, async)
-                    promises.push(promise)
+                if operationObject.objB
 
-                Promise.allSettled(promises).then (results) ->
+                    operandPromise = handleObjectForOperation(operationObject.objB, returnPolytrees, buildTargetPolytree, options, 1, async)
+                    operandPromises.push(operandPromise)
 
-                    polytrees = []
+                Promise.allSettled(operandPromises).then (promiseResults) ->
 
-                    results.forEach (r) ->
+                    # Extract operands from promise results.
+                    promiseResults.forEach (promiseResult) ->
 
-                        if r.status is "fulfilled"
+                        if promiseResult.status is "fulfilled"
 
-                            if r.value.objIndex is 0
+                            if promiseResult.value.objIndex is 0
 
-                                polytreeA = r.value
+                                firstOperand = promiseResult.value
 
-                            else if r.value.objIndex is 1
+                            else if promiseResult.value.objIndex is 1
 
-                                polytreeB = r.value
+                                secondOperand = promiseResult.value
 
+                    # Handle polytree return mode by updating operation object references.
                     if returnPolytrees is true
 
-                        obj.objA = polytreeA.original
-                        polytreeA = polytreeA.result
-                        obj.objB = polytreeB.original
-                        polytreeB = polytreeB.result
+                        # Extract polytrees from wrapper objects when in polytree return mode.
+                        if firstOperand
 
-                    resultPromise = undefined
+                            operationObject.objA = firstOperand.original
+                            firstOperand = firstOperand.result
 
-                    switch obj.op
+                        if secondOperand
+
+                            operationObject.objB = secondOperand.original
+                            secondOperand = secondOperand.result
+
+                    # Execute the appropriate CSG operation based on operation type.
+                    operationPromise = undefined
+
+                    switch operationObject.op
 
                         when 'unite'
 
-                            resultPromise = Polytree.async.unite(polytreeA, polytreeB, buildTargetPolytree)
+                            if firstOperand and secondOperand
+
+                                operationPromise = Polytree.async.unite(firstOperand, secondOperand, buildTargetPolytree)
+
+                            else
+
+                                # Handle missing operands gracefully.
+                                operationPromise = Promise.resolve(firstOperand or secondOperand or new Polytree())
 
                         when 'subtract'
 
-                            resultPromise = Polytree.async.subtract(polytreeA, polytreeB, buildTargetPolytree)
+                            if firstOperand and secondOperand
+
+                                operationPromise = Polytree.async.subtract(firstOperand, secondOperand, buildTargetPolytree)
+
+                            else
+
+                                # For subtract, return first operand or empty polytree.
+                                operationPromise = Promise.resolve(firstOperand or new Polytree())
 
                         when 'intersect'
 
-                            resultPromise = Polytree.async.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                            if firstOperand and secondOperand
 
-                    resultPromise.then (resultPolytree) ->
+                                operationPromise = Polytree.async.intersect(firstOperand, secondOperand, buildTargetPolytree)
 
-                        if firstRun and material
+                            else
 
-                            mesh = Polytree.toMesh(resultPolytree, material)
+                                # For intersect, missing operand means no result.
+                                operationPromise = Promise.resolve(new Polytree())
 
-                            unless returnPolytrees
+                        else
 
-                                disposePolytreeResources(resultPolytree)
+                            # Handle invalid operation types gracefully.
+                            operationPromise = Promise.resolve(new Polytree())
 
-                            resolve(if returnPolytrees then { result: mesh, operationTree: obj } else mesh)
+                    # Handle the operation result and determine final output format.
+                    operationPromise.then (resultPolytree) ->
+
+                        # Ensure result polytree has proper bounding box for subsequent operations.
+                        if resultPolytree and not resultPolytree.box and resultPolytree.bounds
+
+                            resultPolytree.buildTree()
+
+                        # Convert to mesh for first run operations unless returning polytrees.
+                        if firstRun and not returnPolytrees
+
+                            # Skip mesh conversion if result polytree has no valid polygons.
+                            allPolygons = resultPolytree.getPolygons()
+
+                            if not resultPolytree or allPolygons.length is 0
+
+                                resolve(undefined)
+                                return
+
+                            if materialForMesh
+
+                                finalMesh = Polytree.toMesh(resultPolytree, materialForMesh)
+
+                            else
+
+                                # Use default material from original operands if no material specified.
+                                defaultMaterial = undefined
+
+                                if originalMaterialA
+
+                                    defaultMaterial = if Array.isArray(originalMaterialA) then originalMaterialA[0] else originalMaterialA
+                                    defaultMaterial = defaultMaterial.clone()
+
+                                else if originalMaterialB
+
+                                    defaultMaterial = if Array.isArray(originalMaterialB) then originalMaterialB[0] else originalMaterialB
+                                    defaultMaterial = defaultMaterial.clone()
+
+                                else
+
+                                    # No material available - resolve with undefined.
+                                    resolve(undefined)
+                                    return
+
+                                finalMesh = Polytree.toMesh(resultPolytree, defaultMaterial)
+
+                            disposePolytreeResources(resultPolytree)
+                            resolve(finalMesh)
 
                         else if firstRun and returnPolytrees
 
-                            resolve({ result: resultPolytree, operationTree: obj })
+                            if materialForMesh
+
+                                finalMesh = Polytree.toMesh(resultPolytree, materialForMesh)
+                                disposePolytreeResources(resultPolytree)
+                                resolve({ result: finalMesh, operationTree: operationObject })
+
+                            else
+
+                                resolve({ result: resultPolytree, operationTree: operationObject })
 
                         else
 
                             resolve(resultPolytree)
 
+                        # Clean up intermediate polytrees unless returning them.
                         unless returnPolytrees
 
-                            disposePolytreeResources(polytreeA, polytreeB)
+                            if firstOperand or secondOperand
 
-                    .catch (e) -> reject(e)
+                                disposePolytreeResources(firstOperand, secondOperand)
 
-            catch e
+                    .catch (operationError) -> reject(operationError)
 
-                reject(e)
+            catch asyncError
+
+                reject(asyncError)
 
     else
 
-        polytreeA = undefined
-        polytreeB = undefined
+        # Synchronous operation handling.
+        firstOperand = undefined
+        secondOperand = undefined
         resultPolytree = undefined
-        material = undefined
+        materialForMesh = undefined
 
-        if obj.material
+        if operationObject.material
 
-            material = obj.material
+            materialForMesh = operationObject.material
 
-        if obj.objA
+        # Process first operand.
+        if operationObject.objA
 
-            polytreeA = handleObjectForOp(obj.objA, returnPolytrees, buildTargetPolytree, options, undefined, async)
-
-            if returnPolytrees == true
-
-                obj.objA = polytreeA.original
-                polytreeA = polytreeA.result
-
-        if obj.objB
-
-            polytreeB = handleObjectForOp(obj.objB, returnPolytrees, buildTargetPolytree, options, undefined, async)
+            firstOperand = handleObjectForOperation(operationObject.objA, returnPolytrees, buildTargetPolytree, options, undefined, async)
 
             if returnPolytrees == true
 
-                obj.objB = polytreeB.original
-                polytreeB = polytreeB.result
+                operationObject.objA = firstOperand.original
+                firstOperand = firstOperand.result
 
-        switch obj.op
+        # Process second operand.
+        if operationObject.objB
+
+            secondOperand = handleObjectForOperation(operationObject.objB, returnPolytrees, buildTargetPolytree, options, undefined, async)
+
+            if returnPolytrees == true
+
+                operationObject.objB = secondOperand.original
+                secondOperand = secondOperand.result
+
+        # Execute the appropriate CSG operation.
+        switch operationObject.op
 
             when 'unite'
 
-                resultPolytree = Polytree.unite(polytreeA, polytreeB, buildTargetPolytree)
+                if firstOperand and secondOperand
+
+                    resultPolytree = Polytree.unite(firstOperand, secondOperand, buildTargetPolytree)
+
+                else
+
+                    # Handle missing operands - return the available operand or empty polytree.
+                    resultPolytree = firstOperand or secondOperand or new Polytree()
 
             when 'subtract'
 
-                resultPolytree = Polytree.subtract(polytreeA, polytreeB, buildTargetPolytree)
+                if firstOperand and secondOperand
+
+                    resultPolytree = Polytree.subtract(firstOperand, secondOperand, buildTargetPolytree)
+
+                else
+
+                    # For subtract, if missing second operand, return first; if missing first, return empty.
+                    resultPolytree = firstOperand or new Polytree()
 
             when 'intersect'
 
-                resultPolytree = Polytree.intersect(polytreeA, polytreeB, buildTargetPolytree)
+                if firstOperand and secondOperand
 
+                    resultPolytree = Polytree.intersect(firstOperand, secondOperand, buildTargetPolytree)
+
+                else
+
+                    # For intersect, missing either operand means no intersection - return empty polytree.
+                    resultPolytree = new Polytree()
+
+            else
+
+                # Handle invalid operation types gracefully - return empty polytree.
+                resultPolytree = new Polytree()
+
+        # Ensure result polytree has proper bounding box for subsequent operations.
+        if resultPolytree and not resultPolytree.box and resultPolytree.bounds
+
+            resultPolytree.buildTree()
+
+        # Clean up intermediate polytrees unless returning them.
         unless returnPolytrees
 
-            disposePolytreeResources(polytreeA, polytreeB)
+            if firstOperand or secondOperand
 
-        if firstRun and material
+                disposePolytreeResources(firstOperand, secondOperand)
 
-            mesh = Polytree.toMesh(resultPolytree, material)
+        # Handle final output format for synchronous operations.
+        if firstRun and not returnPolytrees
+
+            # Skip mesh conversion if result polytree has no valid polygons.
+            allPolygons = resultPolytree.getPolygons()
+
+            if not resultPolytree or allPolygons.length is 0
+
+                return undefined
+
+            # Convert polytree result to mesh for top-level operations.
+            if materialForMesh
+
+                finalMesh = Polytree.toMesh(resultPolytree, materialForMesh)
+
+            else
+
+                # Use default material from first operand if no material specified.
+                defaultMaterial = undefined
+
+                if operationObject.objA?.material
+
+                    defaultMaterial = if Array.isArray(operationObject.objA.material) then operationObject.objA.material[0] else operationObject.objA.material
+                    defaultMaterial = defaultMaterial.clone()
+
+                else
+
+                    # No material available - return undefined instead of creating empty mesh.
+                    return undefined
+
+                finalMesh = Polytree.toMesh(resultPolytree, defaultMaterial)
+
             disposePolytreeResources(resultPolytree)
 
-            return if returnPolytrees then { result: mesh, operationTree: obj } else mesh
+            return finalMesh
 
         if firstRun and returnPolytrees
 
-            return { result: resultPolytree, operationTree: obj }
+            return { result: resultPolytree, operationTree: operationObject }
 
         return resultPolytree
 
-# Handle object for operation.
-handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objIndex, async = true) ->
+# Handle individual object processing for CSG operations.
+# Converts meshes to polytrees and handles nested operations recursively.
+#
+# @param inputObject - Object to process (mesh, polytree, or nested operation).
+# @param returnPolytrees - Whether to return polytree objects instead of meshes.
+# @param buildTargetPolytree - Whether to build the target polytree structure.
+# @param options - Configuration options including objCounter for unique IDs.
+# @param objectIndex - Index identifier for tracking operand position (0 or 1).
+# @param async - Whether to execute asynchronously using promises.
+# @return Processed polytree object or promise resolving to one.
+handleObjectForOperation = (inputObject, returnPolytrees, buildTargetPolytree, options, objectIndex, async = true) ->
 
     if async
 
@@ -188,71 +343,78 @@ handleObjectForOp = (obj, returnPolytrees, buildTargetPolytree, options, objInde
 
             try
 
-                returnObj = undefined
+                processedObject = undefined
 
-                if obj.isMesh
+                # Convert Three.js mesh to polytree.
+                if inputObject.isMesh
 
-                    returnObj = Polytree.fromMesh(obj, options.objCounter++)
-
-                    if returnPolytrees
-
-                        returnObj = { result: returnObj, original: returnObj.clone() }
-
-                    returnObj.objIndex = objIndex
-                    resolve(returnObj)
-
-                else if obj.isPolytree
-
-                    returnObj = obj
+                    processedObject = Polytree.fromMesh(inputObject, options.objCounter++)
 
                     if returnPolytrees
 
-                        returnObj = { result: obj, original: obj.clone() }
+                        processedObject = { result: processedObject, original: processedObject.clone() }
 
-                    returnObj.objIndex = objIndex
-                    resolve(returnObj)
+                    processedObject.objIndex = objectIndex
+                    resolve(processedObject)
 
-                else if obj.op
+                # Handle existing polytree objects.
+                else if inputObject.isPolytree
 
-                    Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async).then (returnObj) ->
+                    processedObject = inputObject
+
+                    if returnPolytrees
+
+                        processedObject = { result: inputObject, original: inputObject.clone() }
+
+                    processedObject.objIndex = objectIndex
+                    resolve(processedObject)
+
+                # Handle nested operations recursively.
+                else if inputObject.op
+
+                    Polytree.operation(inputObject, returnPolytrees, buildTargetPolytree, options, false, async).then (nestedResult) ->
 
                         if returnPolytrees
 
-                            returnObj = { result: returnObj, original: obj }
+                            nestedResult = { result: nestedResult, original: inputObject }
 
-                        returnObj.objIndex = objIndex
-                        resolve(returnObj)
+                        nestedResult.objIndex = objectIndex
+                        resolve(nestedResult)
 
-            catch e
+            catch processingError
 
-                reject(e)
+                reject(processingError)
 
     else
 
-        returnObj = undefined
+        # Synchronous object processing.
+        processedObject = undefined
 
-        if obj.isMesh
+        # Convert Three.js mesh to polytree.
+        if inputObject.isMesh
 
-            returnObj = Polytree.fromMesh(obj, options.objCounter++)
-
-            if returnPolytrees
-
-                returnObj = { result: returnObj, original: returnObj.clone() }
-
-        else if obj.isPolytree
-
-            returnObj = obj
+            processedObject = Polytree.fromMesh(inputObject, options.objCounter++)
 
             if returnPolytrees
 
-                returnObj = { result: obj, original: obj.clone() }
+                processedObject = { result: processedObject, original: processedObject.clone() }
 
-        else if obj.op
+        # Handle existing polytree objects.
+        else if inputObject.isPolytree
 
-            returnObj = Polytree.operation(obj, returnPolytrees, buildTargetPolytree, options, false, async)
+            processedObject = inputObject
 
             if returnPolytrees
 
-                returnObj = { result: returnObj, original: obj }
+                processedObject = { result: inputObject, original: inputObject.clone() }
 
-        return returnObj
+        # Handle nested operations recursively.
+        else if inputObject.op
+
+            processedObject = Polytree.operation(inputObject, returnPolytrees, buildTargetPolytree, options, false, async)
+
+            if returnPolytrees
+
+                processedObject = { result: processedObject, original: inputObject }
+
+        return processedObject
