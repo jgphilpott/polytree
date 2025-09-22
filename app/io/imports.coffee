@@ -4,7 +4,6 @@
     Vector3
 
     Box3
-    Plane
     Line3
     Sphere
     Matrix3
@@ -19,3 +18,5 @@
     DoubleSide
 
 } = require "three"
+
+{ Plane: ThreePlane } = require "three"

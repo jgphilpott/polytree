@@ -881,48 +881,48 @@ class Polytree
     triangleSphereIntersect: (sphere, triangle) ->
 
         # Create temporary objects for calculations.
-        v1 = new Vector3()
-        v2 = new Vector3()
-        line = new Line3()
-        plane = new Plane()
+        temporaryVector1 = new Vector3()
+        temporaryVector2 = new Vector3()
+        temporaryLine = new Line3()
+        trianglePlane = new ThreePlane()
 
-        triangle.getPlane(plane)
+        triangle.getPlane(trianglePlane)
 
-        return false unless sphere.intersectsPlane(plane)
+        return false unless sphere.intersectsPlane(trianglePlane)
 
-        depth = Math.abs(plane.distanceToSphere(sphere))
-        r2 = sphere.radius * sphere.radius - depth * depth
+        intersectionDepth = Math.abs(trianglePlane.distanceToSphere(sphere))
+        radiusSquared = sphere.radius * sphere.radius - intersectionDepth * intersectionDepth
 
-        plainPoint = plane.projectPoint(sphere.center, v1)
+        planePoint = trianglePlane.projectPoint(sphere.center, temporaryVector1)
 
         if triangle.containsPoint(sphere.center)
 
             return
 
-                depth: Math.abs(plane.distanceToSphere(sphere))
-                normal: plane.normal.clone()
-                point: plainPoint.clone()
+                depth: Math.abs(trianglePlane.distanceToSphere(sphere))
+                normal: trianglePlane.normal.clone()
+                point: planePoint.clone()
 
-        lines = [
+        triangleEdges = [
             [triangle.a, triangle.b]
             [triangle.b, triangle.c]
             [triangle.c, triangle.a]
         ]
 
-        for i in [0...lines.length]
+        for i in [0...triangleEdges.length]
 
-            line.set(lines[i][0], lines[i][1])
-            line.closestPointToPoint(plainPoint, true, v2)
+            temporaryLine.set(triangleEdges[i][0], triangleEdges[i][1])
+            temporaryLine.closestPointToPoint(planePoint, true, temporaryVector2)
 
-            d = v2.distanceToSquared(sphere.center)
+            distanceSquared = temporaryVector2.distanceToSquared(sphere.center)
 
-            if d < r2
+            if distanceSquared < radiusSquared
 
                 return
 
-                    depth: sphere.radius - Math.sqrt(d)
-                    normal: sphere.center.clone().sub(v2).normalize()
-                    point: v2.clone()
+                    depth: sphere.radius - Math.sqrt(distanceSquared)
+                    normal: sphere.center.clone().sub(temporaryVector2).normalize()
+                    point: temporaryVector2.clone()
 
         return false
 
@@ -933,25 +933,27 @@ class Polytree
     # @param triangles - Array to collect intersecting triangles.
     getSphereTriangles: (sphere, triangles) ->
 
-        for i in [0...@subTrees.length]
+        for subTreeIndex in [0...@subTrees.length]
 
-            subTree = @subTrees[i]
+            currentSubTree = @subTrees[subTreeIndex]
 
-            continue unless sphere.intersectsBox(subTree.box)
+            continue unless sphere.intersectsBox(currentSubTree.box)
 
-            if subTree.polygons.length > 0
+            if currentSubTree.polygons.length > 0
 
-                for j in [0...subTree.polygons.length]
+                for polygonIndex in [0...currentSubTree.polygons.length]
 
-                    continue unless subTree.polygons[j].valid
+                    currentPolygon = currentSubTree.polygons[polygonIndex]
 
-                    if triangles.indexOf(subTree.polygons[j].triangle) is -1
+                    continue unless currentPolygon.valid
 
-                        triangles.push(subTree.polygons[j].triangle)
+                    if triangles.indexOf(currentPolygon.triangle) is -1
+
+                        triangles.push(currentPolygon.triangle)
 
             else
 
-                subTree.getSphereTriangles(sphere, triangles)
+                currentSubTree.getSphereTriangles(sphere, triangles)
 
     # Perform high-level sphere intersection testing against the entire polytree.
     # Returns collision data with adjusted position and penetration depth.
@@ -961,31 +963,33 @@ class Polytree
     # @return Object with normal and depth properties or false if no collision.
     sphereIntersect: (sphere) ->
 
-        hit = false
-        result = undefined
+        collisionDetected = false
+        intersectionResult = undefined
+        intersectingTriangles = []
+        
+        adjustedSphere = new Sphere()
+        adjustedSphere.copy(sphere)
 
-        triangles = []
+        @getSphereTriangles(sphere, intersectingTriangles)
 
-        workingSphere = new Sphere()
-        workingSphere.copy(sphere)
+        for triangleIndex in [0...intersectingTriangles.length]
 
-        @getSphereTriangles(sphere, triangles)
+            currentTriangle = intersectingTriangles[triangleIndex]
 
-        for i in [0...triangles.length]
+            if intersectionResult = @triangleSphereIntersect(adjustedSphere, currentTriangle)
 
-            if result = @triangleSphereIntersect(workingSphere, triangles[i])
+                collisionDetected = true
+                adjustedSphere.center.add(intersectionResult.normal.multiplyScalar(intersectionResult.depth))
 
-                hit = true; workingSphere.center.add(result.normal.multiplyScalar(result.depth))
+        if collisionDetected
 
-        if hit
-
-            collisionVector = workingSphere.center.clone().sub(sphere.center)
-            depth = collisionVector.length()
+            collisionVector = adjustedSphere.center.clone().sub(sphere.center)
+            penetrationDepth = collisionVector.length()
 
             return
 
                 normal: collisionVector.normalize()
-                depth: depth
+                depth: penetrationDepth
 
         return false
 
@@ -993,17 +997,17 @@ class Polytree
     # This method traverses the scene graph and converts all meshes to polytree data.
     #
     # @param group - Three.js Group or Object3D to traverse.
-    fromGraphNode: (group) ->
+    fromGraphNode: (sceneGraphNode) ->
 
-        group.updateWorldMatrix(true, true)
+        sceneGraphNode.updateWorldMatrix(true, true)
 
-        polytreeInstance = this
+        targetPolytreeInstance = this
 
-        group.traverse (obj) ->
+        sceneGraphNode.traverse (sceneObject) ->
 
-            if obj.isMesh is true
+            if sceneObject.isMesh is true
 
-                Polytree.fromMesh(obj, undefined, polytreeInstance, false)
+                Polytree.fromMesh(sceneObject, undefined, targetPolytreeInstance, false)
 
         @buildTree()
 
