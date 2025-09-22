@@ -16,4 +16,8 @@
     BufferGeometry
     BufferAttribute
 
+    Plane
+    Line3
+    Sphere
+
 } = require "three"

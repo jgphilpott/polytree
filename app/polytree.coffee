@@ -453,6 +453,24 @@ class Polytree
 
         return polygons
 
+    # Extract triangles from all valid polygons in the tree.
+    # This provides triangle data format as complement to getPolygons().
+    getTriangles: (triangles = []) ->
+
+        polygons = @getPolygons()
+        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
+
+        return triangles
+
+    # Extract triangles from polygons that intersect with a ray.
+    # This provides triangle data format as complement to getRayPolygons().
+    getRayTriangles: (ray, triangles = []) ->
+
+        polygons = @getRayPolygons(ray)
+        polygons.forEach (polygon) -> triangles.push(polygon.triangle)
+
+        return triangles
+
     # Invert all polygons by flipping their face normals.
     invert: ->
 
@@ -850,6 +868,143 @@ class Polytree
                     if polygonsArray[i].valid
 
                         cbFunc(polygonsArray[i].clone(), trianglesSet)
+
+    # === ADVANCED COLLISION DETECTION ===
+
+    # Test intersection between a sphere and a triangle.
+    # Returns intersection data or false if no intersection.
+    #
+    # @param sphere - Sphere object with center and radius properties.
+    # @param triangle - Triangle object with a, b, c vertex properties.
+    #
+    # @return Object with normal, point, depth properties or false if no intersection.
+    triangleSphereIntersect: (sphere, triangle) ->
+
+        # Create temporary objects for calculations.
+        plane = new Plane()
+        v1 = new Vector3()
+        v2 = new Vector3()
+        line = new Line3()
+
+        triangle.getPlane(plane)
+
+        return false unless sphere.intersectsPlane(plane)
+
+        depth = Math.abs(plane.distanceToSphere(sphere))
+        r2 = sphere.radius * sphere.radius - depth * depth
+
+        plainPoint = plane.projectPoint(sphere.center, v1)
+
+        if triangle.containsPoint(sphere.center)
+
+            return
+
+                normal: plane.normal.clone()
+                point: plainPoint.clone()
+                depth: Math.abs(plane.distanceToSphere(sphere))
+
+        lines = [
+            [triangle.a, triangle.b]
+            [triangle.b, triangle.c]
+            [triangle.c, triangle.a]
+        ]
+
+        for i in [0...lines.length]
+
+            line.set(lines[i][0], lines[i][1])
+            line.closestPointToPoint(plainPoint, true, v2)
+            d = v2.distanceToSquared(sphere.center)
+
+            if d < r2
+
+                return
+
+                    normal: sphere.center.clone().sub(v2).normalize()
+                    point: v2.clone()
+                    depth: sphere.radius - Math.sqrt(d)
+
+        return false
+
+    # Collect triangles that intersect with a sphere using spatial partitioning.
+    # This method recursively traverses the octree to find relevant triangles.
+    #
+    # @param sphere - Sphere object to test intersection against.
+    # @param triangles - Array to collect intersecting triangles.
+    getSphereTriangles: (sphere, triangles) ->
+
+        for i in [0...@subTrees.length]
+
+            subTree = @subTrees[i]
+            continue unless sphere.intersectsBox(subTree.box)
+
+            if subTree.polygons.length > 0
+
+                for j in [0...subTree.polygons.length]
+
+                    continue unless subTree.polygons[j].valid
+
+                    if triangles.indexOf(subTree.polygons[j].triangle) is -1
+
+                        triangles.push(subTree.polygons[j].triangle)
+
+            else
+
+                subTree.getSphereTriangles(sphere, triangles)
+
+    # Perform high-level sphere intersection testing against the entire polytree.
+    # Returns collision data with adjusted position and penetration depth.
+    #
+    # @param sphere - Sphere object to test collision against.
+    #
+    # @return Object with normal and depth properties or false if no collision.
+    sphereIntersect: (sphere) ->
+
+        workingSphere = new Sphere()
+        workingSphere.copy(sphere)
+        triangles = []
+        result = undefined
+        hit = false
+
+        @getSphereTriangles(sphere, triangles)
+
+        for i in [0...triangles.length]
+
+            if result = @triangleSphereIntersect(workingSphere, triangles[i])
+
+                hit = true
+                workingSphere.center.add(result.normal.multiplyScalar(result.depth))
+
+        if hit
+
+            collisionVector = workingSphere.center.clone().sub(sphere.center)
+            depth = collisionVector.length()
+
+            return
+
+                normal: collisionVector.normalize()
+                depth: depth
+
+        return false
+
+    # Build polytree from Three.js scene graph (Group or Object3D).
+    # This method traverses the scene graph and converts all meshes to polytree data.
+    #
+    # @param group - Three.js Group or Object3D to traverse.
+    fromGraphNode: (group) ->
+
+        group.updateWorldMatrix(true, true)
+
+        polytreeInstance = this
+
+        group.traverse (obj) ->
+
+            if obj.isMesh is true
+
+                Polytree.fromMesh(obj, undefined, polytreeInstance, false)
+
+        @buildTree()
+
+    # === CLEANUP AND DISPOSAL METHODS ===
 
     # Delete this tree and all its data (primary cleanup method).
     delete: (deletePolygons = true) ->

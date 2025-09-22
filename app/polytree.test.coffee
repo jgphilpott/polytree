@@ -1,7 +1,7 @@
 # Comprehensive Polytree Tests
 
 { Polytree } = require "../polytree.bundle.js"
-{ Box3, Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Matrix4 } = require "three"
+{ Box3, Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Matrix4, Ray } = require "three"
 
 describe "Polytree", ->
 
@@ -318,6 +318,52 @@ describe "Polytree", ->
             expect(typeof Polytree.subtract).toBe("function")
             expect(typeof Polytree.intersect).toBe("function")
             expect(typeof Polytree.rayIntersectsTriangle).toBe("function")
+
+    describe "Triangle Extraction Methods", ->
+
+        it "should extract triangles from polygons", ->
+
+            geometry = new BoxGeometry(1, 1, 1)
+            material = new MeshBasicMaterial({ color: 0x00ff00 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            triangles = polytree.getTriangles()
+
+            expect(triangles.length).toBe(12) # Box has 12 triangles (6 faces × 2 triangles)
+            expect(triangles[0].a).toBeDefined()
+            expect(triangles[0].b).toBeDefined()
+            expect(triangles[0].c).toBeDefined()
+
+        it "should extract triangles from ray intersection", ->
+
+            geometry = new BoxGeometry(2, 2, 2)
+            material = new MeshBasicMaterial({ color: 0xff0000 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            ray = new Ray(new Vector3(0, 0, -5), new Vector3(0, 0, 1))
+            rayTriangles = polytree.getRayTriangles(ray)
+
+            expect(rayTriangles.length).toBeGreaterThan(0)
+            expect(rayTriangles[0].a).toBeDefined()
+            expect(rayTriangles[0].b).toBeDefined()
+            expect(rayTriangles[0].c).toBeDefined()
+
+        it "should return empty array for triangles when no polygons exist", ->
+
+            polytree = new Polytree()
+            triangles = polytree.getTriangles()
+
+            expect(triangles).toEqual([])
+
+        it "should return empty array for ray triangles when no polygons exist", ->
+
+            polytree = new Polytree()
+            ray = new Ray(new Vector3(0, 0, 0), new Vector3(1, 0, 0))
+            rayTriangles = polytree.getRayTriangles(ray)
+
+            expect(rayTriangles).toEqual([])
 
     describe "Error Handling", ->
 
