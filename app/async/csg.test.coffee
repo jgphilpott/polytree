@@ -51,6 +51,15 @@ validateMesh = (mesh, expectedMinTriangles = 0) ->
             triangleCount = mesh.geometry.attributes.position.count / 3
             expect(triangleCount).toBeGreaterThanOrEqual(expectedMinTriangles)
 
+# Helper function to validate polytree properties and convert to mesh.
+validatePolytreeAndMesh = (polytree, expectedMinTriangles = 0) ->
+
+    validatePolytree(polytree)
+    mesh = Polytree.toMesh(polytree)
+    validateMesh(mesh, expectedMinTriangles)
+    
+    return mesh
+
 # Helper function to validate polytree properties.
 validatePolytree = (polytree) ->
 
@@ -77,9 +86,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.unite(polytree1, polytree2).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 8)
+                validatePolytreeAndMesh(result, 8)
 
         it "should perform async subtract operation", ->
 
@@ -91,9 +98,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.subtract(polytree1, polytree2).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 8)
+                validatePolytreeAndMesh(result, 8)
 
         it "should perform async intersect operation", ->
 
@@ -105,9 +110,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.intersect(polytree1, polytree2).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 6)
+                validatePolytreeAndMesh(result, 6)
 
         it "should handle errors gracefully", ->
 
@@ -128,9 +131,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.uniteArray(boxes).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 12)
+                validatePolytreeAndMesh(result, 12)
 
         it "should perform async subtractArray operation", ->
 
@@ -145,9 +146,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.subtractArray(objects).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 8)
+                validatePolytreeAndMesh(result, 8)
 
         it "should perform async intersectArray operation", ->
 
@@ -160,9 +159,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.intersectArray(spheres).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 4)
+                validatePolytreeAndMesh(result, 4)
 
         it "should handle single element arrays", ->
 
@@ -170,9 +167,7 @@ describe "Async CSG Operations", ->
 
             return Polytree.async.uniteArray(singleBox).then (result) ->
 
-                validatePolytree(result)
-                mesh = result.toMesh()
-                validateMesh(mesh, 6)
+                validatePolytreeAndMesh(result, 6)
 
     # === OPERATION METHOD ===
 
