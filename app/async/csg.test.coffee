@@ -45,7 +45,7 @@ validateMesh = (mesh, expectedMinTriangles = 0) ->
     if mesh.geometry
 
         expect(mesh.geometry.attributes.position).toBeDefined()
-        
+
         if expectedMinTriangles > 0
 
             triangleCount = mesh.geometry.attributes.position.count / 3
@@ -57,7 +57,7 @@ validatePolytreeAndMesh = (polytree, expectedMinTriangles = 0) ->
     validatePolytree(polytree)
     mesh = Polytree.toMesh(polytree)
     validateMesh(mesh, expectedMinTriangles)
-    
+
     return mesh
 
 # Helper function to validate polytree properties.
@@ -65,7 +65,7 @@ validatePolytree = (polytree) ->
 
     expect(polytree).toBeDefined()
     expect(polytree.getPolygons).toBeDefined()
-    
+
     polygons = polytree.getPolygons()
     expect(polygons).toBeDefined()
     expect(Array.isArray(polygons)).toBe(true)
@@ -183,6 +183,6 @@ describe "Async CSG Operations", ->
 
             # The operation method should be a simple delegation.
             result = Polytree.async.operation(operationObject)
-            
+
             # Result should be defined (either mesh or polytree depending on sync operation).
             expect(result).toBeDefined()

@@ -1,5 +1,5 @@
 # === ASYNC CSG OPERATIONS FOR POLYTREE ===
-#
+
 # This module provides asynchronous implementations of Constructive Solid Geometry (CSG) operations.
 # All operations are Promise-based and include proper resource management and error handling.
 # The async operations allow for better performance in web environments by preventing UI blocking.
@@ -89,13 +89,63 @@ Polytree.async =
     # @return Promise that resolves to a single polytree containing the union of all objects.
     uniteArray: (objectArray, materialIndexMax = Infinity) ->
 
-        Polytree.async._processArrayWithOperation(
+        Polytree.async.processArrayWithOperation(
             objectArray,
             materialIndexMax,
             Polytree.async.unite,
             Polytree.async.uniteArray,
             'union'
         )
+
+    # Perform asynchronous subtraction operation on an array of objects.
+    # Efficiently processes large arrays using batching and parallel execution.
+    # This method subtracts all subsequent objects from the first object in the array.
+    #
+    # @param objectArray - Array of meshes or polytrees to process with subtraction.
+    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
+    #
+    # @return Promise that resolves to a single polytree with all subtractions applied.
+    subtractArray: (objectArray, materialIndexMax = Infinity) ->
+
+        Polytree.async.processArrayWithOperation(
+            objectArray,
+            materialIndexMax,
+            Polytree.async.subtract,
+            Polytree.async.subtractArray,
+            'subtraction'
+        )
+
+    # Perform asynchronous intersection operation on an array of objects.
+    # Efficiently processes large arrays using batching and parallel execution.
+    # This method finds the overlapping volume common to all objects in the array.
+    #
+    # @param objectArray - Array of meshes or polytrees to intersect.
+    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
+    #
+    # @return Promise that resolves to a single polytree containing the intersection of all objects.
+    intersectArray: (objectArray, materialIndexMax = Infinity) ->
+
+        Polytree.async.processArrayWithOperation(
+            objectArray,
+            materialIndexMax,
+            Polytree.async.intersect,
+            Polytree.async.intersectArray,
+            'intersection'
+        )
+
+    # Main operation handler that delegates to the synchronous operation method.
+    # This provides a unified interface for complex CSG operations with async support.
+    #
+    # @param operationObject - Object containing the operation definition.
+    # @param returnPolytrees - Whether to return polytree objects instead of meshes.
+    # @param buildTargetPolytree - Whether to build the target polytree structure.
+    # @param options - Configuration options including objCounter for unique IDs.
+    # @param firstRun - Whether this is the top-level operation call.
+    #
+    # @return Result of the operation (mesh, polytree, or operation tree).
+    operation: (operationObject, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
+
+        Polytree.operation(operationObject, returnPolytrees, buildTargetPolytree, options, firstRun, true)
 
     # Generic helper method for processing array operations with any CSG operation.
     # This reduces code duplication between uniteArray, subtractArray, and intersectArray.
@@ -107,7 +157,7 @@ Polytree.async =
     # @param operationName - Name of the operation for error messages.
     #
     # @return Promise that resolves to the final result polytree.
-    _processArrayWithOperation: (objectArray, materialIndexMax, operationMethod, arrayOperationMethod, operationName) ->
+    processArrayWithOperation: (objectArray, materialIndexMax, operationMethod, arrayOperationMethod, operationName) ->
 
         new Promise (resolve, reject) ->
 
@@ -247,58 +297,8 @@ Polytree.async =
 
                     else
 
-                        reject("Unable to find any result polytree after #{operationName} operation")
+                        reject("Unable to find any result polytree after #{operationName} operation.")
 
             catch error
 
                 reject(error)
-
-    # Perform asynchronous subtraction operation on an array of objects.
-    # Efficiently processes large arrays using batching and parallel execution.
-    # This method subtracts all subsequent objects from the first object in the array.
-    #
-    # @param objectArray - Array of meshes or polytrees to process with subtraction.
-    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
-    #
-    # @return Promise that resolves to a single polytree with all subtractions applied.
-    subtractArray: (objectArray, materialIndexMax = Infinity) ->
-
-        Polytree.async._processArrayWithOperation(
-            objectArray,
-            materialIndexMax,
-            Polytree.async.subtract,
-            Polytree.async.subtractArray,
-            'subtraction'
-        )
-
-    # Perform asynchronous intersection operation on an array of objects.
-    # Efficiently processes large arrays using batching and parallel execution.
-    # This method finds the overlapping volume common to all objects in the array.
-    #
-    # @param objectArray - Array of meshes or polytrees to intersect.
-    # @param materialIndexMax - Maximum material index for assignment (default: Infinity).
-    #
-    # @return Promise that resolves to a single polytree containing the intersection of all objects.
-    intersectArray: (objectArray, materialIndexMax = Infinity) ->
-
-        Polytree.async._processArrayWithOperation(
-            objectArray,
-            materialIndexMax,
-            Polytree.async.intersect,
-            Polytree.async.intersectArray,
-            'intersection'
-        )
-
-    # Main operation handler that delegates to the synchronous operation method.
-    # This provides a unified interface for complex CSG operations with async support.
-    #
-    # @param operationObject - Object containing the operation definition.
-    # @param returnPolytrees - Whether to return polytree objects instead of meshes.
-    # @param buildTargetPolytree - Whether to build the target polytree structure.
-    # @param options - Configuration options including objCounter for unique IDs.
-    # @param firstRun - Whether this is the top-level operation call.
-    #
-    # @return Result of the operation (mesh, polytree, or operation tree).
-    operation: (operationObject, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true) ->
-
-        Polytree.operation(operationObject, returnPolytrees, buildTargetPolytree, options, firstRun, true)
