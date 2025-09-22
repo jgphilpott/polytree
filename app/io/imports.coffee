@@ -3,17 +3,20 @@
     Vector2
     Vector3
 
-    Mesh
-    Triangle
-
     Box3
+    Line3
+    Sphere
     Matrix3
-    DoubleSide
+    Triangle
 
     Ray
     Raycaster
 
+    Mesh
     BufferGeometry
     BufferAttribute
+    DoubleSide
 
 } = require "three"
+
+{ Plane: ThreePlane } = require "three"

@@ -1,7 +1,7 @@
 # Comprehensive Polytree Tests
 
 { Polytree } = require "../polytree.bundle.js"
-{ Box3, Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Matrix4 } = require "three"
+{ Box3, Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Matrix4, Ray, Sphere, Group } = require "three"
 
 describe "Polytree", ->
 
@@ -318,6 +318,141 @@ describe "Polytree", ->
             expect(typeof Polytree.subtract).toBe("function")
             expect(typeof Polytree.intersect).toBe("function")
             expect(typeof Polytree.rayIntersectsTriangle).toBe("function")
+
+    describe "Triangle Extraction Methods", ->
+
+        it "should extract triangles from polygons", ->
+
+            geometry = new BoxGeometry(1, 1, 1)
+            material = new MeshBasicMaterial({ color: 0x00ff00 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            triangles = polytree.getTriangles()
+
+            expect(triangles.length).toBe(12) # Box has 12 triangles (6 faces × 2 triangles).
+
+            expect(triangles[0].a).toBeDefined()
+            expect(triangles[0].b).toBeDefined()
+            expect(triangles[0].c).toBeDefined()
+
+        it "should extract triangles from ray intersection", ->
+
+            geometry = new BoxGeometry(2, 2, 2)
+            material = new MeshBasicMaterial({ color: 0xff0000 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            ray = new Ray(new Vector3(0, 0, -5), new Vector3(0, 0, 1))
+            rayTriangles = polytree.getRayTriangles(ray)
+
+            expect(rayTriangles.length).toBeGreaterThan(0)
+
+            expect(rayTriangles[0].a).toBeDefined()
+            expect(rayTriangles[0].b).toBeDefined()
+            expect(rayTriangles[0].c).toBeDefined()
+
+        it "should return empty array for triangles when no polygons exist", ->
+
+            polytree = new Polytree()
+            triangles = polytree.getTriangles()
+
+            expect(triangles).toEqual([])
+
+        it "should return empty array for ray triangles when no polygons exist", ->
+
+            polytree = new Polytree()
+            ray = new Ray(new Vector3(0, 0, 0), new Vector3(1, 0, 0))
+            rayTriangles = polytree.getRayTriangles(ray)
+
+            expect(rayTriangles).toEqual([])
+
+    describe "Sphere Collision Detection", ->
+
+        it "should detect sphere intersection with box", ->
+
+            geometry = new BoxGeometry(2, 2, 2)
+            material = new MeshBasicMaterial({ color: 0x00ff00 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            sphere = new Sphere(new Vector3(0, 0, 0), 1.5)
+
+            collision = polytree.sphereIntersect(sphere)
+
+            # Should either return collision data or false.
+            expect(typeof collision).toBe("object")
+
+        it "should return false for sphere intersection when no polygons exist", ->
+
+            polytree = new Polytree()
+            sphere = new Sphere(new Vector3(0, 0, 0), 1.0)
+
+            collision = polytree.sphereIntersect(sphere)
+
+            expect(collision).toBe(false)
+
+        it "should collect sphere triangles from octree", ->
+
+            geometry = new BoxGeometry(4, 4, 4)
+            material = new MeshBasicMaterial({ color: 0xff0000 })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            polytree.buildTree() # Build octree structure.
+
+            sphere = new Sphere(new Vector3(0, 0, 0), 2.0)
+            triangles = []
+
+            polytree.getSphereTriangles(sphere, triangles)
+
+            expect(triangles.length).toBeGreaterThan(0)
+
+        it "should handle triangle-sphere intersection with proper Three.js objects", ->
+
+            geometry = new BoxGeometry(1, 1, 1)
+            material = new MeshBasicMaterial({ color: 0x0000ff })
+            mesh = new Mesh(geometry, material)
+
+            polytree = Polytree.fromMesh(mesh)
+            triangles = polytree.getTriangles()
+
+            # Test with a proper Three.js Sphere.
+            sphere = new Sphere(new Vector3(0, 0, 0), 0.5)
+
+            if triangles.length > 0
+
+                firstTriangle = triangles[0]
+                result = polytree.triangleSphereIntersect(sphere, firstTriangle)
+
+                # Result should be either false or an object with normal, point, depth.
+                if result
+
+                    expect(result.normal).toBeDefined()
+                    expect(result.point).toBeDefined()
+                    expect(result.depth).toBeDefined()
+
+                else
+
+                    expect(result).toBe(false)
+
+        it "should handle scene graph integration", ->
+
+            sceneGroup = new Group()
+
+            # Add a mesh to the group.
+            geometry = new BoxGeometry(1, 1, 1)
+            material = new MeshBasicMaterial({ color: 0xffff00 })
+            mesh = new Mesh(geometry, material)
+            sceneGroup.add(mesh)
+
+            polytree = new Polytree()
+
+            # Mock the traverse and updateWorldMatrix methods.
+            sceneGroup.updateWorldMatrix = ->
+            sceneGroup.traverse = (callback) -> callback(mesh)
+
+            expect(() -> polytree.fromGraphNode(sceneGroup)).not.toThrow()
 
     describe "Error Handling", ->
 

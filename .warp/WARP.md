@@ -43,7 +43,7 @@ Polytree is a modern Constructive Solid Geometry (CSG) library that leverages Oc
 
 ### Architecture
 - **Core Data Structure: Polytree**
-  - CSG operations and geometry management are implemented through custom Octree-backed data structures (`Polytree`, `PolytreeExtended`, extensions).
+  - CSG operations and geometry management are implemented through custom Octree-backed data structures (`Polytree` and extensions).
   - Octrees allow highly efficient spatial queries, intersection tests, and partitioning for complex 3D models.
 - **Integration with three.js**
   - The library expects three.js primitives for most geometry operations (Triangle, Vector3, Plane, etc.).
