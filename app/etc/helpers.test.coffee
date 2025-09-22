@@ -175,6 +175,7 @@ describe "Helper Functions", ->
             buffer = prepareTriangleBufferFromPolygons(mockPolygons)
 
             expect(buffer.length).toBe(18) # 2 triangles × 3 vertices × 3 coordinates.
+
             expect(buffer[0]).toBe(0) # First triangle, first vertex, x coordinate.
             expect(buffer[1]).toBe(0) # First triangle, first vertex, y coordinate.
             expect(buffer[2]).toBe(0) # First triangle, first vertex, z coordinate.

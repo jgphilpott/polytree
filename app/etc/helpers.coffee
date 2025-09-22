@@ -464,10 +464,3 @@ disposePolytreeResources = (...polytreeInstances) ->
     if Polytree.disposePolytree
 
         polytreeInstances.forEach((polytreeInstance) -> polytreeInstance.delete())
-
-
-# === LEGACY EXPORTS COMPATIBILITY ===
-
-# Global assignments required for module exports.
-# These maintain the legacy API while using the new function implementations.
-rayIntersectsTriangle = testRayTriangleIntersection

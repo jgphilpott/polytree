@@ -13,11 +13,12 @@ Polytree.toGeometry = (polytree) ->
     uvs = undefined
     colors = undefined
 
-    polygons = polytree.getPolygons()
-    
-    # Calculate the total number of triangles that will be generated.
     totalTriangles = 0
+    polygons = polytree.getPolygons()
+
+    # Calculate the total number of triangles that will be generated.
     for polygon in polygons
+
         totalTriangles += Math.max(0, polygon.vertices.length - 2)
 
     positions = createVector3Buffer(totalTriangles * 3)
