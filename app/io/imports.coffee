@@ -13,9 +13,9 @@
     Raycaster
 
     Mesh
+    DoubleSide
     BufferGeometry
     BufferAttribute
-    DoubleSide
 
 } = require "three"
 
