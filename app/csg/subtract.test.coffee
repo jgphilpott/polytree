@@ -175,32 +175,41 @@ describe "Polytree.subtract", ->
             validateMesh(result)
             expect(result.material.color.getHex()).toBe(0xff0000)
 
-        it "should use specified target material", ->
+        it "should always use material from first mesh", ->
 
-            targetMaterial = new MeshBasicMaterial({ color: 0x0000ff, side: DoubleSide })
+            material1 = new MeshBasicMaterial({ color: 0xff0000, side: FrontSide })
+            material2 = new MeshBasicMaterial({ color: 0x00ff00, side: BackSide })
+
+            box1 = createBox(4, 4, 4, 0, 0, 0)
+            box2 = createBox(2, 2, 2, 0, 0, 0)
+            box1.material = material1
+            box2.material = material2
+
+            result = Polytree.subtract(box1, box2)
+
+            validateMesh(result)
+            expect(result.material.color.getHex()).toBe(0xff0000) # Should use box1's material.
+
+        it "should handle async parameter", ->
 
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.subtract(box1, box2, targetMaterial)
+            # Test synchronous operation (default).
+            resultSync = Polytree.subtract(box1, box2, false)
 
-            validateMesh(result)
-            expect(result.material).toBe(targetMaterial)
+            validateMesh(resultSync)
+            expect(resultSync.material).toBeDefined()
 
-        it "should handle array materials", ->
+            # Test asynchronous operation.
+            resultAsyncPromise = Polytree.subtract(box1, box2, true)
 
-            materials = [
-                new MeshBasicMaterial({ color: 0xff0000 }),
-                new MeshBasicMaterial({ color: 0x00ff00 })
-            ]
+            expect(resultAsyncPromise).toBeInstanceOf(Promise)
 
-            box1 = createBox(4, 4, 4, 0, 0, 0)
-            box2 = createBox(2, 2, 2, 0, 0, 0)
+            return resultAsyncPromise.then (resultAsync) ->
 
-            result = Polytree.subtract(box1, box2, materials)
-
-            validateMesh(result)
-            expect(Array.isArray(result.material)).toBe(true)
+                validateMesh(resultAsync)
+                expect(resultAsync.material).toBeDefined()
 
     describe "Polytree-to-Polytree Operations", ->
 
@@ -228,9 +237,7 @@ describe "Polytree.subtract", ->
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
-        it "should return appropriate type when targetMaterial is specified", ->
-
-            targetMaterial = new MeshBasicMaterial({ color: 0xffffff })
+        it "should always return polytree for polytree inputs", ->
 
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0)
@@ -238,21 +245,11 @@ describe "Polytree.subtract", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.subtract(polytree1, polytree2, targetMaterial)
+            result = Polytree.subtract(polytree1, polytree2)
 
-            # When targetMaterial is provided, result might still be a polytree.
-            # This is acceptable behavior, test that it's defined.
-
+            # Polytree-to-polytree operations always return polytrees.
             expect(result).toBeDefined()
-
-            if result.isMesh
-
-                validateMesh(result, 0)
-                expect(result.material).toBe(targetMaterial)
-
-            else
-
-                validatePolytree(result, 0)
+            validatePolytree(result, 0)
 
     describe "Edge Cases and Complex Geometries", ->
 

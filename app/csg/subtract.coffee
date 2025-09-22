@@ -45,10 +45,35 @@ subtractRules =
 #
 # @param mesh1 - Primary 3D object to subtract from (Three.js Mesh or Polytree instance).
 # @param mesh2 - 3D object to subtract away (Three.js Mesh or Polytree instance).
-# @param targetMaterial - Optional material for result mesh. If null and polytree input, returns polytree.
+# @param async - Whether to perform operation asynchronously (default: false).
 #
-# @return Three.js Mesh with subtracted geometry or Polytree instance.
-Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
+# @return Three.js Mesh with subtracted geometry, Polytree instance, or Promise.
+Polytree.subtract = (mesh1, mesh2, async = false) ->
+
+    # Handle async request - delegate to async module.
+    if async
+
+        # Convert meshes to polytrees if needed for async processing.
+        if mesh1.isPolytree and mesh2.isPolytree
+
+            return Polytree.async.subtract(mesh1, mesh2, true)
+
+        else
+
+            # Convert meshes to polytrees and return Promise that resolves to mesh.
+            polytreeA = Polytree.fromMesh(mesh1)
+            polytreeB = Polytree.fromMesh(mesh2)
+
+            # Get material from first mesh for final result.
+            targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
+            targetMaterial = targetMaterial.clone()
+
+            return Polytree.async.subtract(polytreeA, polytreeB, false).then (resultPolytree) ->
+
+                resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+                disposePolytreeResources(polytreeA, polytreeB, resultPolytree)
+
+                return resultMesh
 
     # Handle both mesh and polytree inputs for backward compatibility.
     if mesh1.isPolytree and mesh2.isPolytree
@@ -56,36 +81,18 @@ Polytree.subtract = (mesh1, mesh2, targetMaterial = null) ->
         # Direct polytree-to-polytree operation - most efficient path.
         polytreeA = mesh1
         polytreeB = mesh2
-        buildTargetPolytree = if targetMaterial is null then true else false
 
-        return this.subtractCore(polytreeA, polytreeB, buildTargetPolytree)
+        return this.subtractCore(polytreeA, polytreeB, true)
 
     else
 
         # Mesh-to-mesh operation (default behavior) - converts to polytrees internally.
-        polytreeA = undefined
-        polytreeB = undefined
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
 
-        # Handle material array input for multi-material support.
-        if targetMaterial and Array.isArray(targetMaterial)
-
-            polytreeA = Polytree.fromMesh(mesh1, 0)
-            polytreeB = Polytree.fromMesh(mesh2, 1)
-
-        else
-
-            polytreeA = Polytree.fromMesh(mesh1)
-            polytreeB = Polytree.fromMesh(mesh2)
-
-            # Use specified material or default to first material from mesh1.
-            if targetMaterial isnt null
-
-                targetMaterial = targetMaterial
-
-            else
-
-                targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
-                targetMaterial = targetMaterial.clone()
+        # Always use material from first mesh (cloned for safety).
+        targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
+        targetMaterial = targetMaterial.clone()
 
         # Perform subtract operation and convert result back to mesh.
         resultPolytree = this.subtractCore(polytreeA, polytreeB, false)
