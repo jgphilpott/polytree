@@ -9,7 +9,7 @@ cat \
   app/csg/unite.js \
   app/csg/subtract.js \
   app/csg/intersect.js \
-  app/async/csg.js \
+  app/etc/async.js \
   app/geo/plane.js \
   app/geo/polygon.js \
   app/geo/triangle.js \
