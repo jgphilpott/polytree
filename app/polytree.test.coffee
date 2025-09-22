@@ -380,7 +380,7 @@ describe "Polytree", ->
 
             collision = polytree.sphereIntersect(sphere)
 
-            # Should either return collision data or false
+            # Should either return collision data or false.
             expect(typeof collision).toBe("object")
 
         it "should return false for sphere intersection when no polygons exist", ->
@@ -399,8 +399,8 @@ describe "Polytree", ->
             mesh = new Mesh(geometry, material)
 
             polytree = Polytree.fromMesh(mesh)
-            polytree.buildTree() # Build octree structure
-            
+            polytree.buildTree() # Build octree structure.
+
             sphere = new Sphere(new Vector3(0, 0, 0), 2.0)
             triangles = []
 
@@ -417,36 +417,39 @@ describe "Polytree", ->
             polytree = Polytree.fromMesh(mesh)
             triangles = polytree.getTriangles()
 
-            # Test with a proper Three.js Sphere
+            # Test with a proper Three.js Sphere.
             sphere = new Sphere(new Vector3(0, 0, 0), 0.5)
 
             if triangles.length > 0
-                
+
                 firstTriangle = triangles[0]
                 result = polytree.triangleSphereIntersect(sphere, firstTriangle)
 
-                # Result should be either false or an object with normal, point, depth
+                # Result should be either false or an object with normal, point, depth.
                 if result
+
                     expect(result.normal).toBeDefined()
                     expect(result.point).toBeDefined()
                     expect(result.depth).toBeDefined()
+
                 else
+
                     expect(result).toBe(false)
 
         it "should handle scene graph integration", ->
 
             sceneGroup = new Group()
-            
-            # Add a mesh to the group
+
+            # Add a mesh to the group.
             geometry = new BoxGeometry(1, 1, 1)
             material = new MeshBasicMaterial({ color: 0xffff00 })
             mesh = new Mesh(geometry, material)
             sceneGroup.add(mesh)
 
             polytree = new Polytree()
-            
-            # Mock the traverse and updateWorldMatrix methods
-            sceneGroup.updateWorldMatrix = -> 
+
+            # Mock the traverse and updateWorldMatrix methods.
+            sceneGroup.updateWorldMatrix = ->
             sceneGroup.traverse = (callback) -> callback(mesh)
 
             expect(() -> polytree.fromGraphNode(sceneGroup)).not.toThrow()
