@@ -211,15 +211,15 @@ describe "Operations Module", ->
 
             result = Polytree.operation(outerOperation, false, true, { objCounter: 0 }, true, false)
 
-            # Since geometric operations can be complex, just ensure we get some result
-            # The exact result depends on geometry precision and CSG algorithm behavior
+            # Since geometric operations can be complex, just ensure we get some result.
+            # The exact result depends on geometry precision and CSG algorithm behavior.
             if result
 
                 validateMesh(result, 0)
 
             else
 
-                # Accept that some complex nested operations might result in empty geometry
+                # Accept that some complex nested operations might result in empty geometry.
                 expect(result).toBeUndefined()
 
     describe "Mixed Object Types", ->
@@ -296,8 +296,7 @@ describe "Operations Module", ->
             # Perform multiple operations to test memory management.
             box1 = createTestBox(1, 1, 1, 0, 0, 0)
 
-            # Use simple loop to avoid Jest async issues.
-            i = 0
+            i = 0 # Use simple loop to avoid Jest async issues.
             while i < 3 # Limited iterations to avoid timeout.
 
                 box2 = createTestBox(1, 1, 1, i * 0.1, 0, 0)

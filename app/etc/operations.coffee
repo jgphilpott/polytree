@@ -12,6 +12,7 @@
 # @param options - Configuration options including objCounter for unique IDs.
 # @param firstRun - Whether this is the top-level operation call.
 # @param async - Whether to execute asynchronously using promises.
+#
 # @return Result mesh, polytree, or operation tree depending on parameters.
 operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytree = true, options = { objCounter: 0 }, firstRun = true, async = true) ->
 
@@ -137,6 +138,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
                             if not resultPolytree or allPolygons.length is 0
 
                                 resolve(undefined)
+
                                 return
 
                             if materialForMesh
@@ -162,6 +164,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 
                                     # No material available - resolve with undefined.
                                     resolve(undefined)
+
                                     return
 
                                 finalMesh = Polytree.toMesh(resultPolytree, defaultMaterial)
@@ -310,8 +313,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 
                 else
 
-                    # No material available - return undefined instead of creating empty mesh.
-                    return undefined
+                    return undefined # No material available - return undefined instead of creating empty mesh.
 
                 finalMesh = Polytree.toMesh(resultPolytree, defaultMaterial)
 
@@ -334,6 +336,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 # @param options - Configuration options including objCounter for unique IDs.
 # @param objectIndex - Index identifier for tracking operand position (0 or 1).
 # @param async - Whether to execute asynchronously using promises.
+#
 # @return Processed polytree object or promise resolving to one.
 handleObjectForOperation = (inputObject, returnPolytrees, buildTargetPolytree, options, objectIndex, async = true) ->
 
