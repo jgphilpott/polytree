@@ -1,42 +1,37 @@
-# console.log("GOT HERE");
+# Web Worker for asynchronous polygon inside testing using winding number algorithm.
+# This worker handles computationally intensive winding number calculations
+# off the main thread to prevent UI blocking.
 
 onmessage = (e) ->
 
-    # let randLimit = Math.round(Math.random() * 1000000000);
-    # console.log("[WORKER]", randLimit, e);
-    # let worker_data = {
-    #     type: 'windingNumber',
-    #     point: point,
-    #     triangles: buffer
-    # }
     { type, point, coplanar, polygonID, triangles } = e.data
-    trianglesArr = new Float32Array(triangles)
-    # console.log("[WORKER] Checking Polygon ID:", polygonID, point);
+    trianglesArray = new Float32Array(triangles)
 
     if type is 'windingNumber'
 
         postMessage
             type: type
-            result: testPolygonInsideUsingWindingNumber(trianglesArr, point, coplanar)
+            result: testPolygonInsideUsingWindingNumber(trianglesArray, point, coplanar)
 
     else
 
-        a = 0
-        # for (let i = 0; i < randLimit; i++) {
-        #     a++;
-        # }
-        postMessage "[From Worker] Aloha #{a}"
+        postMessage "Unknown worker operation type: #{type}"
 
+# === WINDING NUMBER ALGORITHM ===
 # Winding Number algorithm adapted from https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/vega/libraries/windingNumber/windingNumber.cpp
 
+# Epsilon value for coplanar offset testing.
 EPSILON = 1e-5
 
-_wV1 = new THREE.Vector3()
-_wV2 = new THREE.Vector3()
-_wV3 = new THREE.Vector3()
-_wP = new THREE.Vector3()
+# Reusable Vector3 objects to avoid memory allocation during calculations.
+windingVector1 = new THREE.Vector3()
+windingVector2 = new THREE.Vector3()
+windingVector3 = new THREE.Vector3()
+windingPoint = new THREE.Vector3()
 
-_wP_EPS_ARR = [
+# Epsilon offset vectors for coplanar triangle testing.
+# These small offsets help determine if a point is inside when it lies exactly on the triangle plane.
+epsilonOffsets = [
     new THREE.Vector3(EPSILON, 0, 0)
     new THREE.Vector3(0, EPSILON, 0)
     new THREE.Vector3(0, 0, EPSILON)
@@ -45,68 +40,84 @@ _wP_EPS_ARR = [
     new THREE.Vector3(0, 0, -EPSILON)
 ]
 
-_wP_EPS_ARR_COUNT = _wP_EPS_ARR.length
-_matrix3 = new THREE.Matrix3()
-wNPI = 4 * Math.PI
+epsilonOffsetsCount = epsilonOffsets.length
+determinantMatrix = new THREE.Matrix3()
+windingNumberPi = 4 * Math.PI
 
-# function calcDet(a, b, c) {
-#     return (-a.z * b.y * c.x +
-#              a.y * b.z * c.x +
-#              a.z * b.x * c.y +
-#              a.x * b.z * c.y +
-#              a.y * b.x * c.z +
-#              a.x * b.y * c.z );
-# }
+# Extract coordinate values from a Float32Array at a specific index.
+# @param coordinateArray - Float32Array containing triangle coordinate data.
+# @param startIndex - Starting index for the coordinate triplet.
+# @return Object with x, y, z properties containing the coordinate values.
+extractCoordinatesFromArray = (coordinateArray, startIndex) ->
 
-extractCoordinatesFromArray = (arr, index) ->
+    x: coordinateArray[startIndex]
+    y: coordinateArray[startIndex + 1]
+    z: coordinateArray[startIndex + 2]
 
-    x: arr[index]
-    y: arr[index + 1]
-    z: arr[index + 2]
+# Calculate the winding number for a point relative to a set of triangles.
+# The winding number indicates how many times the triangles "wind around" the point.
+# @param trianglesArray - Float32Array containing triangle vertex coordinates (9 values per triangle).
+# @param testPoint - Vector3 point to test.
+# @return Integer winding number (0 = outside, non-zero = inside).
+calculateWindingNumberFromBuffer = (trianglesArray, testPoint) ->
 
-calculateWindingNumberFromBuffer = (trianglesArr, point) ->
+    windingNumber = 0
 
-    wN = 0
+    for triangleIndex in [0...trianglesArray.length] by 9
 
-    for i in [0...trianglesArr.length] by 9
+        windingVector1.subVectors(extractCoordinatesFromArray(trianglesArray, triangleIndex), testPoint)
+        windingVector2.subVectors(extractCoordinatesFromArray(trianglesArray, triangleIndex + 3), testPoint)
+        windingVector3.subVectors(extractCoordinatesFromArray(trianglesArray, triangleIndex + 6), testPoint)
 
-        _wV1.subVectors(extractCoordinatesFromArray(trianglesArr, i), point)
-        _wV2.subVectors(extractCoordinatesFromArray(trianglesArr, i + 3), point)
-        _wV3.subVectors(extractCoordinatesFromArray(trianglesArr, i + 6), point)
+        lengthA = windingVector1.length()
+        lengthB = windingVector2.length()
+        lengthC = windingVector3.length()
 
-        lenA = _wV1.length()
-        lenB = _wV2.length()
-        lenC = _wV3.length()
+        determinantMatrix.set(
+            windingVector1.x, windingVector1.y, windingVector1.z,
+            windingVector2.x, windingVector2.y, windingVector2.z,
+            windingVector3.x, windingVector3.y, windingVector3.z
+        )
 
-        _matrix3.set(_wV1.x, _wV1.y, _wV1.z, _wV2.x, _wV2.y, _wV2.z, _wV3.x, _wV3.y, _wV3.z)
-        omega = 2 * Math.atan2(_matrix3.determinant(), (lenA * lenB * lenC + _wV1.dot(_wV2) * lenC + _wV2.dot(_wV3) * lenA + _wV3.dot(_wV1) * lenB))
-        wN += omega
+        omega = 2 * Math.atan2(
+            determinantMatrix.determinant(),
+            (lengthA * lengthB * lengthC +
+             windingVector1.dot(windingVector2) * lengthC +
+             windingVector2.dot(windingVector3) * lengthA +
+             windingVector3.dot(windingVector1) * lengthB)
+        )
 
-    wN = Math.round(wN / wNPI)
+        windingNumber += omega
 
-    return wN
+    windingNumber = Math.round(windingNumber / windingNumberPi)
 
-testPolygonInsideUsingWindingNumber = (trianglesArr, point, coplanar) ->
+    return windingNumber
+
+# Test if a point is inside a polygon using the winding number algorithm.
+# For coplanar cases, tests multiple epsilon-offset positions to handle edge cases.
+# @param trianglesArray - Float32Array containing triangle vertex coordinates.
+# @param testPoint - Vector3 point to test for inside/outside status.
+# @param isCoplanar - Boolean indicating if the polygon is coplanar with the test point.
+# @return Boolean indicating if the point is inside the polygon.
+testPolygonInsideUsingWindingNumber = (trianglesArray, testPoint, isCoplanar) ->
 
     result = false
-    _wP.copy(point)
-    wN = calculateWindingNumberFromBuffer(trianglesArr, _wP)
+    windingPoint.copy(testPoint)
+    windingNumber = calculateWindingNumberFromBuffer(trianglesArray, windingPoint)
     coplanarFound = false
 
-    if wN is 0
+    if windingNumber is 0
 
-        if coplanar
+        if isCoplanar
 
-            # console.log("POLYGON IS COPLANAR");
-            for j in [0..._wP_EPS_ARR_COUNT]
+            # For coplanar cases, test with small epsilon offsets to handle numerical precision issues.
+            for offsetIndex in [0...epsilonOffsetsCount]
 
-                # console.warn("DOES IT GET HERE?");
-                _wP.copy(point).add(_wP_EPS_ARR[j])
-                wN = calculateWindingNumberFromBuffer(trianglesArr, _wP)
+                windingPoint.copy(testPoint).add(epsilonOffsets[offsetIndex])
+                windingNumber = calculateWindingNumberFromBuffer(trianglesArray, windingPoint)
 
-                if wN isnt 0
+                if windingNumber isnt 0
 
-                    # console.warn("GOT HERE");
                     result = true
                     coplanarFound = true
                     break
@@ -114,9 +125,5 @@ testPolygonInsideUsingWindingNumber = (trianglesArr, point, coplanar) ->
     else
 
         result = true
-
-    # if (result && polygon.coplanar) {
-    #     console.log(`[polyInside_WindingNumber] coplanar polygon found ${coplanarFound ? "IN" : "NOT IN"} coplanar test`);
-    # }
 
     return result
