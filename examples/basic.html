@@ -162,6 +162,7 @@
                 operation: csgOperations[1],
                 object1: geometryNames[0],
                 object2: geometryNames[1],
+                wireframe: true,
                 export: exportSTL
             }
 
@@ -207,6 +208,14 @@
                 }
                 catch (e) {
                     console.warn('Error while changing object', e);
+                }
+            });
+
+            gui.add(params, 'wireframe').name('Wireframe').onChange(value => {
+                if (Array.isArray(resultObject.material)) {
+                    resultObject.material.forEach(mat => mat.wireframe = value);
+                } else {
+                    resultObject.material.wireframe = value;
                 }
             });
 
@@ -264,6 +273,9 @@
 
             trianglesStat.innerText = `${object1Polytree.getPolygons().length}`;
 
+            // Trigger initial CSG operation on page load
+            objectMoved = true;
+
             render();
 
             function render() {
@@ -293,6 +305,12 @@
                         if (firstCSG) {
                             firstCSG = false;
                             resultObject.material = [object1Material, object2Material];
+                            // Set initial wireframe state
+                            if (Array.isArray(resultObject.material)) {
+                                resultObject.material.forEach(mat => mat.wireframe = params.wireframe);
+                            } else {
+                                resultObject.material.wireframe = params.wireframe;
+                            }
                         }
 
                         deltaTime = performance.now() - startTime;
