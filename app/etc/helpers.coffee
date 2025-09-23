@@ -178,30 +178,35 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
         when POLYGON_COPLANAR
 
             returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
-            
+
             if DEBUG_VERBOSE_LOGGING
+
                 console.log("Polygon classified as COPLANAR, debug color:", DEBUG_COLOR_COPLANAR.toString(16))
+
             result.push(returnPolygon)
 
         when POLYGON_FRONT
 
             returnPolygon.type = "front"
             result.push(returnPolygon)
-            
+
             if DEBUG_VERBOSE_LOGGING
+
                 console.log("Polygon classified as FRONT, debug color:", DEBUG_COLOR_FRONT.toString(16))
 
         when POLYGON_BACK
 
             returnPolygon.type = "back"
             result.push(returnPolygon)
-            
+
             if DEBUG_VERBOSE_LOGGING
+
                 console.log("Polygon classified as BACK, debug color:", DEBUG_COLOR_BACK.toString(16))
 
         when POLYGON_SPANNING
 
             if DEBUG_VERBOSE_LOGGING
+
                 console.log("Polygon classified as SPANNING, debug color:", DEBUG_COLOR_SPANNING.toString(16))
 
             frontVertices = []
@@ -505,14 +510,15 @@ testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
     if intersectionDistance > RAY_INTERSECTION_EPSILON
 
         result = targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
-        
+
         if DEBUG_INTERSECTION_VERIFICATION
+
             console.log("Ray-triangle intersection verified:", {
                 distance: intersectionDistance,
                 point: result,
                 triangle: { a: triangle.a, b: triangle.b, c: triangle.c }
             })
-            
+
         return result
 
     return null
@@ -571,8 +577,9 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
     if DEBUG_PERFORMANCE_TIMING
 
         endTime = performance.now()
-        console.log("handleIntersectingPolytrees took #{endTime - startTime} milliseconds")
         polytreeBBuffer = undefined
+
+        console.log("handleIntersectingPolytrees took #{endTime - startTime} milliseconds")
 
 # Dispose of polytree resources to prevent memory leaks.
 # This utility safely calls the delete method on polytree instances
