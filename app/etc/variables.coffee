@@ -145,18 +145,18 @@ meshOperationNormalVector = new Vector3()
 meshOperationVertexVector = new Vector3()
 
 # =============================================================================
-# CSG AND OCTREE OPERATION VARIABLES
+# CSG AND POLYTREE OPERATION VARIABLES
 # Variables for Constructive Solid Geometry and spatial partitioning.
 # =============================================================================
 
-# Maximum subdivision depth for octree structures.
-OCTREE_MAX_DEPTH = 1000
+# Maximum subdivision depth for polytree structures.
+POLYTREE_MAX_DEPTH = 1000
 
-# Maximum polygons per octree node before subdivision.
-OCTREE_MAX_POLYGONS_PER_NODE = 100000
+# Maximum polygons per polytree node before subdivision.
+POLYTREE_MAX_POLYGONS_PER_NODE = 100000
 
-# Minimum octree node size to prevent excessive subdivision.
-OCTREE_MIN_NODE_SIZE = 1e-6
+# Minimum polytree node size to prevent excessive subdivision.
+POLYTREE_MIN_NODE_SIZE = 1e-6
 
 # Default material index for CSG operations.
 DEFAULT_MATERIAL_INDEX = 0
@@ -277,10 +277,10 @@ if typeof module != 'undefined' and module.exports
     module.exports.meshOperationNormalVector = meshOperationNormalVector
     module.exports.meshOperationVertexVector = meshOperationVertexVector
 
-    # CSG and Octree Operation Variables
-    module.exports.OCTREE_MAX_DEPTH = OCTREE_MAX_DEPTH
-    module.exports.OCTREE_MAX_POLYGONS_PER_NODE = OCTREE_MAX_POLYGONS_PER_NODE
-    module.exports.OCTREE_MIN_NODE_SIZE = OCTREE_MIN_NODE_SIZE
+    # CSG and Polytree Operation Variables
+    module.exports.POLYTREE_MAX_DEPTH = POLYTREE_MAX_DEPTH
+    module.exports.POLYTREE_MAX_POLYGONS_PER_NODE = POLYTREE_MAX_POLYGONS_PER_NODE
+    module.exports.POLYTREE_MIN_NODE_SIZE = POLYTREE_MIN_NODE_SIZE
     module.exports.DEFAULT_MATERIAL_INDEX = DEFAULT_MATERIAL_INDEX
     module.exports.MAX_REFINEMENT_ITERATIONS = MAX_REFINEMENT_ITERATIONS
 

@@ -9,42 +9,47 @@ operationCounter = 0
 
 # Clear intersection cache when it exceeds size limit.
 clearIntersectionCache = ->
-    
+
     if INTERSECTION_CACHE_SIZE isnt Infinity and intersectionCache.size > INTERSECTION_CACHE_SIZE
-        
+
         # Remove oldest entries (simple FIFO approach).
         keysToRemove = intersectionCacheKeys.splice(0, Math.floor(INTERSECTION_CACHE_SIZE / 2))
-        
+
         for key in keysToRemove
+
             intersectionCache.delete(key)
 
 # Create cache key from two polygons.
 createIntersectionCacheKey = (polygonA, polygonB) ->
-    
-    "#{polygonA.id}_#{polygonB.id}"
+
+    return "#{polygonA.id}_#{polygonB.id}"
 
 # Memory management utilities.
 checkMemoryUsage = ->
-    
+
     if typeof process != 'undefined' and process.memoryUsage
-        
+
         memoryUsage = process.memoryUsage()
         heapUsedMB = memoryUsage.heapUsed / 1024 / 1024
         heapTotalMB = memoryUsage.heapTotal / 1024 / 1024
         usageRatio = memoryUsage.heapUsed / memoryUsage.heapTotal
-        
+
         if DEBUG_VERBOSE_LOGGING
+
             console.log("Memory usage: #{heapUsedMB.toFixed(2)}MB / #{heapTotalMB.toFixed(2)}MB (#{(usageRatio * 100).toFixed(1)}%)")
-        
+
         if usageRatio > MEMORY_USAGE_WARNING_LIMIT
+
             console.warn("Memory usage is high: #{(usageRatio * 100).toFixed(1)}%")
-            
+
             if typeof global?.gc == 'function'
+
                 console.log("Triggering garbage collection...")
+
                 global.gc()
-        
+
         return usageRatio
-    
+
     return 0
 
 # Create a 2D vector buffer with write functionality.
@@ -97,7 +102,7 @@ sortRaycastIntersectionsByDistance = (intersectionA, intersectionB) ->
 # This helps eliminate floating point precision errors in geometric calculations.
 #
 # @param point - Vector3 point to round.
-# @param decimalPlaces - Number of decimal places to round to (default: 15).
+# @param decimalPlaces - Number of decimal places to round to (defaults to DEFAULT_COORDINATE_PRECISION).
 #
 # @return The same point object with rounded coordinates.
 roundPointCoordinates = (point, decimalPlaces = DEFAULT_COORDINATE_PRECISION) ->
@@ -319,9 +324,8 @@ calculateWindingNumberFromBuffer = (triangleDataArray, testPoint) ->
         vectorLengthC = windingNumberVector3.length()
 
         # Skip degenerate triangles that are too small to contribute meaningfully.
-        if vectorLengthA < POINT_COINCIDENCE_THRESHOLD or 
-           vectorLengthB < POINT_COINCIDENCE_THRESHOLD or 
-           vectorLengthC < POINT_COINCIDENCE_THRESHOLD
+        if vectorLengthA < POINT_COINCIDENCE_THRESHOLD or vectorLengthB < POINT_COINCIDENCE_THRESHOLD or vectorLengthC < POINT_COINCIDENCE_THRESHOLD
+
             continue
 
         # Calculate the solid angle using the determinant formula.
@@ -433,6 +437,7 @@ prepareTriangleBufferFromPolygons = (polygonArray) ->
 testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
 
     if DEBUG_VERBOSE_LOGGING
+
         console.log("Testing ray-triangle intersection with ray origin:", ray.origin, "direction:", ray.direction)
 
     # Calculate triangle edge vectors.
@@ -488,9 +493,10 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
 
     startTime = if DEBUG_PERFORMANCE_TIMING then performance.now() else 0
 
-    # Increment operation counter and check for GC threshold.
-    operationCounter++
+    operationCounter++ # Increment operation counter and check for GC threshold.
+
     if operationCounter >= GARBAGE_COLLECTION_THRESHOLD
+
         operationCounter = 0
         clearIntersectionCache()
         checkMemoryUsage()
@@ -525,6 +531,7 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
         polytreeBBuffer = undefined
 
     if DEBUG_PERFORMANCE_TIMING
+
         endTime = performance.now()
         console.log("handleIntersectingPolytrees took #{endTime - startTime} milliseconds")
         polytreeBBuffer = undefined

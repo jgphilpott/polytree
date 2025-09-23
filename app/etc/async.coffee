@@ -22,11 +22,14 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout only if not infinite.
-            timeoutId = null
+            timeoutId = null # Set up operation timeout only if not infinite.
+
             if ASYNC_OPERATION_TIMEOUT isnt Infinity
+
                 timeoutId = setTimeout ->
+
                     reject(new Error("Union operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+
                 , ASYNC_OPERATION_TIMEOUT
 
             try
@@ -54,11 +57,14 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout only if not infinite.
-            timeoutId = null
+            timeoutId = null # Set up operation timeout only if not infinite.
+
             if ASYNC_OPERATION_TIMEOUT isnt Infinity
+
                 timeoutId = setTimeout ->
+
                     reject(new Error("Subtract operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+
                 , ASYNC_OPERATION_TIMEOUT
 
             try
@@ -86,11 +92,14 @@ Polytree.async =
 
         new Promise (resolve, reject) ->
 
-            # Set up operation timeout only if not infinite.
-            timeoutId = null
+            timeoutId = null # Set up operation timeout only if not infinite.
+
             if ASYNC_OPERATION_TIMEOUT isnt Infinity
+
                 timeoutId = setTimeout ->
+
                     reject(new Error("Intersect operation timed out after #{ASYNC_OPERATION_TIMEOUT}ms"))
+
                 , ASYNC_OPERATION_TIMEOUT
 
             try

@@ -56,10 +56,10 @@ global.Matrix3 = Matrix3
     meshOperationNormalVector
     meshOperationVertexVector
 
-    # CSG and Octree Operation Variables
-    OCTREE_MAX_DEPTH
-    OCTREE_MAX_POLYGONS_PER_NODE
-    OCTREE_MIN_NODE_SIZE
+    # CSG and Polytree Operation Variables
+    POLYTREE_MAX_DEPTH
+    POLYTREE_MAX_POLYGONS_PER_NODE
+    POLYTREE_MIN_NODE_SIZE
     DEFAULT_MATERIAL_INDEX
     MAX_REFINEMENT_ITERATIONS
 
@@ -261,22 +261,22 @@ describe "Variables module", ->
 
             expect(meshOperationVertexVector).toBeInstanceOf(Vector3)
 
-    describe "CSG and Octree Operation Variables", ->
+    describe "CSG and Polytree Operation Variables", ->
 
-        it "OCTREE_MAX_DEPTH should be a number", ->
+        it "POLYTREE_MAX_DEPTH should be a number", ->
 
-            expect(typeof OCTREE_MAX_DEPTH).toBe("number")
-            expect(OCTREE_MAX_DEPTH).toBe(1000)
+            expect(typeof POLYTREE_MAX_DEPTH).toBe("number")
+            expect(POLYTREE_MAX_DEPTH).toBe(1000)
 
-        it "OCTREE_MAX_POLYGONS_PER_NODE should be a number", ->
+        it "POLYTREE_MAX_POLYGONS_PER_NODE should be a number", ->
 
-            expect(typeof OCTREE_MAX_POLYGONS_PER_NODE).toBe("number")
-            expect(OCTREE_MAX_POLYGONS_PER_NODE).toBe(100000)
+            expect(typeof POLYTREE_MAX_POLYGONS_PER_NODE).toBe("number")
+            expect(POLYTREE_MAX_POLYGONS_PER_NODE).toBe(100000)
 
-        it "OCTREE_MIN_NODE_SIZE should be a number", ->
+        it "POLYTREE_MIN_NODE_SIZE should be a number", ->
 
-            expect(typeof OCTREE_MIN_NODE_SIZE).toBe("number")
-            expect(OCTREE_MIN_NODE_SIZE).toBe(1e-6)
+            expect(typeof POLYTREE_MIN_NODE_SIZE).toBe("number")
+            expect(POLYTREE_MIN_NODE_SIZE).toBe(1e-6)
 
         it "DEFAULT_MATERIAL_INDEX should be a number", ->
 

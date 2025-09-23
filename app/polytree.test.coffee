@@ -392,14 +392,14 @@ describe "Polytree", ->
 
             expect(collision).toBe(false)
 
-        it "should collect sphere triangles from octree", ->
+        it "should collect sphere triangles from polytree", ->
 
             geometry = new BoxGeometry(4, 4, 4)
             material = new MeshBasicMaterial({ color: 0xff0000 })
             mesh = new Mesh(geometry, material)
 
             polytree = Polytree.fromMesh(mesh)
-            polytree.buildTree() # Build octree structure.
+            polytree.buildTree() # Build polytree structure.
 
             sphere = new Sphere(new Vector3(0, 0, 0), 2.0)
             triangles = []

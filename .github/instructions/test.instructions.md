@@ -82,7 +82,7 @@ Future (add later):
 
 ## Adding New Geometry Tests
 
-When adding a geometry routine (e.g. ray-triangle, octree CSG steps):
+When adding a geometry routine (e.g. ray-triangle, polytree CSG steps):
 
 1. List edge cases first (comment header).
 2. Implement helpers.
