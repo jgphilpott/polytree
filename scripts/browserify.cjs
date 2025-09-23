@@ -40,7 +40,7 @@ while ((match = threeRequireSingleLineRegex.exec(content)) !== null) {
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
-    
+
     identifiers.forEach(id => {
         if (id.includes(':')) {
             const [original, alias] = id.split(':').map(s => s.trim());
@@ -58,7 +58,7 @@ while ((match = threeRequireMultiLineRegex.exec(content)) !== null) {
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
-    
+
     identifiers.forEach(id => {
         if (id.includes(':')) {
             const [original, alias] = id.split(':').map(s => s.trim());
@@ -92,7 +92,7 @@ if (allThreeIdentifiers.length) {
         return id.trim();
     });
     const idSet = new Set(cleanIdentifiers);
-    
+
     for (let i = 0; i < lines.length; i++) {
         if (lines[i].startsWith('var ')) {
             // Support multiple consecutive CoffeeScript generated var lines.
@@ -125,7 +125,6 @@ content = content.replace(/module\.exports\s*=\s*\{[\s\S]*?\};\n?/g, '');
 
 // Find the main default export (usually the last large assignment).
 // Look for patterns like "module.exports = Something" or similar.
-const defaultExportMatch = content.match(/(\w+) = (function\([^)]*\)[\s\S]*?)(?=\n\w+\s*=|\nmodule\.exports|\n$)/);
 let defaultExportName = 'Polytree'; // fallback
 
 // If we can find the main Polytree class/function definition, use that.
