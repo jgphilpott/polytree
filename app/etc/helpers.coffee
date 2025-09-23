@@ -4,6 +4,10 @@
 intersectionCache = new Map()
 intersectionCacheKeys = []
 
+# Geometry calculation cache for expensive operations.
+geometryCache = new Map()
+geometryCacheKeys = []
+
 # Operation counter for garbage collection threshold tracking.
 operationCounter = 0
 
@@ -18,6 +22,18 @@ clearIntersectionCache = ->
         for key in keysToRemove
 
             intersectionCache.delete(key)
+
+# Clear geometry cache when it exceeds size limit.
+clearGeometryCache = ->
+
+    if GEOMETRY_CACHE_SIZE isnt Infinity and geometryCache.size > GEOMETRY_CACHE_SIZE
+
+        # Remove oldest entries (simple FIFO approach).
+        keysToRemove = geometryCacheKeys.splice(0, Math.floor(GEOMETRY_CACHE_SIZE / 2))
+
+        for key in keysToRemove
+
+            geometryCache.delete(key)
 
 # Create cache key from two polygons.
 createIntersectionCacheKey = (polygonA, polygonB) ->
@@ -162,19 +178,31 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
         when POLYGON_COPLANAR
 
             returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
+            
+            if DEBUG_VERBOSE_LOGGING
+                console.log("Polygon classified as COPLANAR, debug color:", DEBUG_COLOR_COPLANAR.toString(16))
             result.push(returnPolygon)
 
         when POLYGON_FRONT
 
             returnPolygon.type = "front"
             result.push(returnPolygon)
+            
+            if DEBUG_VERBOSE_LOGGING
+                console.log("Polygon classified as FRONT, debug color:", DEBUG_COLOR_FRONT.toString(16))
 
         when POLYGON_BACK
 
             returnPolygon.type = "back"
             result.push(returnPolygon)
+            
+            if DEBUG_VERBOSE_LOGGING
+                console.log("Polygon classified as BACK, debug color:", DEBUG_COLOR_BACK.toString(16))
 
         when POLYGON_SPANNING
+
+            if DEBUG_VERBOSE_LOGGING
+                console.log("Polygon classified as SPANNING, debug color:", DEBUG_COLOR_SPANNING.toString(16))
 
             frontVertices = []
             backVertices = []
@@ -476,7 +504,16 @@ testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
     # Check if intersection is in front of ray origin.
     if intersectionDistance > RAY_INTERSECTION_EPSILON
 
-        return targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
+        result = targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
+        
+        if DEBUG_INTERSECTION_VERIFICATION
+            console.log("Ray-triangle intersection verified:", {
+                distance: intersectionDistance,
+                point: result,
+                triangle: { a: triangle.a, b: triangle.b, c: triangle.c }
+            })
+            
+        return result
 
     return null
 
@@ -499,6 +536,7 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
 
         operationCounter = 0
         clearIntersectionCache()
+        clearGeometryCache()
         checkMemoryUsage()
 
     polytreeABuffer = undefined

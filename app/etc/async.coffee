@@ -10,6 +10,10 @@ Polytree.async =
     # Objects arrays larger than this size will be processed in batches to prevent memory issues.
     batchSize: DEFAULT_BUFFER_SIZE
 
+    # Maximum worker threads hint for parallel processing (informational).
+    # Set to Infinity for unlimited parallelism when supported by the environment.
+    maxWorkerThreads: MAX_WORKER_THREADS
+
     # Perform asynchronous union operation between two polytree objects.
     # Creates a new polytree containing the combined volume of both input polytrees.
     #
