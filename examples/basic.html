@@ -162,7 +162,7 @@
                 operation: csgOperations[1],
                 object1: geometryNames[0],
                 object2: geometryNames[1],
-                wireframe: true,
+                wireframe: false,
                 export: exportSTL
             }
 
@@ -258,7 +258,7 @@
             let object1Polytree = Polytree.fromMesh(object1_bg);
             object1Polytree.setPolygonIndex(0);
             const object2_bg = new THREE.Mesh(object2Geometry, object2Material_bg);
-            object2_bg.position.set(5, 2, 1);
+            object2_bg.position.set(2.5, 2.5, 2.5);
             let object2Polytree = Polytree.fromMesh(object2_bg);
             object2Polytree.setPolygonIndex(1);
 
