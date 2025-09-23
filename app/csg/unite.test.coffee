@@ -102,7 +102,7 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, -2, 0, 0) # Left box
             box2 = createBox(2, 2, 2, 2, 0, 0)  # Right box
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 8) # Expect at least 8 triangles.
             expect(result.material).toBeDefined()
@@ -112,7 +112,7 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, -0.5, 0, 0) # Left box, slightly overlapping.
             box2 = createBox(2, 2, 2, 0.5, 0, 0)  # Right box, slightly overlapping.
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 6) # Fewer triangles due to overlap removal.
             expect(result.material).toBeDefined()
@@ -122,7 +122,7 @@ describe "Polytree.unite", ->
             box = createBox(2, 2, 2, 0, 0, 0)
             sphere = createSphere(1, 2, 0, 0)
 
-            result = Polytree.unite(box, sphere)
+            result = Polytree.unite(box, sphere, false)
 
             validateMesh(result, 10)
             expect(result.material).toBeDefined()
@@ -132,7 +132,7 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, 0, 0, 0)
             box2 = createBox(1, 1, 1, 0, 0, 0) # Smaller box inside larger.
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 6) # Should be approximately the same as box1.
             expect(result.material).toBeDefined()
@@ -142,7 +142,7 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0) # Identical box.
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 6) # Should be the same as one box.
             expect(result.material).toBeDefined()
@@ -159,37 +159,46 @@ describe "Polytree.unite", ->
             box1.material = material1
             box2.material = material2
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result)
             expect(result.material.color.getHex()).toBe(0xff0000)
 
-        it "should use specified target material", ->
+        it "should always use material from first mesh", ->
 
-            targetMaterial = new MeshBasicMaterial({ color: 0x0000ff, side: DoubleSide })
+            material1 = new MeshBasicMaterial({ color: 0xff0000, side: FrontSide })
+            material2 = new MeshBasicMaterial({ color: 0x00ff00, side: BackSide })
+
+            box1 = createBox(2, 2, 2, -1, 0, 0)
+            box2 = createBox(2, 2, 2, 1, 0, 0)
+            box1.material = material1
+            box2.material = material2
+
+            result = Polytree.unite(box1, box2, false)
+
+            validateMesh(result)
+            expect(result.material.color.getHex()).toBe(0xff0000) # Should use box1's material.
+
+        it "should handle async parameter", ->
 
             box1 = createBox(2, 2, 2, -1, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0)
 
-            result = Polytree.unite(box1, box2, targetMaterial)
+            # Test synchronous operation (explicit false).
+            resultSync = Polytree.unite(box1, box2, false)
 
-            validateMesh(result)
-            expect(result.material).toBe(targetMaterial)
+            validateMesh(resultSync)
+            expect(resultSync.material).toBeDefined()
 
-        it "should handle array materials", ->
+            # Test asynchronous operation (default true).
+            resultAsyncPromise = Polytree.unite(box1, box2)
 
-            materials = [
-                new MeshBasicMaterial({ color: 0xff0000 }),
-                new MeshBasicMaterial({ color: 0x00ff00 })
-            ]
+            expect(resultAsyncPromise).toBeInstanceOf(Promise)
 
-            box1 = createBox(2, 2, 2, -1, 0, 0)
-            box2 = createBox(2, 2, 2, 1, 0, 0)
+            return resultAsyncPromise.then (resultAsync) ->
 
-            result = Polytree.unite(box1, box2, materials)
-
-            validateMesh(result)
-            expect(Array.isArray(result.material)).toBe(true)
+                validateMesh(resultAsync)
+                expect(resultAsync.material).toBeDefined()
 
     describe "Polytree-to-Polytree Operations", ->
 
@@ -201,7 +210,7 @@ describe "Polytree.unite", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.unite(polytree1, polytree2)
+            result = Polytree.unite(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
@@ -213,13 +222,11 @@ describe "Polytree.unite", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.unite(polytree1, polytree2, null)
+            result = Polytree.unite(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
-        it "should return mesh when targetMaterial is specified", ->
-
-            targetMaterial = new MeshBasicMaterial({ color: 0xffffff })
+        it "should always return polytree for polytree inputs", ->
 
             box1 = createBox(2, 2, 2, -1, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0)
@@ -227,16 +234,11 @@ describe "Polytree.unite", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.unite(polytree1, polytree2, targetMaterial)
+            result = Polytree.unite(polytree1, polytree2, false)
 
-            # When targetMaterial is provided, result might still be a polytree.
-            # This is acceptable behavior, test that it's defined and has material.
+            # Polytree-to-polytree operations always return polytrees.
             expect(result).toBeDefined()
-            if result.isMesh
-                validateMesh(result, 0)
-                expect(result.material).toBe(targetMaterial)
-            else
-                validatePolytree(result, 0)
+            validatePolytree(result, 0)
 
     describe "Edge Cases and Complex Geometries", ->
 
@@ -245,7 +247,7 @@ describe "Polytree.unite", ->
             box1 = createBox(1, 1, 1, -5, 0, 0) # Far left
             box2 = createBox(1, 1, 1, 5, 0, 0)  # Far right
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 12) # Should have both objects' triangles.
 
@@ -254,7 +256,7 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, -1, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0) # Touching at faces
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 6)
 
@@ -264,7 +266,7 @@ describe "Polytree.unite", ->
             box1 = createBox(4, 1, 1, 0, 0, 0)    # Horizontal bar
             box2 = createBox(1, 4, 1, -1.5, 0, 0) # Vertical bar
 
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result, 8)
 
@@ -273,7 +275,7 @@ describe "Polytree.unite", ->
             cylinder = createCylinder(1, 1, 2, 0, 0, 0)
             sphere = createSphere(1, 0, 2, 0)
 
-            result = Polytree.unite(cylinder, sphere)
+            result = Polytree.unite(cylinder, sphere, false)
 
             validateMesh(result, 10)
 
@@ -286,7 +288,7 @@ describe "Polytree.unite", ->
             sphere = createSphere(8, 2, 0, 0)
 
             start = Date.now()
-            result = Polytree.unite(box1, sphere)
+            result = Polytree.unite(box1, sphere, false)
             duration = Date.now() - start
 
             validateMesh(result, 10)
@@ -298,7 +300,7 @@ describe "Polytree.unite", ->
             thinBox = createBox(0.001, 2, 2, 0, 0, 0)
             normalBox = createBox(2, 2, 2, 1, 0, 0)
 
-            result = Polytree.unite(thinBox, normalBox)
+            result = Polytree.unite(thinBox, normalBox, false)
 
             validateMesh(result, 6)
 
@@ -307,7 +309,7 @@ describe "Polytree.unite", ->
             smallBox = createBox(0.1, 0.1, 0.1, 0, 0, 0)
             largeBox = createBox(10, 10, 10, 0, 0, 0)
 
-            result = Polytree.unite(smallBox, largeBox)
+            result = Polytree.unite(smallBox, largeBox, false)
 
             validateMesh(result, 6) # Large box should dominate.
 
@@ -323,7 +325,7 @@ describe "Polytree.unite", ->
             while i < 5 # Reduced iterations to avoid timeout.
 
                 box2 = createBox(1, 1, 1, i * 0.1, 0, 0)
-                result = Polytree.unite(box1, box2)
+                result = Polytree.unite(box1, box2, false)
 
                 validateMesh(result)
 
@@ -341,7 +343,7 @@ describe "Polytree.unite", ->
             box2 = createBox(2, 2, 2, 1, 0, 0)
 
             # This should internally create and dispose polytrees.
-            result = Polytree.unite(box1, box2)
+            result = Polytree.unite(box1, box2, false)
 
             validateMesh(result)
             expect(result).toBeDefined()
@@ -376,8 +378,8 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, -0.5, 0, 0)
             box2 = createBox(2, 2, 2, 0.5, 0, 0)
 
-            result1 = Polytree.unite(box1, box2)
-            result2 = Polytree.unite(box1, box2)
+            result1 = Polytree.unite(box1, box2, false)
+            result2 = Polytree.unite(box1, box2, false)
 
             # Results should be equivalent (same number of vertices).
             expect(result1.geometry.attributes.position.count).toBe(result2.geometry.attributes.position.count)
@@ -387,8 +389,8 @@ describe "Polytree.unite", ->
             box1 = createBox(2, 2, 2, -0.5, 0, 0)
             box2 = createBox(2, 2, 2, 0.5, 0, 0)
 
-            result1 = Polytree.unite(box1, box2)
-            result2 = Polytree.unite(box2, box1)
+            result1 = Polytree.unite(box1, box2, false)
+            result2 = Polytree.unite(box2, box1, false)
 
             # Should produce equivalent results (same triangle count).
             expect(result1.geometry.attributes.position.count).toBe(result2.geometry.attributes.position.count)
@@ -397,6 +399,6 @@ describe "Polytree.unite", ->
 
             box = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.unite(box, box)
+            result = Polytree.unite(box, box, false)
 
             validateMesh(result, 6)

@@ -1,4 +1,5 @@
 {
+    "git-graph.repository.onLoad.showCheckedOutBranch": true,
     "githubPullRequests.codingAgent.uiIntegration": true,
     "cSpell.words": [
         "octree",

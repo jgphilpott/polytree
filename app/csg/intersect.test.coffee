@@ -102,7 +102,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(4, 4, 4, -1, 0, 0) # Left box, overlapping.
             box2 = createBox(4, 4, 4, 1, 0, 0)  # Right box, overlapping.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 6) # Intersection volume.
             expect(result.material).toBeDefined()
@@ -112,7 +112,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(2, 2, 2, -5, 0, 0) # Left box, far away.
             box2 = createBox(2, 2, 2, 5, 0, 0)  # Right box, far away.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 0) # No intersection, empty or minimal result.
             expect(result.material).toBeDefined()
@@ -122,7 +122,7 @@ describe "Polytree.intersect", ->
             box = createBox(4, 4, 4, 0, 0, 0)
             sphere = createSphere(2, 0, 0, 0) # Sphere overlapping box.
 
-            result = Polytree.intersect(box, sphere)
+            result = Polytree.intersect(box, sphere, false)
 
             validateMesh(result, 6) # Intersection volume (cubic portion of sphere).
             expect(result.material).toBeDefined()
@@ -132,7 +132,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(6, 6, 6, 0, 0, 0)   # Large outer box.
             box2 = createBox(2, 2, 2, 0, 0, 0)   # Small inner box.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 6) # Should be approximately the same as smaller box.
             expect(result.material).toBeDefined()
@@ -142,7 +142,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(2, 2, 2, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0) # Identical box.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 6) # Should be the same as one box.
             expect(result.material).toBeDefined()
@@ -152,7 +152,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(4, 2, 2, 0, 0, 0) # Horizontal rectangle.
             box2 = createBox(2, 4, 2, 1, 0, 0) # Vertical rectangle, partial overlap.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 6) # Intersection volume.
             expect(result.material).toBeDefined()
@@ -169,37 +169,46 @@ describe "Polytree.intersect", ->
             box1.material = material1
             box2.material = material2
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result)
             expect(result.material.color.getHex()).toBe(0xff0000)
 
-        it "should use specified target material", ->
+        it "should always use material from first mesh", ->
 
-            targetMaterial = new MeshBasicMaterial({ color: 0x0000ff, side: DoubleSide })
+            material1 = new MeshBasicMaterial({ color: 0xff0000, side: FrontSide })
+            material2 = new MeshBasicMaterial({ color: 0x00ff00, side: BackSide })
+
+            box1 = createBox(4, 4, 4, -1, 0, 0)
+            box2 = createBox(4, 4, 4, 1, 0, 0)
+            box1.material = material1
+            box2.material = material2
+
+            result = Polytree.intersect(box1, box2, false)
+
+            validateMesh(result)
+            expect(result.material.color.getHex()).toBe(0xff0000) # Should use box1's material.
+
+        it "should handle async parameter", ->
 
             box1 = createBox(4, 4, 4, -1, 0, 0)
             box2 = createBox(4, 4, 4, 1, 0, 0)
 
-            result = Polytree.intersect(box1, box2, targetMaterial)
+            # Test synchronous operation (explicit false).
+            resultSync = Polytree.intersect(box1, box2, false)
 
-            validateMesh(result)
-            expect(result.material).toBe(targetMaterial)
+            validateMesh(resultSync)
+            expect(resultSync.material).toBeDefined()
 
-        it "should handle array materials", ->
+            # Test asynchronous operation (default true).
+            resultAsyncPromise = Polytree.intersect(box1, box2)
 
-            materials = [
-                new MeshBasicMaterial({ color: 0xff0000 }),
-                new MeshBasicMaterial({ color: 0x00ff00 })
-            ]
+            expect(resultAsyncPromise).toBeInstanceOf(Promise)
 
-            box1 = createBox(4, 4, 4, -1, 0, 0)
-            box2 = createBox(4, 4, 4, 1, 0, 0)
+            return resultAsyncPromise.then (resultAsync) ->
 
-            result = Polytree.intersect(box1, box2, materials)
-
-            validateMesh(result)
-            expect(Array.isArray(result.material)).toBe(true)
+                validateMesh(resultAsync)
+                expect(resultAsync.material).toBeDefined()
 
     describe "Polytree-to-Polytree Operations", ->
 
@@ -211,7 +220,7 @@ describe "Polytree.intersect", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.intersect(polytree1, polytree2)
+            result = Polytree.intersect(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
@@ -223,13 +232,11 @@ describe "Polytree.intersect", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.intersect(polytree1, polytree2, null)
+            result = Polytree.intersect(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
-        it "should return appropriate type when targetMaterial is specified", ->
-
-            targetMaterial = new MeshBasicMaterial({ color: 0xffffff })
+        it "should always return polytree for polytree inputs", ->
 
             box1 = createBox(4, 4, 4, -1, 0, 0)
             box2 = createBox(4, 4, 4, 1, 0, 0)
@@ -237,21 +244,11 @@ describe "Polytree.intersect", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.intersect(polytree1, polytree2, targetMaterial)
+            result = Polytree.intersect(polytree1, polytree2, false)
 
-            # When targetMaterial is provided, result might still be a polytree.
-            # This is acceptable behavior, test that it's defined.
-
+            # Polytree-to-polytree operations always return polytrees.
             expect(result).toBeDefined()
-
-            if result.isMesh
-
-                validateMesh(result, 0)
-                expect(result.material).toBe(targetMaterial)
-
-            else
-
-                validatePolytree(result, 0)
+            validatePolytree(result, 0)
 
     describe "Edge Cases and Complex Geometries", ->
 
@@ -260,7 +257,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(2, 2, 2, -10, 0, 0) # Far left
             box2 = createBox(2, 2, 2, 10, 0, 0)  # Far right
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 0) # No intersection, empty result.
 
@@ -269,7 +266,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(2, 2, 2, -1, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0) # Touching at faces.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 0) # Minimal or no intersection.
 
@@ -279,7 +276,7 @@ describe "Polytree.intersect", ->
             cylinder = createCylinder(2, 2, 6, 0, 0, 0) # Tall cylinder.
             box = createBox(4, 4, 3, 0, 0, 0)           # Box intersecting cylinder.
 
-            result = Polytree.intersect(cylinder, box)
+            result = Polytree.intersect(cylinder, box, false)
 
             validateMesh(result, 6) # Cylindrical section within box bounds.
 
@@ -288,7 +285,7 @@ describe "Polytree.intersect", ->
             sphere = createSphere(2, 0, 0, 0)
             box = createBox(3, 3, 3, 0, 0, 0) # Box containing sphere.
 
-            result = Polytree.intersect(sphere, box)
+            result = Polytree.intersect(sphere, box, false)
 
             validateMesh(result, 10) # Cubic portion of sphere.
 
@@ -299,13 +296,13 @@ describe "Polytree.intersect", ->
             sphere = createSphere(3, 0, 0, 0)
 
             # First intersection.
-            intermediate = Polytree.intersect(outerBox, sphere)
+            intermediate = Polytree.intersect(outerBox, sphere, false)
             validateMesh(intermediate)
 
             innerBox = createBox(2, 2, 2, 0, 0, 0)
 
             # Second intersection.
-            result = Polytree.intersect(intermediate, innerBox)
+            result = Polytree.intersect(intermediate, innerBox, false)
             validateMesh(result, 0) # Complex nested intersection.
 
     describe "Performance and Robustness", ->
@@ -317,7 +314,7 @@ describe "Polytree.intersect", ->
             sphere = createSphere(15, 5, 0, 0)
 
             start = Date.now()
-            result = Polytree.intersect(box1, sphere)
+            result = Polytree.intersect(box1, sphere, false)
             duration = Date.now() - start
 
             validateMesh(result, 10)
@@ -329,7 +326,7 @@ describe "Polytree.intersect", ->
             thinBox = createBox(0.001, 4, 4, 0, 0, 0)
             normalBox = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.intersect(thinBox, normalBox)
+            result = Polytree.intersect(thinBox, normalBox, false)
 
             validateMesh(result, 0) # Minimal intersection due to thin geometry.
 
@@ -338,7 +335,7 @@ describe "Polytree.intersect", ->
             largeBox = createBox(100, 100, 100, 0, 0, 0)
             smallBox = createBox(1, 1, 1, 0, 0, 0)
 
-            result = Polytree.intersect(largeBox, smallBox)
+            result = Polytree.intersect(largeBox, smallBox, false)
 
             validateMesh(result, 6) # Small box entirely contained.
 
@@ -353,7 +350,7 @@ describe "Polytree.intersect", ->
             while i < 5 # Reduced iterations to avoid timeout.
 
                 otherBox = createBox(3, 3, 3, i * 0.1, i * 0.1, 0)
-                result = Polytree.intersect(baseBox, otherBox)
+                result = Polytree.intersect(baseBox, otherBox, false)
 
                 validateMesh(result)
 
@@ -371,7 +368,7 @@ describe "Polytree.intersect", ->
             box2 = createBox(4, 4, 4, 1, 0, 0)
 
             # This should internally create and dispose polytrees.
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result)
             expect(result).toBeDefined()
@@ -406,8 +403,8 @@ describe "Polytree.intersect", ->
             box1 = createBox(4, 4, 4, -1, 0, 0)
             box2 = createBox(4, 4, 4, 1, 0, 0)
 
-            result1 = Polytree.intersect(box1, box2)
-            result2 = Polytree.intersect(box1, box2)
+            result1 = Polytree.intersect(box1, box2, false)
+            result2 = Polytree.intersect(box1, box2, false)
 
             # Results should be equivalent (same number of vertices).
             expect(result1.geometry.attributes.position.count).toBe(result2.geometry.attributes.position.count)
@@ -417,8 +414,8 @@ describe "Polytree.intersect", ->
             box1 = createBox(4, 4, 4, -1, 0, 0)
             box2 = createBox(3, 3, 3, 1, 0, 0)
 
-            result1 = Polytree.intersect(box1, box2) # A ∩ B.
-            result2 = Polytree.intersect(box2, box1) # B ∩ A.
+            result1 = Polytree.intersect(box1, box2, false) # A ∩ B.
+            result2 = Polytree.intersect(box2, box1, false) # B ∩ A.
 
             # Should produce equivalent results (intersection is commutative).
             expect(result1.geometry.attributes.position.count).toBe(result2.geometry.attributes.position.count)
@@ -427,7 +424,7 @@ describe "Polytree.intersect", ->
 
             box = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.intersect(box, box)
+            result = Polytree.intersect(box, box, false)
 
             validateMesh(result, 6) # Should be the same as original box.
 
@@ -439,7 +436,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(6, 2, 2, 0, 0, 0) # Wide box
             box2 = createBox(2, 6, 2, 0, 0, 0) # Tall box
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result) # Result should represent the intersection volume (may be complex due to CSG processing).
             expect(result.geometry.attributes.position.count).toBeGreaterThan(0)
@@ -449,7 +446,7 @@ describe "Polytree.intersect", ->
             mainBox = createBox(6, 6, 6, 0, 0, 0)
             offsetBox = createBox(4, 4, 4, 2, 2, 2) # Offset intersection.
 
-            result = Polytree.intersect(mainBox, offsetBox)
+            result = Polytree.intersect(mainBox, offsetBox, false)
 
             validateMesh(result, 6) # Should create offset intersection volume.
 
@@ -458,7 +455,7 @@ describe "Polytree.intersect", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(4, 2, 2, 2, 0, 0) # Exactly half overlap.
 
-            result = Polytree.intersect(box1, box2)
+            result = Polytree.intersect(box1, box2, false)
 
             validateMesh(result, 6) # Should create precise intersection boundary.
 
@@ -468,7 +465,7 @@ describe "Polytree.intersect", ->
             outerBox1 = createBox(8, 8, 8, -1, 0, 0)
             outerBox2 = createBox(8, 8, 8, 1, 0, 0)
 
-            result = Polytree.intersect(outerBox1, outerBox2)
+            result = Polytree.intersect(outerBox1, outerBox2, false)
 
             validateMesh(result, 6) # Intersection of two overlapping volumes.
 
@@ -478,6 +475,6 @@ describe "Polytree.intersect", ->
             longBox = createBox(10, 2, 2, 0, 0, 0) # Long thin box.
             cube = createBox(3, 3, 3, 2, 0, 0)     # Cube intersecting part of long box.
 
-            result = Polytree.intersect(longBox, cube)
+            result = Polytree.intersect(longBox, cube, false)
 
             validateMesh(result, 6) # Should create asymmetric intersection volume.

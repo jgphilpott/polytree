@@ -48,10 +48,35 @@ intersectRules =
 #
 # @param mesh1 - First 3D object to intersect (Three.js Mesh or Polytree instance).
 # @param mesh2 - Second 3D object to intersect (Three.js Mesh or Polytree instance).
-# @param targetMaterial - Optional material for result mesh. If null and polytree input, returns polytree.
+# @param async - Whether to perform operation asynchronously (default: true).
 #
-# @return Three.js Mesh with intersected geometry or Polytree instance.
-Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
+# @return Three.js Mesh with intersected geometry, Polytree instance, or Promise.
+Polytree.intersect = (mesh1, mesh2, async = true) ->
+
+    # Handle async request - delegate to async module.
+    if async
+
+        # Convert meshes to polytrees if needed for async processing.
+        if mesh1.isPolytree and mesh2.isPolytree
+
+            return Polytree.async.intersect(mesh1, mesh2, true)
+
+        else
+
+            # Convert meshes to polytrees and return Promise that resolves to mesh.
+            polytreeA = Polytree.fromMesh(mesh1)
+            polytreeB = Polytree.fromMesh(mesh2)
+
+            # Get material from first mesh for final result.
+            targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
+            targetMaterial = targetMaterial.clone()
+
+            return Polytree.async.intersect(polytreeA, polytreeB, false).then (resultPolytree) ->
+
+                resultMesh = Polytree.toMesh(resultPolytree, targetMaterial)
+                disposePolytreeResources(polytreeA, polytreeB, resultPolytree)
+
+                return resultMesh
 
     # Handle both mesh and polytree inputs for backward compatibility.
     if mesh1.isPolytree and mesh2.isPolytree
@@ -59,36 +84,18 @@ Polytree.intersect = (mesh1, mesh2, targetMaterial = null) ->
         # Direct polytree-to-polytree operation - most efficient path.
         polytreeA = mesh1
         polytreeB = mesh2
-        buildTargetPolytree = if targetMaterial is null then true else false
 
-        return this.intersectCore(polytreeA, polytreeB, buildTargetPolytree)
+        return this.intersectCore(polytreeA, polytreeB, true)
 
     else
 
         # Mesh-to-mesh operation (default behavior) - converts to polytrees internally.
-        polytreeA = undefined
-        polytreeB = undefined
+        polytreeA = Polytree.fromMesh(mesh1)
+        polytreeB = Polytree.fromMesh(mesh2)
 
-        # Handle material array input for multi-material support.
-        if targetMaterial and Array.isArray(targetMaterial)
-
-            polytreeA = Polytree.fromMesh(mesh1, 0)
-            polytreeB = Polytree.fromMesh(mesh2, 1)
-
-        else
-
-            polytreeA = Polytree.fromMesh(mesh1)
-            polytreeB = Polytree.fromMesh(mesh2)
-
-            # Use specified material or default to first material from mesh1.
-            if targetMaterial isnt null
-
-                targetMaterial = targetMaterial
-
-            else
-
-                targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
-                targetMaterial = targetMaterial.clone()
+        # Always use material from first mesh (cloned for safety).
+        targetMaterial = if Array.isArray(mesh1.material) then mesh1.material[0] else mesh1.material
+        targetMaterial = targetMaterial.clone()
 
         # Perform intersect operation and convert result back to mesh.
         resultPolytree = this.intersectCore(polytreeA, polytreeB, false)

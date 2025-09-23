@@ -240,7 +240,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 
                 if firstOperand and secondOperand
 
-                    resultPolytree = Polytree.unite(firstOperand, secondOperand, buildTargetPolytree)
+                    resultPolytree = Polytree.unite(firstOperand, secondOperand, false)
 
                 else
 
@@ -251,7 +251,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 
                 if firstOperand and secondOperand
 
-                    resultPolytree = Polytree.subtract(firstOperand, secondOperand, buildTargetPolytree)
+                    resultPolytree = Polytree.subtract(firstOperand, secondOperand, false)
 
                 else
 
@@ -262,7 +262,7 @@ operationHandler = (operationObject, returnPolytrees = false, buildTargetPolytre
 
                 if firstOperand and secondOperand
 
-                    resultPolytree = Polytree.intersect(firstOperand, secondOperand, buildTargetPolytree)
+                    resultPolytree = Polytree.intersect(firstOperand, secondOperand, false)
 
                 else
 
