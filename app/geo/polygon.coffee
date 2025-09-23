@@ -129,6 +129,16 @@ class Polygon
 
     # === OBJECT CREATION AND COPYING ===
 
+    # Create a polygon with default material index.
+    # Convenience method for creating polygons without specifying material.
+    #
+    # @param vertices - Array of Vertex instances representing the polygon corners.
+    #
+    # @return New Polygon instance with default material.
+    @createWithDefaultMaterial: (vertices) ->
+
+        new Polygon(vertices, DEFAULT_MATERIAL_INDEX)
+
     # Create a deep copy of this polygon with all properties.
     # Preserves all state information and geometric data.
     #

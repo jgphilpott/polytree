@@ -56,10 +56,10 @@ global.Matrix3 = Matrix3
     meshOperationNormalVector
     meshOperationVertexVector
 
-    # CSG and Octree Operation Variables
-    OCTREE_MAX_DEPTH
-    OCTREE_MAX_POLYGONS_PER_NODE
-    OCTREE_MIN_NODE_SIZE
+    # CSG and Polytree Operation Variables
+    POLYTREE_MAX_DEPTH
+    POLYTREE_MAX_POLYGONS_PER_NODE
+    POLYTREE_MIN_NODE_SIZE
     DEFAULT_MATERIAL_INDEX
     MAX_REFINEMENT_ITERATIONS
 
@@ -99,17 +99,17 @@ describe "Variables module", ->
         it "GEOMETRIC_EPSILON should be a number with correct value", ->
 
             expect(typeof GEOMETRIC_EPSILON).toBe("number")
-            expect(GEOMETRIC_EPSILON).toBe(1e-5)
+            expect(GEOMETRIC_EPSILON).toBe(1e-8)
 
         it "RAY_INTERSECTION_EPSILON should be a number with correct value", ->
 
             expect(typeof RAY_INTERSECTION_EPSILON).toBe("number")
-            expect(RAY_INTERSECTION_EPSILON).toBe(0.0000001)
+            expect(RAY_INTERSECTION_EPSILON).toBe(1e-12)
 
         it "TRIANGLE_2D_EPSILON should be a number with correct value", ->
 
             expect(typeof TRIANGLE_2D_EPSILON).toBe("number")
-            expect(TRIANGLE_2D_EPSILON).toBe(1e-10)
+            expect(TRIANGLE_2D_EPSILON).toBe(1e-14)
 
         it "WINDING_NUMBER_FULL_ROTATION should be a number with correct value", ->
 
@@ -261,22 +261,22 @@ describe "Variables module", ->
 
             expect(meshOperationVertexVector).toBeInstanceOf(Vector3)
 
-    describe "CSG and Octree Operation Variables", ->
+    describe "CSG and Polytree Operation Variables", ->
 
-        it "OCTREE_MAX_DEPTH should be a number", ->
+        it "POLYTREE_MAX_DEPTH should be a number", ->
 
-            expect(typeof OCTREE_MAX_DEPTH).toBe("number")
-            expect(OCTREE_MAX_DEPTH).toBe(10)
+            expect(typeof POLYTREE_MAX_DEPTH).toBe("number")
+            expect(POLYTREE_MAX_DEPTH).toBe(1000)
 
-        it "OCTREE_MAX_POLYGONS_PER_NODE should be a number", ->
+        it "POLYTREE_MAX_POLYGONS_PER_NODE should be a number", ->
 
-            expect(typeof OCTREE_MAX_POLYGONS_PER_NODE).toBe("number")
-            expect(OCTREE_MAX_POLYGONS_PER_NODE).toBe(50)
+            expect(typeof POLYTREE_MAX_POLYGONS_PER_NODE).toBe("number")
+            expect(POLYTREE_MAX_POLYGONS_PER_NODE).toBe(100000)
 
-        it "OCTREE_MIN_NODE_SIZE should be a number", ->
+        it "POLYTREE_MIN_NODE_SIZE should be a number", ->
 
-            expect(typeof OCTREE_MIN_NODE_SIZE).toBe("number")
-            expect(OCTREE_MIN_NODE_SIZE).toBe(0.001)
+            expect(typeof POLYTREE_MIN_NODE_SIZE).toBe("number")
+            expect(POLYTREE_MIN_NODE_SIZE).toBe(1e-6)
 
         it "DEFAULT_MATERIAL_INDEX should be a number", ->
 
@@ -286,7 +286,7 @@ describe "Variables module", ->
         it "MAX_REFINEMENT_ITERATIONS should be a number", ->
 
             expect(typeof MAX_REFINEMENT_ITERATIONS).toBe("number")
-            expect(MAX_REFINEMENT_ITERATIONS).toBe(100)
+            expect(MAX_REFINEMENT_ITERATIONS).toBe(10000)
 
     describe "Performance and Optimization Variables", ->
 
@@ -298,42 +298,42 @@ describe "Variables module", ->
         it "POINT_COINCIDENCE_THRESHOLD should be a number", ->
 
             expect(typeof POINT_COINCIDENCE_THRESHOLD).toBe("number")
-            expect(POINT_COINCIDENCE_THRESHOLD).toBe(1e-12)
+            expect(POINT_COINCIDENCE_THRESHOLD).toBe(1e-15)
 
         it "DEFAULT_BUFFER_SIZE should be a number", ->
 
             expect(typeof DEFAULT_BUFFER_SIZE).toBe("number")
-            expect(DEFAULT_BUFFER_SIZE).toBe(1024)
+            expect(DEFAULT_BUFFER_SIZE).toBe(16384)
 
         it "MAX_WORKER_THREADS should be a number", ->
 
             expect(typeof MAX_WORKER_THREADS).toBe("number")
-            expect(MAX_WORKER_THREADS).toBe(4)
+            expect(MAX_WORKER_THREADS).toBe(Infinity)
 
         it "ASYNC_OPERATION_TIMEOUT should be a number", ->
 
             expect(typeof ASYNC_OPERATION_TIMEOUT).toBe("number")
-            expect(ASYNC_OPERATION_TIMEOUT).toBe(30000)
+            expect(ASYNC_OPERATION_TIMEOUT).toBe(Infinity)
 
         it "GARBAGE_COLLECTION_THRESHOLD should be a number", ->
 
             expect(typeof GARBAGE_COLLECTION_THRESHOLD).toBe("number")
-            expect(GARBAGE_COLLECTION_THRESHOLD).toBe(10000)
+            expect(GARBAGE_COLLECTION_THRESHOLD).toBe(100000)
 
         it "MEMORY_USAGE_WARNING_LIMIT should be a number", ->
 
             expect(typeof MEMORY_USAGE_WARNING_LIMIT).toBe("number")
-            expect(MEMORY_USAGE_WARNING_LIMIT).toBe(0.8)
+            expect(MEMORY_USAGE_WARNING_LIMIT).toBe(0.95)
 
         it "GEOMETRY_CACHE_SIZE should be a number", ->
 
             expect(typeof GEOMETRY_CACHE_SIZE).toBe("number")
-            expect(GEOMETRY_CACHE_SIZE).toBe(1000)
+            expect(GEOMETRY_CACHE_SIZE).toBe(Infinity)
 
         it "INTERSECTION_CACHE_SIZE should be a number", ->
 
             expect(typeof INTERSECTION_CACHE_SIZE).toBe("number")
-            expect(INTERSECTION_CACHE_SIZE).toBe(5000)
+            expect(INTERSECTION_CACHE_SIZE).toBe(Infinity)
 
     describe "Polygon ID Management Variables", ->
 

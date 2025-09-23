@@ -6,12 +6,12 @@ class Polytree
 
     # ----- Static Properties -----
 
-    @maxLevel = 16
-    @polygonsPerTree = 100
-
     @usePolytreeRay = true
     @disposePolytree = true
     @useWindingNumber = false
+
+    @maxLevel = POLYTREE_MAX_DEPTH
+    @polygonsPerTree = POLYTREE_MAX_POLYGONS_PER_NODE
 
     @rayIntersectTriangleType = "MollerTrumbore"
 
@@ -23,7 +23,7 @@ class Polytree
     # Main constructor for creating Polytree nodes.
     # Initializes core properties and sets up polygon array management.
 
-    # @param box - Optional bounding box for this tree node (used internally for octree subdivision).
+    # @param box - Optional bounding box for this tree node (used internally for polytree subdivision).
     # @param parent - Optional parent Polytree node (used internally, null for root).
     constructor: (box = null, parent = null) ->
 
@@ -34,8 +34,8 @@ class Polytree
 
         # Tree structure properties.
         @parent = parent                          # Reference to parent node (null for root).
-        @subTrees = []                            # Child Polytree nodes for octree subdivision.
-        @level = 0                                # Depth level in octree hierarchy.
+        @subTrees = []                            # Child Polytree nodes for polytree subdivision.
+        @level = 0                                # Depth level in polytree hierarchy.
 
         # Mesh and Matrix transformation data.
         @originalMatrixWorld                      # Original world transformation matrix.
@@ -200,7 +200,7 @@ class Polytree
 
         @box = @bounds.clone()
 
-        offset = 0.001 # Offset small amount to guarantee that all polygons (even those with vertices exactly on the box boundary) are included in queries.
+        offset = POLYTREE_MIN_NODE_SIZE # Use configurable minimum node size to guarantee that all polygons are included in queries.
 
         @box.min.x -= offset
         @box.min.y -= offset
@@ -215,7 +215,7 @@ class Polytree
     # === TREE CONSTRUCTION AND SPATIAL PARTITIONING ===
 
     # Split this node into 8 octree children based on spatial subdivision.
-    # This creates an octree by recursively subdividing space until polygon density is acceptable.
+    # This creates a polytree by recursively subdividing space until polygon density is acceptable.
     split: (level) ->
 
         subTrees = []
@@ -265,8 +265,15 @@ class Polytree
             subTrees[i].level = level + 1
             len = subTrees[i].polygons.length
 
-            # Continue subdivision if polygon count exceeds threshold and max depth not reached.
-            if len > Polytree.polygonsPerTree and level < Polytree.maxLevel
+            # Calculate node size to check minimum size constraint.
+            nodeSize = subTrees[i].box.getSize(temporaryVector3Tertiary).length()
+
+            # Continue subdivision if polygon count exceeds threshold, max depth not reached, and node size is above minimum.
+            # Use the more restrictive of the two depth limits and polygon limits for maximum performance control.
+            maxDepthLimit = Math.min(Polytree.maxLevel, POLYTREE_MAX_DEPTH)
+            polygonLimit = Math.min(Polytree.polygonsPerTree, POLYTREE_MAX_POLYGONS_PER_NODE)
+
+            if len > polygonLimit and level < maxDepthLimit and nodeSize > POLYTREE_MIN_NODE_SIZE
 
                 subTrees[i].split(level + 1)
 
@@ -274,7 +281,7 @@ class Polytree
 
         return this
 
-    buildTree: -> # Build complete octree structure from polygon data.
+    buildTree: -> # Build complete polytree structure from polygon data.
 
         @calcBox()
         @split(0)
@@ -891,7 +898,7 @@ class Polytree
         return false
 
     # Collect triangles that intersect with a sphere using spatial partitioning.
-    # This method recursively traverses the octree to find relevant triangles.
+    # This method recursively traverses the polytree to find relevant triangles.
     #
     # @param sphere - Sphere object to test intersection against.
     # @param triangles - Array to collect intersecting triangles.

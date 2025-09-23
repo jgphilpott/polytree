@@ -305,8 +305,8 @@ describe "Polytree", ->
 
         it "should have expected static properties", ->
 
-            expect(Polytree.maxLevel).toBe(16)
-            expect(Polytree.polygonsPerTree).toBe(100)
+            expect(Polytree.maxLevel).toBe(1000)
+            expect(Polytree.polygonsPerTree).toBe(100000)
             expect(Polytree.usePolytreeRay).toBe(true)
             expect(Polytree.disposePolytree).toBe(true)
             expect(Polytree.useWindingNumber).toBe(false)
@@ -392,14 +392,14 @@ describe "Polytree", ->
 
             expect(collision).toBe(false)
 
-        it "should collect sphere triangles from octree", ->
+        it "should collect sphere triangles from polytree", ->
 
             geometry = new BoxGeometry(4, 4, 4)
             material = new MeshBasicMaterial({ color: 0xff0000 })
             mesh = new Mesh(geometry, material)
 
             polytree = Polytree.fromMesh(mesh)
-            polytree.buildTree() # Build octree structure.
+            polytree.buildTree() # Build polytree structure.
 
             sphere = new Sphere(new Vector3(0, 0, 0), 2.0)
             triangles = []

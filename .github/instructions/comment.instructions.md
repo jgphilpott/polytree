@@ -101,7 +101,7 @@ Every public method should include:
 
 ```coffeescript
 # Split this node into 8 octree children based on spatial subdivision.
-# This creates an octree by recursively subdividing space until polygon density is acceptable.
+# This creates a polytree by recursively subdividing space until polygon density is acceptable.
 # @param level - Current subdivision level.
 # @return This Polytree instance for method chaining.
 split: (level) ->
