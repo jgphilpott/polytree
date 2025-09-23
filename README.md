@@ -1,32 +1,34 @@
 <p align="center">
-    <img width="320" height="320" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Logo">
+    <img width="321" height="321" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Icon">
 </p>
 
-# Intro
+# Polytree
+
+## Intro
 
 **Polytree** is a modern, high-performance Constructive Solid Geometry (CSG) library for JavaScript and Node.js, built to utilize the efficiencies of Octree data structure. It is designed for robust 3D modeling, spatial queries, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
 
-## Features
+### Features
 
-- **Complete CSG Operations**: Union, subtraction, and intersection with full test coverage
-- **High Performance**: Optimized Octree-based spatial partitioning for fast operations
-- **Dual API**: Both synchronous and asynchronous operation modes
-- **Lightweight**: Minimal dependencies with efficient memory usage
-- **Three.js Integration**: Direct mesh-to-mesh operations with material preservation
-- **Well Documented**: Comprehensive API documentation and examples
-- **Robust Testing**: 450+ tests ensuring reliability across edge cases
+- **Complete CSG Operations**: Union, subtraction, and intersection with full test coverage.
+- **High Performance**: Optimized Octree-based spatial partitioning for fast operations.
+- **Dual API**: Both synchronous and asynchronous operation modes.
+- **Lightweight**: Minimal dependencies with efficient memory usage.
+- **Three.js Integration**: Direct mesh-to-mesh operations with material preservation.
+- **Well Documented**: Comprehensive API documentation and examples.
+- **Robust Testing**: 450+ tests ensuring reliability across edge cases.
 
 ## Getting Started
 
 ### Node.js
 
-##### Install
+#### Install
 
 ```bash
 npm install polytree
 ```
 
-##### Import
+#### Import
 
 ```js
 import * as THREE from 'three';
@@ -61,68 +63,67 @@ The browser bundle (`polytree.bundle.browser.js`) is specifically designed for E
 
 Polytree provides three core CSG operations that work directly with Three.js meshes:
 
-#### Unite (Union)
+#### Unite (Join)
 
-Combine two 3D objects into a single merged object:
+Join two 3D objects into a single merged object:
 
 ```js
-import * as THREE from 'three';
-import { Polytree } from 'polytree';
-
-// Create two overlapping boxes
+// Create two identical boxes.
 const geometry1 = new THREE.BoxGeometry(2, 2, 2);
 const geometry2 = new THREE.BoxGeometry(2, 2, 2);
 
 const mesh1 = new THREE.Mesh(geometry1, new THREE.MeshBasicMaterial());
 const mesh2 = new THREE.Mesh(geometry2, new THREE.MeshBasicMaterial());
 
-mesh1.position.set(-0.5, 0, 0);
-mesh2.position.set(0.5, 0, 0);
-mesh1.updateMatrixWorld();
-mesh2.updateMatrixWorld();
+// Offset the position of one box.
+mesh1.position.set(1, 1, 1);
 
-// Synchronous union
-const result = Polytree.unite(mesh1, mesh2, false);
+// Join the boxes together.
+const result = await Polytree.unite(mesh1, mesh2);
+
 scene.add(result);
 ```
 
-#### Subtract (Difference)
+#### Subtract (Remove)
 
 Remove one object's volume from another:
 
 ```js
-// Create a box and a sphere
-const boxGeometry = new THREE.BoxGeometry(4, 4, 4);
+// Create a box and a sphere.
+const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
 const sphereGeometry = new THREE.SphereGeometry(1.5);
 
 const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
 const sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshBasicMaterial());
 
-// Subtract sphere from box (creates a cavity)
-const result = Polytree.subtract(boxMesh, sphereMesh, false);
+// Remove the sphere from the box (creates a cavity).
+const result = await Polytree.subtract(boxMesh, sphereMesh);
+
 scene.add(result);
 ```
 
-#### Intersect
+#### Intersect (Overlap)
 
 Keep only the overlapping volume of two objects:
 
 ```js
-// Create two overlapping spheres
+// Create two overlapping spheres.
 const sphere1 = new THREE.Mesh(
-    new THREE.SphereGeometry(1), 
+    new THREE.SphereGeometry(1),
     new THREE.MeshBasicMaterial()
 );
+
 const sphere2 = new THREE.Mesh(
-    new THREE.SphereGeometry(1), 
+    new THREE.SphereGeometry(1),
     new THREE.MeshBasicMaterial()
 );
 
-sphere2.position.set(1, 0, 0);
-sphere2.updateMatrixWorld();
+// Offset the position of one sphere.
+sphere1.position.set(1, 0, 0);
 
-// Keep only intersection
-const result = Polytree.intersect(sphere1, sphere2, false);
+// Keep only the overlapping volume.
+const result = await Polytree.intersect(sphere1, sphere2);
+
 scene.add(result);
 ```
 
@@ -131,21 +132,15 @@ scene.add(result);
 For better performance in web applications, use async operations to prevent UI blocking:
 
 ```js
-// Async union with Promise
-const unionPromise = Polytree.unite(mesh1, mesh2); // async = true (default)
+// Async union with Promise.
+const unionPromise = Polytree.unite(mesh1, mesh2);
 unionPromise.then(result => {
     scene.add(result);
-    console.log('Union completed!');
 });
 
-// Async with await
-async function performCSG() {
-    const subtractResult = await Polytree.subtract(boxMesh, sphereMesh);
-    const intersectResult = await Polytree.intersect(sphere1, sphere2);
-    
-    scene.add(subtractResult);
-    scene.add(intersectResult);
-}
+// Async with await.
+const unionResult = await Polytree.unite(mesh1, mesh2);
+scene.add(unionResult);
 ```
 
 ### Advanced: Polytree-to-Polytree Operations
@@ -153,20 +148,21 @@ async function performCSG() {
 For maximum performance when chaining operations, work directly with Polytree objects:
 
 ```js
-// Convert meshes to polytrees once
+// Convert meshes to polytrees once.
 const polytree1 = Polytree.fromMesh(mesh1);
 const polytree2 = Polytree.fromMesh(mesh2);
 const polytree3 = Polytree.fromMesh(mesh3);
 
-// Chain operations efficiently
-const intermediate = Polytree.unite(polytree1, polytree2, false);
-const final = Polytree.subtract(intermediate, polytree3, false);
+// Chain operations efficiently.
+const intermediate = await Polytree.unite(polytree1, polytree2);
+const final = await Polytree.subtract(intermediate, polytree3);
 
-// Convert back to mesh for rendering
+// Convert back to mesh for rendering.
 const finalMesh = Polytree.toMesh(final);
+
 scene.add(finalMesh);
 
-// Clean up resources
+// Clean up resources.
 polytree1.delete();
 polytree2.delete();
 polytree3.delete();
@@ -179,53 +175,43 @@ final.delete();
 Process multiple objects efficiently:
 
 ```js
-// Unite multiple objects asynchronously
-const meshArray = [mesh1, mesh2, mesh3, mesh4];
+// Unite multiple objects asynchronously.
+const meshArray = [mesh1, mesh2, mesh3, mesh4 ... meshX];
 const polytreeArray = meshArray.map(mesh => Polytree.fromMesh(mesh));
 
 Polytree.async.uniteArray(polytreeArray).then(result => {
+
     const finalMesh = Polytree.toMesh(result);
     scene.add(finalMesh);
-    
-    // Clean up
-    polytreeArray.forEach(p => p.delete());
+
+    // Clean up.
+    polytreeArray.forEach(polytree => {
+        polytree.delete()
+    });
+
     result.delete();
+
 });
-```
-
-### Material Handling
-
-The result always uses the material from the first operand:
-
-```js
-const redMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const blueMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-
-mesh1.material = redMaterial;
-mesh2.material = blueMaterial;
-
-const result = Polytree.unite(mesh1, mesh2, false);
-// result.material will be red (from mesh1)
 ```
 
 ## Performance
 
 Polytree is designed for high-performance CSG operations:
 
-- **Octree Optimization**: Spatial partitioning reduces computational complexity
-- **Memory Efficient**: Smart resource management with cleanup methods
-- **Comprehensive Testing**: 450+ test cases ensuring reliability and performance
-- **Async Support**: Non-blocking operations for smooth user experiences
-- **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration
+- **Octree Optimization**: Spatial partitioning reduces computational complexity.
+- **Memory Efficient**: Smart resource management with cleanup methods.
+- **Comprehensive Testing**: 450+ test cases ensuring reliability and performance.
+- **Async Support**: Non-blocking operations for smooth user experiences.
+- **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration.
 
 ## Applications
 
-- **3D Modeling**: Professional-grade boolean operations for CAD applications
-- **Game Development**: Runtime mesh manipulation and procedural geometry
-- **3D Printing**: Solid geometry preparation and mesh optimization
-- **Architectural Visualization**: Complex building geometry operations
-- **Educational Tools**: Interactive 3D geometry learning applications
-- **Integration with [Polyslice](https://github.com/jgphilpott/polyslice)**: Advanced FDM slicing workflows
+- **3D Modeling**: Professional-grade boolean operations for CAD applications.
+- **Game Development**: Runtime mesh manipulation and procedural geometry.
+- **3D Printing**: Solid geometry preparation and mesh optimization.
+- **Architectural Visualization**: Complex building geometry operations.
+- **Educational Tools**: Interactive 3D geometry learning applications.
+- **Integration with [Polyslice](https://github.com/jgphilpott/polyslice)**: Advanced FDM slicing workflows.
 
 ## Contributing
 
