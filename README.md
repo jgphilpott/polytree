@@ -5,7 +5,8 @@
 # Polytree
 
 <details open>
-<summary><h2>Intro</h2></summary>
+
+<summary><h2 style="display:inline">Intro</h2></summary><br>
 
 **Polytree** is a modern, high-performance Constructive Solid Geometry (CSG) library for JavaScript and Node.js, built to utilize the efficiencies of Octree data structure. It is designed for robust 3D modeling, spatial queries, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
 
@@ -19,10 +20,11 @@
 - **Well Documented**: Comprehensive API documentation and examples.
 - **Robust Testing**: 450+ tests ensuring reliability across edge cases.
 
-</details>
+</details><br>
 
 <details open>
-<summary><h2>Getting Started</h2></summary>
+
+<summary><h2 style="display:inline">Getting Started</h2></summary>
 
 ### Node.js
 
@@ -61,13 +63,15 @@ import Polytree from 'polytree';
 
 The browser bundle (`polytree.bundle.browser.js`) is specifically designed for ES module imports in browsers, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
 
-</details>
+</details><br>
 
 <details open>
-<summary><h2>Usage</h2></summary>
+
+<summary><h2 style="display:inline">Usage</h2></summary><br>
 
 <details open>
-<summary><h3>Basic CSG Operations</h3></summary>
+
+<summary><h3 style="display:inline">Basic CSG Operations</h3></summary><br>
 
 Polytree provides three core CSG operations that work directly with Three.js meshes:
 
@@ -135,10 +139,11 @@ const result = await Polytree.intersect(sphere1, sphere2);
 scene.add(result);
 ```
 
-</details>
+</details><br>
 
-<details open>
-<summary><h3>Asynchronous Operations</h3></summary>
+<details>
+
+<summary><h3 style="display:inline">Asynchronous Operations</h3></summary><br>
 
 For better performance in web applications, use async operations to prevent UI blocking:
 
@@ -154,10 +159,11 @@ const unionResult = await Polytree.unite(mesh1, mesh2);
 scene.add(unionResult);
 ```
 
-</details>
+</details><br>
 
 <details>
-<summary><h3>Advanced: Polytree-to-Polytree Operations</h3></summary>
+
+<summary><h3 style="display:inline">Advanced: Polytree-to-Polytree Operations</h3></summary><br>
 
 For maximum performance when chaining operations, work directly with Polytree objects:
 
@@ -184,10 +190,11 @@ intermediate.delete();
 final.delete();
 ```
 
-</details>
+</details><br>
 
 <details>
-<summary><h3>Async Array Operations</h3></summary>
+
+<summary><h3 style="display:inline">Async Array Operations</h3></summary><br>
 
 Process multiple objects efficiently:
 
@@ -213,10 +220,11 @@ Polytree.async.uniteArray(polytreeArray).then(result => {
 
 </details>
 
-</details>
+</details><br>
 
 <details open>
-<summary><h2>Performance</h2></summary>
+
+<summary><h2 style="display:inline">Performance</h2></summary><br>
 
 Polytree is designed for high-performance CSG operations:
 
@@ -226,10 +234,11 @@ Polytree is designed for high-performance CSG operations:
 - **Async Support**: Non-blocking operations for smooth user experiences.
 - **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration.
 
-</details>
+</details><br>
 
 <details open>
-<summary><h2>Applications</h2></summary>
+
+<summary><h2 style="display:inline">Applications</h2></summary><br>
 
 - **3D Modeling**: Professional-grade boolean operations for CAD applications.
 - **Game Development**: Runtime mesh manipulation and procedural geometry.
@@ -238,10 +247,11 @@ Polytree is designed for high-performance CSG operations:
 - **Educational Tools**: Interactive 3D geometry learning applications.
 - **Integration with [Polyslice](https://github.com/jgphilpott/polyslice)**: Advanced FDM slicing workflows.
 
-</details>
+</details><br>
 
 <details open>
-<summary><h2>Contributing</h2></summary>
+
+<summary><h2 style="display:inline">Contributing</h2></summary><br>
 
 Contributions, issues, and feature requests are welcome! Please [open an issue](https://github.com/jgphilpott/polytree/issues) or submit a [pull request](https://github.com/jgphilpott/polytree/pulls).
 
