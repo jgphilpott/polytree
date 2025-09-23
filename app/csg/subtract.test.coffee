@@ -102,7 +102,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(2, 2, 2, -5, 0, 0) # Left box, far away.
             box2 = createBox(2, 2, 2, 5, 0, 0)  # Right box, far away.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # Should be same as box1 since no overlap.
             expect(result.material).toBeDefined()
@@ -112,7 +112,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)   # Larger box.
             box2 = createBox(2, 2, 2, 1, 0, 0)   # Smaller box, overlapping.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # Complex carved geometry.
             expect(result.material).toBeDefined()
@@ -122,7 +122,7 @@ describe "Polytree.subtract", ->
             box = createBox(4, 4, 4, 0, 0, 0)
             sphere = createSphere(1.5, 0, 0, 0) # Sphere inside box.
 
-            result = Polytree.subtract(box, sphere)
+            result = Polytree.subtract(box, sphere, false)
 
             validateMesh(result, 10) # Box with spherical cavity.
             expect(result.material).toBeDefined()
@@ -132,7 +132,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)   # Large outer box.
             box2 = createBox(2, 2, 2, 0, 0, 0)   # Small inner box.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 12) # Hollow box geometry.
             expect(result.material).toBeDefined()
@@ -142,7 +142,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(2, 2, 2, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0) # Identical box.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 0) # Should result in empty or minimal geometry.
             expect(result.material).toBeDefined()
@@ -152,7 +152,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 2, 2, 0, 0, 0)   # Horizontal rectangle.
             box2 = createBox(2, 4, 2, 1, 0, 0)   # Vertical rectangle, partial overlap.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # L-shaped or carved result.
             expect(result.material).toBeDefined()
@@ -170,7 +170,7 @@ describe "Polytree.subtract", ->
             box1.material = material1
             box2.material = material2
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result)
             expect(result.material.color.getHex()).toBe(0xff0000)
@@ -185,7 +185,7 @@ describe "Polytree.subtract", ->
             box1.material = material1
             box2.material = material2
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result)
             expect(result.material.color.getHex()).toBe(0xff0000) # Should use box1's material.
@@ -195,14 +195,14 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0)
 
-            # Test synchronous operation (default).
+            # Test synchronous operation (explicit false).
             resultSync = Polytree.subtract(box1, box2, false)
 
             validateMesh(resultSync)
             expect(resultSync.material).toBeDefined()
 
-            # Test asynchronous operation.
-            resultAsyncPromise = Polytree.subtract(box1, box2, true)
+            # Test asynchronous operation (default true).
+            resultAsyncPromise = Polytree.subtract(box1, box2)
 
             expect(resultAsyncPromise).toBeInstanceOf(Promise)
 
@@ -221,7 +221,7 @@ describe "Polytree.subtract", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.subtract(polytree1, polytree2)
+            result = Polytree.subtract(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
@@ -233,7 +233,7 @@ describe "Polytree.subtract", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.subtract(polytree1, polytree2, null)
+            result = Polytree.subtract(polytree1, polytree2, false)
 
             validatePolytree(result, 0) # Allow empty result, focus on basic functionality.
 
@@ -245,7 +245,7 @@ describe "Polytree.subtract", ->
             polytree1 = createPolytree(box1)
             polytree2 = createPolytree(box2)
 
-            result = Polytree.subtract(polytree1, polytree2)
+            result = Polytree.subtract(polytree1, polytree2, false)
 
             # Polytree-to-polytree operations always return polytrees.
             expect(result).toBeDefined()
@@ -258,7 +258,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(2, 2, 2, -10, 0, 0) # Far left
             box2 = createBox(2, 2, 2, 10, 0, 0)  # Far right
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # Should be same as box1.
 
@@ -267,7 +267,7 @@ describe "Polytree.subtract", ->
             box1 = createBox(2, 2, 2, -1, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0) # Touching at faces.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # Minimal or no modification.
 
@@ -277,7 +277,7 @@ describe "Polytree.subtract", ->
             box = createBox(6, 6, 6, 0, 0, 0)
             cylinder = createCylinder(1, 1, 8, 0, 0, 0) # Tall cylinder through box.
 
-            result = Polytree.subtract(box, cylinder)
+            result = Polytree.subtract(box, cylinder, false)
 
             validateMesh(result, 10) # Box with cylindrical hole.
 
@@ -286,7 +286,7 @@ describe "Polytree.subtract", ->
             sphere = createSphere(3, 0, 0, 0)
             box = createBox(2, 2, 2, 0, 0, 0) # Small box inside sphere.
 
-            result = Polytree.subtract(sphere, box)
+            result = Polytree.subtract(sphere, box, false)
 
             validateMesh(result, 10) # Sphere with cubic cavity.
 
@@ -297,13 +297,13 @@ describe "Polytree.subtract", ->
             hole1 = createSphere(1, -2, -2, 0)
 
             # First subtraction.
-            intermediate = Polytree.subtract(mainBox, hole1)
+            intermediate = Polytree.subtract(mainBox, hole1, false)
             validateMesh(intermediate)
 
             hole2 = createBox(1, 1, 1, 2, 2, 0)
 
             # Second subtraction.
-            result = Polytree.subtract(intermediate, hole2)
+            result = Polytree.subtract(intermediate, hole2, false)
             validateMesh(result, 6)
 
     describe "Performance and Robustness", ->
@@ -315,7 +315,7 @@ describe "Polytree.subtract", ->
             sphere = createSphere(10, 0, 0, 0)
 
             start = Date.now()
-            result = Polytree.subtract(box1, sphere)
+            result = Polytree.subtract(box1, sphere, false)
             duration = Date.now() - start
 
             validateMesh(result, 10)
@@ -327,7 +327,7 @@ describe "Polytree.subtract", ->
             thinBox = createBox(0.001, 4, 4, 0, 0, 0)
             normalBox = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.subtract(normalBox, thinBox)
+            result = Polytree.subtract(normalBox, thinBox, false)
 
             validateMesh(result, 6) # Should handle thin geometry.
 
@@ -336,7 +336,7 @@ describe "Polytree.subtract", ->
             largeBox = createBox(100, 100, 100, 0, 0, 0)
             smallBox = createBox(0.1, 0.1, 0.1, 0, 0, 0)
 
-            result = Polytree.subtract(largeBox, smallBox)
+            result = Polytree.subtract(largeBox, smallBox, false)
 
             validateMesh(result, 6) # Small hole in large box.
 
@@ -351,7 +351,7 @@ describe "Polytree.subtract", ->
             while i < 5 # Reduced iterations to avoid timeout.
 
                 smallBox = createBox(0.5, 0.5, 0.5, i * 0.2, i * 0.2, 0)
-                result = Polytree.subtract(mainBox, smallBox)
+                result = Polytree.subtract(mainBox, smallBox, false)
 
                 validateMesh(result)
 
@@ -369,7 +369,7 @@ describe "Polytree.subtract", ->
             box2 = createBox(2, 2, 2, 0, 0, 0)
 
             # This should internally create and dispose polytrees.
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result)
             expect(result).toBeDefined()
@@ -404,8 +404,8 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 0, 0, 0)
 
-            result1 = Polytree.subtract(box1, box2)
-            result2 = Polytree.subtract(box1, box2)
+            result1 = Polytree.subtract(box1, box2, false)
+            result2 = Polytree.subtract(box1, box2, false)
 
             # Results should be equivalent (same number of vertices).
             expect(result1.geometry.attributes.position.count).toBe(result2.geometry.attributes.position.count)
@@ -415,8 +415,8 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(2, 2, 2, 1, 0, 0)
 
-            result1 = Polytree.subtract(box1, box2) # Large minus small.
-            result2 = Polytree.subtract(box2, box1) # Small minus large.
+            result1 = Polytree.subtract(box1, box2, false) # Large minus small.
+            result2 = Polytree.subtract(box2, box1, false) # Small minus large.
 
             # Should produce different results (subtract is not commutative).
             expect(result1.geometry.attributes.position.count).not.toBe(result2.geometry.attributes.position.count)
@@ -425,7 +425,7 @@ describe "Polytree.subtract", ->
 
             box = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.subtract(box, box)
+            result = Polytree.subtract(box, box, false)
 
             validateMesh(result, 0) # Should result in empty or minimal geometry.
 
@@ -437,7 +437,7 @@ describe "Polytree.subtract", ->
             outerBox = createBox(6, 6, 6, 0, 0, 0)
             innerBox = createBox(2, 2, 2, 0, 0, 0)
 
-            result = Polytree.subtract(outerBox, innerBox)
+            result = Polytree.subtract(outerBox, innerBox, false)
 
             validateMesh(result) # Result should have both outer and inner surfaces.
             expect(result.geometry.attributes.position.count).toBeGreaterThan(outerBox.geometry.attributes.position.count)
@@ -447,7 +447,7 @@ describe "Polytree.subtract", ->
             mainBox = createBox(6, 6, 6, 0, 0, 0)
             cutoutBox = createBox(2, 2, 2, 2, 2, 2) # Corner cutout.
 
-            result = Polytree.subtract(mainBox, cutoutBox)
+            result = Polytree.subtract(mainBox, cutoutBox, false)
 
             validateMesh(result, 6) # Should create corner cavity.
 
@@ -456,6 +456,6 @@ describe "Polytree.subtract", ->
             box1 = createBox(4, 4, 4, 0, 0, 0)
             box2 = createBox(4, 2, 2, 2, 0, 0) # Half overlap.
 
-            result = Polytree.subtract(box1, box2)
+            result = Polytree.subtract(box1, box2, false)
 
             validateMesh(result, 6) # Should create clean cut.

@@ -43,10 +43,10 @@ uniteRules =
 #
 # @param mesh1 - First 3D object (Three.js Mesh or Polytree instance).
 # @param mesh2 - Second 3D object (Three.js Mesh or Polytree instance).
-# @param async - Whether to perform operation asynchronously (default: false).
+# @param async - Whether to perform operation asynchronously (default: true).
 #
 # @return Three.js Mesh with united geometry, Polytree instance, or Promise.
-Polytree.unite = (mesh1, mesh2, async = false) ->
+Polytree.unite = (mesh1, mesh2, async = true) ->
 
     # Handle async request - delegate to async module.
     if async

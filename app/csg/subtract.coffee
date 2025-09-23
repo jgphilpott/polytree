@@ -45,10 +45,10 @@ subtractRules =
 #
 # @param mesh1 - Primary 3D object to subtract from (Three.js Mesh or Polytree instance).
 # @param mesh2 - 3D object to subtract away (Three.js Mesh or Polytree instance).
-# @param async - Whether to perform operation asynchronously (default: false).
+# @param async - Whether to perform operation asynchronously (default: true).
 #
 # @return Three.js Mesh with subtracted geometry, Polytree instance, or Promise.
-Polytree.subtract = (mesh1, mesh2, async = false) ->
+Polytree.subtract = (mesh1, mesh2, async = true) ->
 
     # Handle async request - delegate to async module.
     if async
