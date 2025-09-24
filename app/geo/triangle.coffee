@@ -7,17 +7,9 @@ Notes:
 
 isValidTriangle = (triangle) ->
 
-    if DEBUG_GEOMETRY_VALIDATION
-
-        console.log("Validating triangle:", triangle.a, triangle.b, triangle.c)
-
     return false if triangle.a.equals(triangle.b)
     return false if triangle.a.equals(triangle.c)
     return false if triangle.b.equals(triangle.c)
-
-    if DEBUG_GEOMETRY_VALIDATION
-
-        console.log("Triangle validation passed.")
 
     return true
 

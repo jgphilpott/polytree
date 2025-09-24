@@ -178,11 +178,6 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
         when POLYGON_COPLANAR
 
             returnPolygon.type = if plane.normal.dot(polygon.plane.normal) > 0 then "coplanar-front" else "coplanar-back"
-
-            if DEBUG_VERBOSE_LOGGING
-
-                console.log("Polygon classified as COPLANAR, debug color:", DEBUG_COLOR_COPLANAR.toString(16))
-
             result.push(returnPolygon)
 
         when POLYGON_FRONT
@@ -190,24 +185,12 @@ splitPolygonByPlane = (polygon, plane, result = []) ->
             returnPolygon.type = "front"
             result.push(returnPolygon)
 
-            if DEBUG_VERBOSE_LOGGING
-
-                console.log("Polygon classified as FRONT, debug color:", DEBUG_COLOR_FRONT.toString(16))
-
         when POLYGON_BACK
 
             returnPolygon.type = "back"
             result.push(returnPolygon)
 
-            if DEBUG_VERBOSE_LOGGING
-
-                console.log("Polygon classified as BACK, debug color:", DEBUG_COLOR_BACK.toString(16))
-
         when POLYGON_SPANNING
-
-            if DEBUG_VERBOSE_LOGGING
-
-                console.log("Polygon classified as SPANNING, debug color:", DEBUG_COLOR_SPANNING.toString(16))
 
             frontVertices = []
             backVertices = []
@@ -469,10 +452,6 @@ prepareTriangleBufferFromPolygons = (polygonArray) ->
 # @return Vector3 intersection point or null if no intersection.
 testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
 
-    if DEBUG_VERBOSE_LOGGING
-
-        console.log("Testing ray-triangle intersection with ray origin:", ray.origin, "direction:", ray.direction)
-
     # Calculate triangle edge vectors.
     rayTriangleEdge1.subVectors(triangle.b, triangle.a)
     rayTriangleEdge2.subVectors(triangle.c, triangle.a)
@@ -509,17 +488,7 @@ testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
     # Check if intersection is in front of ray origin.
     if intersectionDistance > RAY_INTERSECTION_EPSILON
 
-        result = targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
-
-        if DEBUG_INTERSECTION_VERIFICATION
-
-            console.log("Ray-triangle intersection verified:", {
-                distance: intersectionDistance,
-                point: result,
-                triangle: { a: triangle.a, b: triangle.b, c: triangle.c }
-            })
-
-        return result
+        return targetVector.copy(ray.direction).multiplyScalar(intersectionDistance).add(ray.origin)
 
     return null
 
@@ -533,8 +502,6 @@ testRayTriangleIntersection = (ray, triangle, targetVector = new Vector3()) ->
 # @param polytreeB - Second polytree for intersection processing.
 # @param processBothDirections - Whether to process intersections in both directions.
 handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = true) ->
-
-    startTime = if DEBUG_PERFORMANCE_TIMING then performance.now() else 0
 
     operationCounter++ # Increment operation counter and check for GC threshold.
 
@@ -573,13 +540,6 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
     if polytreeBBuffer isnt undefined
 
         polytreeBBuffer = undefined
-
-    if DEBUG_PERFORMANCE_TIMING
-
-        endTime = performance.now()
-        polytreeBBuffer = undefined
-
-        console.log("handleIntersectingPolytrees took #{endTime - startTime} milliseconds")
 
 # Dispose of polytree resources to prevent memory leaks.
 # This utility safely calls the delete method on polytree instances
