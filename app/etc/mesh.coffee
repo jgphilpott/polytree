@@ -280,6 +280,12 @@ Polytree.getSurface = (meshOrGeometry) ->
 
     return surface
 
+# Instance method: Calculate the surface area of a mesh or geometry.
+# Usage: polytree.getSurface(meshOrGeometry)
+Polytree::getSurface = (meshOrGeometry) ->
+
+    Polytree.getSurface(meshOrGeometry)
+
 # Calculate the volume of a 3D geometry using the divergence theorem.
 # This method accepts either a Three.js Mesh or BufferGeometry and returns
 # the total volume by summing the signed volumes of all triangular faces.
@@ -351,3 +357,9 @@ Polytree.getVolume = (input) ->
             volume += signedVolumeOfTriangle(v1, v2, v3)
 
     return Math.abs(volume) # Return absolute value for total volume.
+
+# Instance method: Calculate the volume of a mesh or geometry.
+# Usage: polytree.getVolume(meshOrGeometry)
+Polytree::getVolume = (input) ->
+
+    Polytree.getVolume(input)
