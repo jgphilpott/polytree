@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polytree Spatial Queries - Slicing Demo</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #2c2c2c;
+            color: white;
+            display: flex;
+            height: 100vh;
+        }
+        #container {
+            flex: 1;
+            position: relative;
+        }
+        #sidebar {
+            width: 300px;
+            background: #1a1a1a;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 8px;
+            background: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+        }
+        .control-group button {
+            width: 100%;
+            padding: 10px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .control-group button:hover {
+            background: #0088ff;
+        }
+        #stats {
+            background: #333;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        #stats p {
+            margin: 5px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="sidebar">
+        <h2>Polytree Spatial Queries</h2>
+        
+        <div class="control-group">
+            <label>Geometry Type:</label>
+            <select id="geometrySelect">
+                <option value="box">Box</option>
+                <option value="sphere">Sphere</option>
+                <option value="torus">Torus Knot</option>
+            </select>
+            <button onclick="createGeometry()">Create Geometry</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Layer Height:</label>
+            <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.3">
+            <span id="layerHeightValue">0.3</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Slice Operations:</label>
+            <button onclick="sliceGeometry()">Slice into Layers</button>
+            <button onclick="clearSlices()">Clear Slices</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Distance Analysis:</label>
+            <button onclick="testClosestPoint()">Test Closest Point</button>
+            <button onclick="testDistanceField()">Show Distance Field</button>
+        </div>
+        
+        <div class="control-group">
+            <label>Volume Analysis:</label>
+            <button onclick="calculateVolume()">Calculate Volume</button>
+            <button onclick="estimateVolume()">Estimate Volume (Sampling)</button>
+        </div>
+        
+        <div id="stats">
+            <h3>Statistics</h3>
+            <p id="triangleCount">Triangles: 0</p>
+            <p id="volumeExact">Exact Volume: 0</p>
+            <p id="volumeEstimate">Estimated Volume: 0</p>
+            <p id="layerCount">Layers: 0</p>
+            <p id="performance">Last Operation: 0ms</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from './js/three.module.min.js';
+        import Polytree from './js/polytree.bundle.browser.min.js';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x1a1a1a);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth - 300, window.innerHeight);
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 10, 5);
+        scene.add(directionalLight);
+
+        // Camera controls
+        camera.position.set(5, 5, 5);
+        camera.lookAt(0, 0, 0);
+
+        // Global variables
+        let currentMesh = null;
+        let currentPolytree = null;
+        let sliceLines = new THREE.Group();
+        let testPoints = new THREE.Group();
+        scene.add(sliceLines);
+        scene.add(testPoints);
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Rotate the geometry for better visualization
+            if (currentMesh) {
+                currentMesh.rotation.y += 0.005;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            const width = window.innerWidth - 300;
+            const height = window.innerHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        });
+
+        // Geometry creation
+        window.createGeometry = function() {
+            const geometryType = document.getElementById('geometrySelect').value;
+            
+            // Remove existing mesh
+            if (currentMesh) {
+                scene.remove(currentMesh);
+                if (currentPolytree) {
+                    currentPolytree.delete();
+                }
+            }
+            
+            let geometry;
+            switch (geometryType) {
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(2, 16, 12);
+                    break;
+                case 'torus':
+                    geometry = new THREE.TorusKnotGeometry(1.5, 0.5, 64, 16);
+                    break;
+                default:
+                    geometry = new THREE.BoxGeometry(3, 3, 3);
+            }
+            
+            const material = new THREE.MeshLambertMaterial({ 
+                color: 0x00aa88,
+                transparent: true,
+                opacity: 0.8,
+                side: THREE.DoubleSide
+            });
+            
+            currentMesh = new THREE.Mesh(geometry, material);
+            scene.add(currentMesh);
+            
+            // Create Polytree
+            const startTime = performance.now();
+            currentPolytree = Polytree.fromMesh(currentMesh);
+            const endTime = performance.now();
+            
+            // Update stats
+            updateStats();
+            document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+        };
+
+        // Slicing functionality
+        window.sliceGeometry = function() {
+            if (!currentPolytree) return;
+            
+            clearSlices();
+            
+            const layerHeight = parseFloat(document.getElementById('layerHeight').value);
+            const boundingBox = new THREE.Box3().setFromObject(currentMesh);
+            
+            const startTime = performance.now();
+            const layers = Polytree.sliceIntoLayers(
+                currentPolytree, 
+                layerHeight, 
+                boundingBox.min.z, 
+                boundingBox.max.z
+            );
+            const endTime = performance.now();
+            
+            // Visualize slice lines
+            layers.forEach((layer, index) => {
+                const color = new THREE.Color().setHSL(index / layers.length, 0.8, 0.6);
+                
+                layer.forEach(segment => {
+                    const geometry = new THREE.BufferGeometry().setFromPoints([
+                        segment.start, segment.end
+                    ]);
+                    const material = new THREE.LineBasicMaterial({ color: color });
+                    const line = new THREE.Line(geometry, material);
+                    sliceLines.add(line);
+                });
+            });
+            
+            document.getElementById('layerCount').textContent = `Layers: ${layers.length}`;
+            document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+        };
+
+        window.clearSlices = function() {
+            sliceLines.clear();
+        };
+
+        // Closest point testing
+        window.testClosestPoint = function() {
+            if (!currentPolytree) return;
+            
+            testPoints.clear();
+            
+            // Test several random points
+            const testPointsCount = 10;
+            const boundingBox = new THREE.Box3().setFromObject(currentMesh);
+            boundingBox.expandByScalar(2); // Expand to get points outside geometry
+            
+            const startTime = performance.now();
+            
+            for (let i = 0; i < testPointsCount; i++) {
+                // Random point in expanded bounding box
+                const testPoint = new THREE.Vector3(
+                    boundingBox.min.x + Math.random() * boundingBox.getSize(new THREE.Vector3()).x,
+                    boundingBox.min.y + Math.random() * boundingBox.getSize(new THREE.Vector3()).y,
+                    boundingBox.min.z + Math.random() * boundingBox.getSize(new THREE.Vector3()).z
+                );
+                
+                const result = Polytree.closestPointToPoint(currentPolytree, testPoint);
+                
+                if (result) {
+                    // Visualize test point
+                    const testPointGeometry = new THREE.SphereGeometry(0.05, 8, 6);
+                    const testPointMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                    const testPointMesh = new THREE.Mesh(testPointGeometry, testPointMaterial);
+                    testPointMesh.position.copy(testPoint);
+                    testPoints.add(testPointMesh);
+                    
+                    // Visualize closest point
+                    const closestPointGeometry = new THREE.SphereGeometry(0.03, 8, 6);
+                    const closestPointMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const closestPointMesh = new THREE.Mesh(closestPointGeometry, closestPointMaterial);
+                    closestPointMesh.position.copy(result.point);
+                    testPoints.add(closestPointMesh);
+                    
+                    // Visualize connection line
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        testPoint, result.point
+                    ]);
+                    const lineMaterial = new THREE.LineBasicMaterial({ 
+                        color: 0xffff00, 
+                        opacity: 0.6, 
+                        transparent: true 
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    testPoints.add(line);
+                }
+            }
+            
+            const endTime = performance.now();
+            document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+        };
+
+        // Volume calculations
+        window.calculateVolume = function() {
+            if (!currentMesh) return;
+            
+            const startTime = performance.now();
+            const volume = Polytree.getVolume(currentMesh);
+            const endTime = performance.now();
+            
+            document.getElementById('volumeExact').textContent = `Exact Volume: ${volume.toFixed(4)}`;
+            document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+        };
+
+        window.estimateVolume = function() {
+            if (!currentPolytree) return;
+            
+            const startTime = performance.now();
+            const volume = Polytree.estimateVolumeViaSampling(currentPolytree, 50000);
+            const endTime = performance.now();
+            
+            document.getElementById('volumeEstimate').textContent = `Estimated Volume: ${volume.toFixed(4)}`;
+            document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+        };
+
+        function updateStats() {
+            if (currentPolytree) {
+                const triangles = currentPolytree.getTriangles();
+                document.getElementById('triangleCount').textContent = `Triangles: ${triangles.length}`;
+            }
+        }
+
+        // Layer height slider
+        document.getElementById('layerHeight').addEventListener('input', function(e) {
+            document.getElementById('layerHeightValue').textContent = e.target.value;
+        });
+
+        // Create initial geometry
+        createGeometry();
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@ cat \
   app/etc/operations.js \
   app/polytree.js \
   app/etc/mesh.js \
+  app/etc/spatial.js \
   app/csg/unite.js \
   app/csg/subtract.js \
   app/csg/intersect.js \
