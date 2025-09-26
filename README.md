@@ -13,12 +13,15 @@
 ### Features
 
 - **Complete CSG Operations**: Union, subtraction, and intersection with full test coverage.
+- **Advanced Spatial Queries**: Point-based queries, distance calculations, and intersection testing inspired by three-mesh-bvh.
+- **3D Printing Support**: Layer slicing, volume analysis, and spatial operations for manufacturing applications.
 - **High Performance**: Optimized Octree-based spatial partitioning for fast operations.
 - **Dual API**: Both synchronous and asynchronous operation modes.
+- **Multi-Input Support**: Works directly with Three.js meshes, BufferGeometry, and Polytree instances.
 - **Lightweight**: Minimal dependencies with efficient memory usage.
 - **Three.js Integration**: Direct mesh-to-mesh operations with material preservation.
 - **Well Documented**: Comprehensive API documentation and examples.
-- **Robust Testing**: 470+ tests ensuring reliability across edge cases.
+- **Robust Testing**: 497+ tests ensuring reliability across edge cases.
 
 </details>
 
@@ -62,6 +65,113 @@ import Polytree from 'polytree';
 ```
 
 The browser bundle (`polytree.bundle.browser.js`) is specifically designed for ES module imports in browsers, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
+
+</details>
+
+<details open>
+
+<summary><h2 style="display:inline">Spatial Query Functions</h2></summary>
+
+Polytree now includes advanced spatial query capabilities inspired by the mature `three-mesh-bvh` library, transforming it from a pure CSG library into a comprehensive spatial querying tool optimized for 3D printing applications.
+
+### Point-based Queries
+
+Find the closest points and calculate distances for collision detection and mesh analysis:
+
+```js
+const geometry = new THREE.BoxGeometry(2, 2, 2);
+const mesh = new THREE.Mesh(geometry, material);
+const testPoint = new THREE.Vector3(5, 0, 0);
+
+// Find closest point on surface - works with Mesh, BufferGeometry, or Polytree
+const closestPoint = Polytree.closestPointToPoint(mesh, testPoint);
+console.log(`Closest point: (${closestPoint.x}, ${closestPoint.y}, ${closestPoint.z})`);
+
+// Calculate distance to surface
+const distance = Polytree.distanceToPoint(mesh, testPoint);
+console.log(`Distance: ${distance} units`);
+```
+
+### Volume Analysis
+
+Perform both exact and statistical volume calculations:
+
+```js
+// Exact volume calculation
+const exactVolume = Polytree.getVolume(mesh);
+
+// Monte Carlo volume estimation for complex geometries  
+const estimatedVolume = Polytree.estimateVolumeViaSampling(mesh, 50000);
+console.log(`Exact: ${exactVolume}, Estimated: ${estimatedVolume}`);
+```
+
+### Intersection Testing
+
+Test intersections with bounding volumes for collision detection:
+
+```js
+// Test sphere intersection
+const sphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 2);
+const intersectsSphere = Polytree.intersectsSphere(mesh, sphere);
+
+// Test bounding box intersection  
+const box = new THREE.Box3(min, max);
+const intersectsBox = Polytree.intersectsBox(mesh, box);
+```
+
+### 3D Printing Layer Slicing
+
+Generate layer slices for 3D printing applications:
+
+```js
+// Slice geometry into horizontal layers
+const layers = Polytree.sliceIntoLayers(
+    mesh,           // Input geometry
+    0.2,           // Layer height (0.2mm)
+    -10,           // Minimum Z
+    10,            // Maximum Z
+    new THREE.Vector3(0, 0, 1)  // Optional normal (default: Z-up)
+);
+
+console.log(`Generated ${layers.length} layers for 3D printing`);
+
+// Single plane intersection for cross-section analysis
+const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const crossSection = Polytree.intersectPlane(mesh, plane);
+```
+
+### Advanced Spatial Operations
+
+Custom spatial queries and triangle-based operations:
+
+```js
+// Get triangles near a specific point
+const nearbyTriangles = Polytree.getTrianglesNearPoint(mesh, point, 2.0);
+
+// Custom spatial query with callback
+const results = Polytree.shapecast(mesh, (triangle) => {
+    // Custom query logic - return true to collect triangle
+    return triangle.normal.y > 0.8; // Find upward-facing triangles
+}, (triangle) => {
+    // Optional collection callback for processing results
+    return { triangle, area: triangle.getArea() };
+});
+```
+
+### Multi-Input Support
+
+All spatial query functions accept Three.js meshes, BufferGeometry, or Polytree instances:
+
+```js
+const geometry = new THREE.BoxGeometry(2, 2, 2);
+const mesh = new THREE.Mesh(geometry, material);  
+const polytree = Polytree.fromMesh(mesh);
+
+// All of these work identically
+const result1 = Polytree.closestPointToPoint(mesh, testPoint);     // Mesh
+const result2 = Polytree.closestPointToPoint(geometry, testPoint); // BufferGeometry
+const result3 = Polytree.closestPointToPoint(polytree, testPoint); // Polytree
+```
 
 </details>
 
@@ -289,9 +399,11 @@ final.delete();
 
 Polytree is designed for high-performance CSG operations:
 
-- **Octree Optimization**: Spatial partitioning reduces computational complexity.
-- **Memory Efficient**: Smart resource management with cleanup methods.
-- **Comprehensive Testing**: 470+ test cases ensuring reliability and performance.
+- **Octree Optimization**: Spatial partitioning reduces computational complexity for both CSG and spatial query operations.
+- **Memory Efficient**: Smart resource management with cleanup methods and automatic temporary object disposal.
+- **Unified Architecture**: CSG operations + spatial queries in one optimized library, eliminating the need for multiple tools.
+- **Multi-Input Support**: Functions work directly with Three.js meshes, geometries, and Polytree instances without manual conversion.
+- **Comprehensive Testing**: 497+ test cases ensuring reliability and performance across all operations.
 - **Async Support**: Non-blocking operations for smooth user experiences.
 - **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration.
 
@@ -303,10 +415,12 @@ Polytree is designed for high-performance CSG operations:
 
 - **3D Modeling**: Professional-grade boolean operations for CAD applications.
 - **Game Development**: Runtime mesh manipulation and procedural geometry.
-- **3D Printing**: Solid geometry preparation and mesh optimization.
-- **Architectural Visualization**: Complex building geometry operations.
-- **Educational Tools**: Interactive 3D geometry learning applications.
-- **Integration with [Polyslice](https://github.com/jgphilpott/polyslice)**: Advanced FDM slicing workflows.
+- **3D Printing & Manufacturing**: Complete slicing pipeline with layer generation, support analysis, and volume calculations.
+- **Collision Detection**: Fast spatial queries for physics engines and interactive applications.
+- **Mesh Analysis & Repair**: Distance field calculations, closest point queries, and geometric validation.
+- **Architectural Visualization**: Complex building geometry operations with spatial analysis.
+- **Educational Tools**: Interactive 3D geometry learning applications with real-time feedback.
+- **Integration with [Polyslice](https://github.com/jgphilpott/polyslice)**: Advanced FDM slicing workflows and manufacturing optimization.
 
 </details>
 
