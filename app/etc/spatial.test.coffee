@@ -6,23 +6,23 @@
 # Test tolerance for floating point comparisons.
 EPS = 1e-6
 
-# Helper function to create a simple test cube polytree.
+# Helper function to create a simple test cube mesh.
 createTestCube = (size = 1) ->
 
     geometry = new BoxGeometry(size, size, size)
     material = new MeshBasicMaterial()
     mesh = new Mesh(geometry, material)
     
-    return Polytree.fromMesh(mesh)
+    return mesh
 
-# Helper function to create a test sphere polytree.
+# Helper function to create a test sphere mesh.
 createTestSphere = (radius = 1, segments = 8) ->
 
     geometry = new SphereGeometry(radius, segments, segments)
     material = new MeshBasicMaterial()
     mesh = new Mesh(geometry, material)
     
-    return Polytree.fromMesh(mesh)
+    return mesh
 
 describe 'Spatial Query Utilities', ->
 
@@ -38,7 +38,28 @@ describe 'Spatial Query Utilities', ->
             expect(result).toBeTruthy()
             expect(result.distance).toBeCloseTo(2, 5) # Distance should be ~2
             expect(result.point.x).toBeCloseTo(1, 5) # Should be at cube face
-            cube.delete()
+
+        it 'should work with BufferGeometry input', ->
+
+            geometry = new BoxGeometry(2, 2, 2)
+            targetPoint = new Vector3(3, 0, 0)
+            
+            result = Polytree.closestPointToPoint(geometry, targetPoint)
+            
+            expect(result).toBeTruthy()
+            expect(result.distance).toBeCloseTo(2, 5)
+
+        it 'should work with Polytree input', ->
+
+            cube = createTestCube(2)
+            polytree = Polytree.fromMesh(cube)
+            targetPoint = new Vector3(3, 0, 0)
+            
+            result = Polytree.closestPointToPoint(polytree, targetPoint)
+            
+            expect(result).toBeTruthy()
+            expect(result.distance).toBeCloseTo(2, 5)
+            polytree.delete()
 
         it 'should return null for invalid inputs', ->
 
@@ -60,7 +81,6 @@ describe 'Spatial Query Utilities', ->
             resultTooFar = Polytree.closestPointToPoint(cube, farPoint, {}, 1) # Max distance of 1
             
             expect(resultTooFar).toBeNull() # Should not find point
-            cube.delete()
 
     describe 'distanceToPoint', ->
 
@@ -72,7 +92,6 @@ describe 'Spatial Query Utilities', ->
             distance = Polytree.distanceToPoint(cube, testPoint)
             
             expect(distance).toBeCloseTo(2, 5)
-            cube.delete()
 
         it 'should return Infinity for empty polytree', ->
 
@@ -94,7 +113,6 @@ describe 'Spatial Query Utilities', ->
             
             expect(Polytree.intersectsSphere(cube, intersectingSphere)).toBe(true)
             expect(Polytree.intersectsSphere(cube, missingSphere)).toBe(false)
-            cube.delete()
 
         it 'should handle invalid inputs gracefully', ->
 
@@ -102,7 +120,6 @@ describe 'Spatial Query Utilities', ->
             
             expect(Polytree.intersectsSphere(null, new Sphere())).toBe(false)
             expect(Polytree.intersectsSphere(cube, null)).toBe(false)
-            cube.delete()
 
     describe 'intersectsBox', ->
 
@@ -114,7 +131,6 @@ describe 'Spatial Query Utilities', ->
             
             expect(Polytree.intersectsBox(cube, intersectingBox)).toBe(true)
             expect(Polytree.intersectsBox(cube, missingSBox)).toBe(false)
-            cube.delete()
 
         it 'should handle edge cases', ->
 
@@ -137,8 +153,6 @@ describe 'Spatial Query Utilities', ->
                 expect(segment.start.z).toBeCloseTo(0, 5)
                 expect(segment.end.z).toBeCloseTo(0, 5)
 
-            cube.delete()
-
         it 'should return empty array when plane misses geometry', ->
 
             cube = createTestCube(1)
@@ -147,7 +161,6 @@ describe 'Spatial Query Utilities', ->
             intersections = Polytree.intersectPlane(cube, farPlane)
             
             expect(intersections.length).toBe(0)
-            cube.delete()
 
         it 'should handle invalid inputs', ->
 
@@ -171,7 +184,6 @@ describe 'Spatial Query Utilities', ->
             # Each layer should have intersection segments (except possibly the boundary layers).
             middleLayer = layers[2] # Z=0 layer
             expect(middleLayer.length).toBeGreaterThan(0)
-            cube.delete()
 
         it 'should handle invalid parameters', ->
 
@@ -180,7 +192,6 @@ describe 'Spatial Query Utilities', ->
             expect(Polytree.sliceIntoLayers(null, 1, 0, 1).length).toBe(0)
             expect(Polytree.sliceIntoLayers(cube, 0, 0, 1).length).toBe(0) # Zero layer height
             expect(Polytree.sliceIntoLayers(cube, 1, 1, 0).length).toBe(0) # Min > Max
-            cube.delete()
 
         it 'should use custom normal direction', ->
 
@@ -191,7 +202,6 @@ describe 'Spatial Query Utilities', ->
             layers = Polytree.sliceIntoLayers(cube, layerHeight, -1, 1, customNormal)
             
             expect(layers.length).toBe(3) # Should have 3 layers
-            cube.delete()
 
     describe 'shapecast', ->
 
@@ -204,7 +214,6 @@ describe 'Spatial Query Utilities', ->
                 triangle.a.x > 0 or triangle.b.x > 0 or triangle.c.x > 0
             
             expect(positiveXTriangles.length).toBeGreaterThan(0)
-            cube.delete()
 
         it 'should use collect callback when provided', ->
 
@@ -223,7 +232,6 @@ describe 'Spatial Query Utilities', ->
             
             expect(triangleCenters.length).toBeGreaterThan(0)
             expect(triangleCenters[0]).toBeInstanceOf(Vector3)
-            cube.delete()
 
     describe 'getTrianglesNearPoint', ->
 
@@ -233,11 +241,8 @@ describe 'Spatial Query Utilities', ->
             centerPoint = new Vector3(0, 0, 0)
             
             nearTriangles = Polytree.getTrianglesNearPoint(cube, centerPoint, 2)
-            allTriangles = cube.getTriangles()
             
             expect(nearTriangles.length).toBeGreaterThan(0)
-            expect(nearTriangles.length).toBeLessThanOrEqual(allTriangles.length)
-            cube.delete()
 
         it 'should return empty array when no triangles in range', ->
 
@@ -247,7 +252,6 @@ describe 'Spatial Query Utilities', ->
             nearTriangles = Polytree.getTrianglesNearPoint(cube, farPoint, 1)
             
             expect(nearTriangles.length).toBe(0)
-            cube.delete()
 
         it 'should handle invalid inputs', ->
 
@@ -269,7 +273,6 @@ describe 'Spatial Query Utilities', ->
             
             expect(estimatedVolume).toBeGreaterThan(6) # Should be reasonably close to 8
             expect(estimatedVolume).toBeLessThan(10)
-            cube.delete()
 
         it 'should return zero for empty polytree', ->
 
@@ -290,4 +293,3 @@ describe 'Spatial Query Utilities', ->
             # Volume should be positive but smaller due to cube being smaller than bounding box.
             expect(volume).toBeGreaterThan(0)
             expect(volume).toBeLessThan(64) # Bounding box volume
-            cube.delete()

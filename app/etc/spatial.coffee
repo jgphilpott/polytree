@@ -4,20 +4,51 @@
 #
 # Inspired by three-mesh-bvh spatial query capabilities.
 
-{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, Matrix4} = require('three')
+{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, Matrix4, Mesh, MeshBasicMaterial} = require('three')
 
-# Find the closest point on any triangle in the polytree to the given point.
+# Helper function to convert various input types to polytree.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance.
+# @return Object with polytree and shouldCleanup flag, or null if invalid input.
+convertToPolytree = (input) ->
+    
+    return null unless input
+
+    if input.isPolytree
+        
+        return { polytree: input, shouldCleanup: false }
+        
+    else if input.isMesh
+        
+        return { polytree: Polytree.fromMesh(input), shouldCleanup: true }
+        
+    else if input.isBufferGeometry
+        
+        # Create a temporary mesh from BufferGeometry
+        tempMesh = new Mesh(input, new MeshBasicMaterial())
+        return { polytree: Polytree.fromMesh(tempMesh), shouldCleanup: true }
+        
+    else
+        
+        return null
+
+# Find the closest point on any triangle surface to the given point.
 # This is essential for collision detection, mesh repair, and support structure generation.
 #
-# @param polytree - The Polytree instance to query.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to query.
 # @param targetPoint - Vector3 point to find closest point to.
 # @param target - Optional object to store result data.
 # @param maxDistance - Maximum search distance (Infinity by default).
 #
 # @return Object with point, distance, and triangle properties or null if none found.
-Polytree.closestPointToPoint = (polytree, targetPoint, target = {}, maxDistance = Infinity) ->
+Polytree.closestPointToPoint = (input, targetPoint, target = {}, maxDistance = Infinity) ->
 
-    return null unless polytree and targetPoint
+    return null unless input and targetPoint
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return null unless result
+    
+    { polytree, shouldCleanup } = result
 
     closestDistance = maxDistance
     closestPoint = null
@@ -49,33 +80,45 @@ Polytree.closestPointToPoint = (polytree, targetPoint, target = {}, maxDistance 
         target.distance = closestDistance
         target.triangle = closestTriangle
 
+        # Clean up temporary polytree if created
+        shouldCleanup and polytree.delete()
+
         return target
+
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
 
     return null
 
-# Calculate the shortest distance from a point to any surface in the polytree.
+# Calculate the shortest distance from a point to any surface in the geometry.
 # Useful for distance field generation and proximity analysis.
 #
-# @param polytree - The Polytree instance to query.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to query.
 # @param targetPoint - Vector3 point to calculate distance to.
 #
 # @return Distance value as number, or Infinity if no surfaces found.
-Polytree.distanceToPoint = (polytree, targetPoint) ->
+Polytree.distanceToPoint = (input, targetPoint) ->
 
-    result = Polytree.closestPointToPoint(polytree, targetPoint)
+    result = Polytree.closestPointToPoint(input, targetPoint)
 
     return result?.distance or Infinity
 
-# Test if a sphere intersects with the polytree geometry.
+# Test if a sphere intersects with the geometry.
 # Useful for collision detection and proximity testing.
 #
-# @param polytree - The Polytree instance to test against.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to test against.
 # @param sphere - Sphere object with center and radius properties.
 #
 # @return Boolean indicating intersection.
-Polytree.intersectsSphere = (polytree, sphere) ->
+Polytree.intersectsSphere = (input, sphere) ->
 
-    return false unless polytree and sphere
+    return false unless input and sphere
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return false unless result
+    
+    { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
 
@@ -90,20 +133,31 @@ Polytree.intersectsSphere = (polytree, sphere) ->
 
         if distance <= sphere.radius
 
+            # Clean up temporary polytree if created
+            shouldCleanup and polytree.delete()
             return true
+
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
 
     return false
 
-# Test if a bounding box intersects with the polytree geometry.
+# Test if a bounding box intersects with the geometry.
 # Useful for broad-phase collision detection and spatial partitioning.
 #
-# @param polytree - The Polytree instance to test against.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to test against.
 # @param boundingBox - Box3 object defining the bounding volume.
 #
 # @return Boolean indicating intersection.
-Polytree.intersectsBox = (polytree, boundingBox) ->
+Polytree.intersectsBox = (input, boundingBox) ->
 
-    return false unless polytree and boundingBox
+    return false unless input and boundingBox
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return false unless result
+    
+    { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
 
@@ -113,21 +167,32 @@ Polytree.intersectsBox = (polytree, boundingBox) ->
 
         if boundingBox.intersectsTriangle(testTriangle)
 
+            # Clean up temporary polytree if created
+            shouldCleanup and polytree.delete()
             return true
+
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
 
     return false
 
-# Find all intersection points between a plane and the polytree mesh.
+# Find all intersection points between a plane and the mesh surface.
 # This is the core functionality needed for 3D printing slicing operations.
 #
-# @param polytree - The Polytree instance to slice.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to slice.
 # @param plane - Plane object defining the slicing plane.
 # @param target - Optional array to store intersection line segments.
 #
 # @return Array of Line3 objects representing intersection segments.
-Polytree.intersectPlane = (polytree, plane, target = []) ->
+Polytree.intersectPlane = (input, plane, target = []) ->
 
-    return target unless polytree and plane
+    return target unless input and plane
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return target unless result
+    
+    { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
 
@@ -166,22 +231,25 @@ Polytree.intersectPlane = (polytree, plane, target = []) ->
 
             target.push(new Line3(intersectionPoints[0], intersectionPoints[1]))
 
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
+
     return target
 
 # Create a series of parallel plane intersections for layer-by-layer slicing.
 # Essential for 3D printing applications where the model needs to be sliced
 # into horizontal layers at regular intervals.
 #
-# @param polytree - The Polytree instance to slice.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to slice.
 # @param layerHeight - Height between each slice layer.
 # @param minZ - Starting Z coordinate for slicing.
 # @param maxZ - Ending Z coordinate for slicing.
 # @param normal - Optional plane normal vector (defaults to Z-up).
 #
 # @return Array of arrays, each containing Line3 segments for that layer.
-Polytree.sliceIntoLayers = (polytree, layerHeight, minZ, maxZ, normal = new Vector3(0, 0, 1)) ->
+Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3(0, 0, 1)) ->
 
-    return [] unless polytree and layerHeight > 0 and minZ < maxZ
+    return [] unless input and layerHeight > 0 and minZ < maxZ
 
     layers = []
     currentZ = minZ
@@ -192,7 +260,7 @@ Polytree.sliceIntoLayers = (polytree, layerHeight, minZ, maxZ, normal = new Vect
         slicePlane = new Plane(normal.clone(), -currentZ)
         
         # Get intersection segments for this layer.
-        layerSegments = Polytree.intersectPlane(polytree, slicePlane)
+        layerSegments = Polytree.intersectPlane(input, slicePlane)
         
         layers.push(layerSegments)
         currentZ += layerHeight
@@ -202,14 +270,20 @@ Polytree.sliceIntoLayers = (polytree, layerHeight, minZ, maxZ, normal = new Vect
 # Perform a generic spatial query using a custom callback function.
 # This provides flexibility for implementing custom spatial operations.
 #
-# @param polytree - The Polytree instance to query.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to query.
 # @param queryCallback - Function that tests each triangle and returns boolean.
 # @param collectCallback - Optional function to collect/process matching triangles.
 #
 # @return Array of results from collectCallback, or array of matching triangles.
-Polytree.shapecast = (polytree, queryCallback, collectCallback = null) ->
+Polytree.shapecast = (input, queryCallback, collectCallback = null) ->
 
-    return [] unless polytree and queryCallback
+    return [] unless input and queryCallback
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return [] unless result
+    
+    { polytree, shouldCleanup } = result
 
     results = []
     triangles = polytree.getTriangles()
@@ -229,21 +303,24 @@ Polytree.shapecast = (polytree, queryCallback, collectCallback = null) ->
 
                 results.push(triangle)
 
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
+
     return results
 
 # Find all triangles within a specified distance of a target point.
 # Useful for local mesh operations and region-based analysis.
 #
-# @param polytree - The Polytree instance to search.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to search.
 # @param targetPoint - Vector3 center point for the search.
 # @param searchRadius - Maximum distance from point to include triangles.
 #
 # @return Array of triangles within the search radius.
-Polytree.getTrianglesNearPoint = (polytree, targetPoint, searchRadius) ->
+Polytree.getTrianglesNearPoint = (input, targetPoint, searchRadius) ->
 
-    return [] unless polytree and targetPoint and searchRadius > 0
+    return [] unless input and targetPoint and searchRadius > 0
 
-    return Polytree.shapecast polytree, (testTriangle, originalTriangle) ->
+    return Polytree.shapecast input, (testTriangle, originalTriangle) ->
         
         # Check if any vertex of the triangle is within the search radius
         return (testTriangle.a.distanceTo(targetPoint) <= searchRadius or
@@ -253,14 +330,20 @@ Polytree.getTrianglesNearPoint = (polytree, targetPoint, searchRadius) ->
 # Calculate approximate volume using monte carlo sampling.
 # Useful for complex geometries where analytical volume calculation is difficult.
 #
-# @param polytree - The Polytree instance to analyze.
+# @param input - Three.js Mesh, BufferGeometry, or Polytree instance to analyze.
 # @param sampleCount - Number of random samples to use (default 10000).
 # @param boundingBox - Optional bounding box for sampling region.
 #
 # @return Estimated volume as number.
-Polytree.estimateVolumeViaSampling = (polytree, sampleCount = 10000, boundingBox = null) ->
+Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = null) ->
 
-    return 0 unless polytree
+    return 0 unless input
+
+    # Handle different input types - convert to polytree if needed.
+    result = convertToPolytree(input)
+    return 0 unless result
+    
+    { polytree, shouldCleanup } = result
 
     # Use polytree bounding box if none provided.
     unless boundingBox
@@ -303,5 +386,8 @@ Polytree.estimateVolumeViaSampling = (polytree, sampleCount = 10000, boundingBox
 
     # Calculate volume ratio and scale by bounding box volume.
     volumeRatio = insideCount / sampleCount
+
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
     
     return volumeRatio * boxVolume

@@ -15,12 +15,12 @@ The new spatial query functions provide advanced geometric analysis capabilities
 
 ### Point-Based Queries
 
-#### `Polytree.closestPointToPoint(polytree, targetPoint, target?, maxDistance?)`
+#### `Polytree.closestPointToPoint(input, targetPoint, target?, maxDistance?)`
 
 Finds the closest point on any triangle surface to a given point.
 
 **Parameters:**
-- `polytree`: The Polytree instance to query
+- `input`: Three.js Mesh, BufferGeometry, or Polytree instance to query
 - `targetPoint`: Vector3 point to find closest surface point to
 - `target`: Optional object to store result data
 - `maxDistance`: Maximum search distance (default: Infinity)
@@ -34,19 +34,30 @@ Finds the closest point on any triangle surface to a given point.
 - Surface analysis and measurement
 
 ```javascript
+// Works with any input type
+const mesh = new THREE.Mesh(geometry, material);
+const geometry = new THREE.BoxGeometry(2, 2, 2);
 const polytree = Polytree.fromMesh(mesh);
-const testPoint = new Vector3(5, 0, 0);
-const result = Polytree.closestPointToPoint(polytree, testPoint);
 
-if (result) {
-    console.log(`Closest distance: ${result.distance}`);
-    console.log(`Closest point: ${result.point.x}, ${result.point.y}, ${result.point.z}`);
+const testPoint = new Vector3(5, 0, 0);
+
+// All of these work the same way
+const result1 = Polytree.closestPointToPoint(mesh, testPoint);
+const result2 = Polytree.closestPointToPoint(geometry, testPoint);  
+const result3 = Polytree.closestPointToPoint(polytree, testPoint);
+
+if (result1) {
+    console.log(`Closest distance: ${result1.distance}`);
+    console.log(`Closest point: ${result1.point.x}, ${result1.point.y}, ${result1.point.z}`);
 }
 ```
 
-#### `Polytree.distanceToPoint(polytree, targetPoint)`
+#### `Polytree.distanceToPoint(input, targetPoint)`
 
 Calculates the shortest distance from a point to any surface.
+
+**Parameters:**
+- `input`: Three.js Mesh, BufferGeometry, or Polytree instance to query
 
 **Returns:** Distance as number, or `Infinity` if no surfaces found
 
@@ -58,21 +69,22 @@ Calculates the shortest distance from a point to any surface.
 
 ### Volume-Based Queries
 
-#### `Polytree.intersectsSphere(polytree, sphere)`
+#### `Polytree.intersectsSphere(input, sphere)`
 
-Tests if a sphere intersects with the polytree geometry.
+Tests if a sphere intersects with the geometry.
 
 **Parameters:**
-- `polytree`: The Polytree instance to test
+- `input`: Three.js Mesh, BufferGeometry, or Polytree instance to test
 - `sphere`: Sphere object with `center` and `radius` properties
 
 **Returns:** Boolean indicating intersection
 
-#### `Polytree.intersectsBox(polytree, boundingBox)`
+#### `Polytree.intersectsBox(input, boundingBox)`
 
-Tests if a bounding box intersects with the polytree geometry.
+Tests if a bounding box intersects with the geometry.
 
 **Parameters:**
+- `input`: Three.js Mesh, BufferGeometry, or Polytree instance to test
 - `boundingBox`: Three.js Box3 object
 
 **Returns:** Boolean indicating intersection
