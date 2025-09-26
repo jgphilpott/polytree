@@ -71,6 +71,40 @@ The browser bundle (`polytree.bundle.browser.js`) is specifically designed for E
 
 <details open>
 
+<summary><h3 style="display:inline">Utility Functions</h3></summary>
+
+Polytree provides utility functions for geometry analysis and calculations:
+
+#### Surface Area Calculation
+
+Calculate the surface area of Three.js meshes or geometries:
+
+```js
+// Calculate surface area from a mesh:
+const boxGeometry = new THREE.BoxGeometry(2, 3, 4);
+const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
+const surfaceArea = Polytree.getSurface(boxMesh);
+
+console.log(`Surface area: ${surfaceArea}`); // Output: Surface area: 52
+
+// Calculate surface area directly from geometry:
+const sphereGeometry = new THREE.SphereGeometry(1);
+const sphereSurfaceArea = Polytree.getSurface(sphereGeometry);
+
+console.log(`Sphere surface area: ${sphereSurfaceArea}`); // Output: ~12.47
+```
+
+The `getSurface()` method:
+
+- Accepts either Three.js `Mesh` objects or `BufferGeometry` objects.
+- Returns the total surface area as a number.
+- Works by summing the areas of all triangular faces.
+- Handles both indexed and non-indexed geometries.
+
+</details>
+
+<details open>
+
 <summary><h3 style="display:inline">Basic CSG Operations</h3></summary>
 
 Polytree provides three core CSG operations that work directly with Three.js meshes:
@@ -189,38 +223,6 @@ polytree3.delete();
 intermediate.delete();
 final.delete();
 ```
-
-</details>
-
-<details>
-
-<summary><h3 style="display:inline">Utility Functions</h3></summary>
-
-Polytree provides utility functions for geometry analysis and calculations:
-
-#### Surface Area Calculation
-
-Calculate the surface area of Three.js meshes or geometries:
-
-```js
-// Calculate surface area from a mesh
-const boxGeometry = new THREE.BoxGeometry(2, 3, 4);
-const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
-
-const surfaceArea = Polytree.getSurface(boxMesh);
-console.log(`Surface area: ${surfaceArea}`); // Output: Surface area: 52
-
-// Calculate surface area directly from geometry
-const sphereGeometry = new THREE.SphereGeometry(1);
-const sphereSurfaceArea = Polytree.getSurface(sphereGeometry);
-console.log(`Sphere surface area: ${sphereSurfaceArea}`); // Output: ~12.47
-```
-
-The `getSurface()` method:
-- Accepts either Three.js `Mesh` objects or `BufferGeometry` objects
-- Returns the total surface area as a number
-- Works by summing the areas of all triangular faces
-- Handles both indexed and non-indexed geometries
 
 </details>
 
