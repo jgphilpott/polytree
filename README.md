@@ -18,7 +18,7 @@
 - **Lightweight**: Minimal dependencies with efficient memory usage.
 - **Three.js Integration**: Direct mesh-to-mesh operations with material preservation.
 - **Well Documented**: Comprehensive API documentation and examples.
-- **Robust Testing**: 450+ tests ensuring reliability across edge cases.
+- **Robust Testing**: 470+ tests ensuring reliability across edge cases.
 
 </details>
 
@@ -85,7 +85,7 @@ const boxGeometry = new THREE.BoxGeometry(2, 3, 4);
 const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
 const surfaceArea = Polytree.getSurface(boxMesh);
 
-console.log(`Surface area: ${surfaceArea}`); // Output: Surface area: 52
+console.log(`Surface area: ${surfaceArea}`); // Output: 52
 
 // Calculate surface area directly from geometry:
 const sphereGeometry = new THREE.SphereGeometry(1);
@@ -111,7 +111,7 @@ const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
 const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
 const volume = Polytree.getVolume(boxMesh);
 
-console.log(`Volume: ${volume}`); // Output: Volume: 8
+console.log(`Volume: ${volume}`); // Output: 8
 
 // Calculate volume directly from geometry:
 const sphereGeometry = new THREE.SphereGeometry(1);
@@ -204,7 +204,7 @@ scene.add(result);
 
 <details>
 
-<summary><h3 style="display:inline">Asynchronous Operations</h3></summary>
+<summary><h3 style="display:inline">Async CSG Operations</h3></summary>
 
 For better performance in web applications, use async operations to prevent UI blocking:
 
@@ -218,37 +218,6 @@ unionPromise.then(result => {
 // Async with await.
 const unionResult = await Polytree.unite(mesh1, mesh2);
 scene.add(unionResult);
-```
-
-</details>
-
-<details>
-
-<summary><h3 style="display:inline">Advanced: Polytree-to-Polytree Operations</h3></summary>
-
-For maximum performance when chaining operations, work directly with Polytree objects:
-
-```js
-// Convert meshes to polytrees once.
-const polytree1 = Polytree.fromMesh(mesh1);
-const polytree2 = Polytree.fromMesh(mesh2);
-const polytree3 = Polytree.fromMesh(mesh3);
-
-// Chain operations efficiently.
-const intermediate = await Polytree.unite(polytree1, polytree2);
-const final = await Polytree.subtract(intermediate, polytree3);
-
-// Convert back to mesh for rendering.
-const finalMesh = Polytree.toMesh(final);
-
-scene.add(finalMesh);
-
-// Clean up resources.
-polytree1.delete();
-polytree2.delete();
-polytree3.delete();
-intermediate.delete();
-final.delete();
 ```
 
 </details>
@@ -281,6 +250,37 @@ Polytree.async.uniteArray(polytreeArray).then(result => {
 
 </details>
 
+<details>
+
+<summary><h3 style="display:inline">Advanced Polytree-to-Polytree Operations</h3></summary>
+
+For maximum performance when chaining operations, work directly with Polytree objects:
+
+```js
+// Convert meshes to polytrees once.
+const polytree1 = Polytree.fromMesh(mesh1);
+const polytree2 = Polytree.fromMesh(mesh2);
+const polytree3 = Polytree.fromMesh(mesh3);
+
+// Chain operations efficiently.
+const intermediate = await Polytree.unite(polytree1, polytree2);
+const final = await Polytree.subtract(intermediate, polytree3);
+
+// Convert back to mesh for rendering.
+const finalMesh = Polytree.toMesh(final);
+
+scene.add(finalMesh);
+
+// Clean up resources.
+polytree1.delete();
+polytree2.delete();
+polytree3.delete();
+intermediate.delete();
+final.delete();
+```
+
+</details>
+
 </details>
 
 <details open>
@@ -291,7 +291,7 @@ Polytree is designed for high-performance CSG operations:
 
 - **Octree Optimization**: Spatial partitioning reduces computational complexity.
 - **Memory Efficient**: Smart resource management with cleanup methods.
-- **Comprehensive Testing**: 450+ test cases ensuring reliability and performance.
+- **Comprehensive Testing**: 470+ test cases ensuring reliability and performance.
 - **Async Support**: Non-blocking operations for smooth user experiences.
 - **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration.
 
