@@ -101,6 +101,33 @@ The `getSurface()` method:
 - Works by summing the areas of all triangular faces.
 - Handles both indexed and non-indexed geometries.
 
+#### Volume Calculation
+
+Calculate the volume of Three.js meshes or geometries:
+
+```js
+// Calculate volume from a mesh:
+const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+const boxMesh = new THREE.Mesh(boxGeometry, new THREE.MeshBasicMaterial());
+const volume = Polytree.getVolume(boxMesh);
+
+console.log(`Volume: ${volume}`); // Output: Volume: 8
+
+// Calculate volume directly from geometry:
+const sphereGeometry = new THREE.SphereGeometry(1);
+const sphereVolume = Polytree.getVolume(sphereGeometry);
+
+console.log(`Sphere volume: ${sphereVolume}`); // Output: ~4.19 (approx 4/3 * π)
+```
+
+The `getVolume()` method:
+
+- Accepts either Three.js `Mesh` objects or `BufferGeometry` objects.
+- Returns the total volume as a number.
+- Uses the divergence theorem with signed tetrahedron volumes.
+- Handles both indexed and non-indexed geometries.
+- Automatically handles edge cases like empty geometries.
+
 </details>
 
 <details open>

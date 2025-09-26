@@ -541,6 +541,24 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
 
         polytreeBBuffer = undefined
 
+# Calculate the signed volume of a tetrahedron formed by the origin and three triangle vertices.
+# This is used for volume calculations of 3D geometries by summing the signed volumes of all triangles in the mesh.
+#
+# The formula is: V = (1/6) * dot(v1, cross(v2, v3))
+# where v1, v2, v3 are the three vertices of the triangle.
+#
+# @param vertex1 - First vertex of the triangle (Vector3).
+# @param vertex2 - Second vertex of the triangle (Vector3).
+# @param vertex3 - Third vertex of the triangle (Vector3).
+#
+# @return Signed volume of the tetrahedron formed by origin and the three vertices.
+signedVolumeOfTriangle = (vertex1, vertex2, vertex3) ->
+
+    # Use temporary vectors to avoid creating new objects
+    temporaryVector3Primary.copy(vertex2).cross(vertex3)
+
+    return vertex1.dot(temporaryVector3Primary) / 6.0
+
 # Dispose of polytree resources to prevent memory leaks.
 # This utility safely calls the delete method on polytree instances
 # if the disposal feature is enabled in the Polytree configuration.

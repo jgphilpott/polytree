@@ -520,3 +520,100 @@ describe "Mesh Conversion", ->
             surface = Polytree.getSurface(geometry)
 
             expect(surface).toBe(0)
+
+    describe "Volume Calculation", ->
+
+        it "should calculate volume of a simple box mesh", ->
+
+            box = createBox(2, 2, 2, 0, 0, 0)
+
+            volume = Polytree.getVolume(box)
+
+            # Box volume should be 2 * 2 * 2 = 8.
+            expect(volume).toBe(8)
+
+        it "should calculate volume of a box geometry directly", ->
+
+            geometry = new BoxGeometry(4, 2, 1)
+
+            volume = Polytree.getVolume(geometry)
+
+            # Box volume should be 4 * 2 * 1 = 8.
+            expect(volume).toBe(8)
+
+        it "should calculate volume of a sphere mesh", ->
+
+            sphere = createSphere(1, 0, 0, 0)
+
+            volume = Polytree.getVolume(sphere)
+
+            # Sphere volume should be approximately (4/3) * π * r³ = (4/3) * π * 1³ ≈ 4.189.
+            # Due to sphere tessellation, we expect some deviation from the theoretical value.
+            expectedVolume = (4 / 3) * Math.PI * (1 * 1 * 1)
+
+            expect(volume).toBeGreaterThan(expectedVolume * 0.8) # At least 80% of theoretical volume.
+            expect(volume).toBeLessThan(expectedVolume * 1.2)    # At most 120% of theoretical volume.
+
+        it "should handle empty geometry", ->
+
+            emptyGeometry = new BufferGeometry()
+
+            volume = Polytree.getVolume(emptyGeometry)
+
+            expect(volume).toBe(0)
+
+        it "should handle geometry with no position attribute", ->
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute("normal", new BufferAttribute(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1]), 3))
+
+            volume = Polytree.getVolume(geometry)
+
+            expect(volume).toBe(0)
+
+        it "should throw error for invalid input", ->
+
+            expect(() -> Polytree.getVolume(null)).toThrow()
+            expect(() -> Polytree.getVolume({})).toThrow()
+            expect(() -> Polytree.getVolume("invalid")).toThrow()
+
+        it "should handle indexed geometry", ->
+
+            # Create a simple indexed triangle.
+            positions = new Float32Array([
+                0, 0, 0,  # vertex 0
+                1, 0, 0,  # vertex 1
+                0, 1, 0   # vertex 2
+            ])
+
+            indices = new Uint16Array([0, 1, 2])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute("position", new BufferAttribute(positions, 3))
+            geometry.setIndex(new BufferAttribute(indices, 1))
+
+            volume = Polytree.getVolume(geometry)
+
+            # This triangle forms a tetrahedron with the origin with volume = |1/6 * dot(v0, cross(v1, v2))|
+            # v0 = (0,0,0), v1 = (1,0,0), v2 = (0,1,0)
+            # Volume should be small but positive.
+            expect(volume).toBeGreaterThanOrEqual(0)
+            expect(volume).toBeLessThan(1)
+
+        it "should handle non-indexed geometry", ->
+
+            # Create a simple triangle without indices.
+            positions = new Float32Array([
+                0, 0, 0,  # vertex 0
+                1, 0, 0,  # vertex 1
+                0, 1, 0   # vertex 2
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute("position", new BufferAttribute(positions, 3))
+
+            volume = Polytree.getVolume(geometry)
+
+            # Same as indexed case - volume should be small but positive.
+            expect(volume).toBeGreaterThanOrEqual(0)
+            expect(volume).toBeLessThan(1)
