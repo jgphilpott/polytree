@@ -74,11 +74,11 @@ describe 'Spatial Query Utilities', ->
             cube = createTestCube(1)
             farPoint = new Vector3(10, 0, 0)
             
-            result = Polytree.closestPointToPoint(cube, farPoint, {}, 5) # Max distance of 5
+            result = Polytree.closestPointToPoint(cube, farPoint, {}, 15) # Max distance of 15 (actual distance ~9.5)
             
             expect(result).toBeTruthy() # Should find point within distance
             
-            resultTooFar = Polytree.closestPointToPoint(cube, farPoint, {}, 1) # Max distance of 1
+            resultTooFar = Polytree.closestPointToPoint(cube, farPoint, {}, 5) # Max distance of 5 (less than actual ~9.5)
             
             expect(resultTooFar).toBeNull() # Should not find point
 
@@ -152,6 +152,8 @@ describe 'Spatial Query Utilities', ->
             for segment in intersections
                 expect(segment.start.z).toBeCloseTo(0, 5)
                 expect(segment.end.z).toBeCloseTo(0, 5)
+            
+            return
 
         it 'should return empty array when plane misses geometry', ->
 

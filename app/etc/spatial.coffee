@@ -4,8 +4,6 @@
 #
 # Inspired by three-mesh-bvh spatial query capabilities.
 
-{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, Matrix4, Mesh, MeshBasicMaterial} = require('three')
-
 # Helper function to convert various input types to polytree.
 # @param input - Three.js Mesh, BufferGeometry, or Polytree instance.
 # @return Object with polytree and shouldCleanup flag, or null if invalid input.
@@ -213,9 +211,10 @@ Polytree.intersectPlane = (input, plane, target = []) ->
             startPoint = edge[0]
             endPoint = edge[1]
 
-            # Calculate distances to plane
-            startDist = plane.distanceToPoint(startPoint)
-            endDist = plane.distanceToPoint(endPoint)
+            # Calculate distances to plane manually (since bundle context may not have plane methods)
+            # Distance = normal.dot(point) + constant
+            startDist = plane.normal.dot(startPoint) + plane.constant
+            endDist = plane.normal.dot(endPoint) + plane.constant
 
             # Check if edge crosses the plane (different signs)
             if (startDist * endDist) < 0
@@ -251,19 +250,65 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
 
     return [] unless input and layerHeight > 0 and minZ < maxZ
 
+    # Convert input to polytree once at the beginning
+    result = convertToPolytree(input)
+    return [] unless result
+    
+    { polytree, shouldCleanup } = result
+
     layers = []
     currentZ = minZ
 
     while currentZ <= maxZ
 
-        # Create plane at current height.
-        slicePlane = new Plane(normal.clone(), -currentZ)
+        # Create plane at current height using manual plane equation
+        # Since bundle context may not have proper Plane constructor access
+        planeNormal = normal.clone()
+        planeConstant = -currentZ
         
-        # Get intersection segments for this layer.
-        layerSegments = Polytree.intersectPlane(input, slicePlane)
+        # Use manual plane-triangle intersection instead of Plane object
+        layerSegments = []
+        triangles = polytree.getTriangles()
+        
+        for triangle in triangles
+
+            intersectionPoints = []
+
+            # Test each edge of the triangle against the plane.
+            triangleEdges = [
+                [triangle.a, triangle.b]
+                [triangle.b, triangle.c]
+                [triangle.c, triangle.a]
+            ]
+
+            for edge in triangleEdges
+                
+                startPoint = edge[0]
+                endPoint = edge[1]
+
+                # Calculate distances to plane manually
+                startDist = planeNormal.dot(startPoint) + planeConstant
+                endDist = planeNormal.dot(endPoint) + planeConstant
+
+                # Check if edge crosses the plane (different signs)
+                if (startDist * endDist) < 0
+
+                    # Calculate intersection point using linear interpolation
+                    t = startDist / (startDist - endDist)
+                    intersectionPoint = new Vector3()
+                    intersectionPoint.lerpVectors(startPoint, endPoint, t)
+                    intersectionPoints.push(intersectionPoint)
+
+            # If we have exactly 2 intersection points, create a line segment.
+            if intersectionPoints.length is 2
+
+                layerSegments.push(new Line3(intersectionPoints[0], intersectionPoints[1]))
         
         layers.push(layerSegments)
         currentZ += layerHeight
+
+    # Clean up temporary polytree if created
+    shouldCleanup and polytree.delete()
 
     return layers
 
