@@ -437,7 +437,7 @@ describe "Mesh Conversion", ->
             volume = Polytree.getVolume(box)
 
             # Box volume should be 2 * 2 * 2 = 8.
-            expect(volume).toBeCloseTo(8, 5)
+            expect(volume).toBe(8)
 
         it "should calculate volume of a box geometry directly", ->
 
@@ -446,7 +446,7 @@ describe "Mesh Conversion", ->
             volume = Polytree.getVolume(geometry)
 
             # Box volume should be 4 * 2 * 1 = 8.
-            expect(volume).toBeCloseTo(8, 5)
+            expect(volume).toBe(8)
 
         it "should calculate volume of a sphere mesh", ->
 
@@ -489,7 +489,7 @@ describe "Mesh Conversion", ->
             # Create a simple indexed triangle.
             positions = new Float32Array([
                 0, 0, 0,  # vertex 0
-                1, 0, 0,  # vertex 1  
+                1, 0, 0,  # vertex 1
                 0, 1, 0   # vertex 2
             ])
 

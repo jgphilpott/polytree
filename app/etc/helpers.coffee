@@ -542,8 +542,7 @@ handleIntersectingPolytrees = (polytreeA, polytreeB, processBothDirections = tru
         polytreeBBuffer = undefined
 
 # Calculate the signed volume of a tetrahedron formed by the origin and three triangle vertices.
-# This is used for volume calculations of 3D geometries by summing the signed volumes
-# of all triangles in the mesh.
+# This is used for volume calculations of 3D geometries by summing the signed volumes of all triangles in the mesh.
 #
 # The formula is: V = (1/6) * dot(v1, cross(v2, v3))
 # where v1, v2, v3 are the three vertices of the triangle.

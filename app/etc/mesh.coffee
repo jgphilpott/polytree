@@ -248,6 +248,12 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 # @return The volume of the geometry as a number.
 Polytree.getVolume = (input) ->
 
+    volume = 0
+
+    v1 = new Vector3()
+    v2 = new Vector3()
+    v3 = new Vector3()
+
     # Handle different input types.
     geometry = null
 
@@ -261,19 +267,14 @@ Polytree.getVolume = (input) ->
 
     else
 
-        throw new Error("Input must be a Three.js Mesh or BufferGeometry")
+        throw new Error("Input must be a Three.js Mesh or BufferGeometry.")
 
     # Ensure we have a BufferGeometry.
     bufferGeometry = geometry.toBuffer?() or geometry
 
     unless bufferGeometry.isBufferGeometry
 
-        throw new Error("Unable to convert input to BufferGeometry")
-
-    volume = 0
-    v1 = new Vector3()
-    v2 = new Vector3()
-    v3 = new Vector3()
+        throw new Error("Unable to convert input to BufferGeometry.")
 
     position = bufferGeometry.attributes.position
 
