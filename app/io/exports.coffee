@@ -75,3 +75,8 @@ module.exports.intersectionTestVertex2D = intersectionTestVertex2D
 # Low-level intersection construction utilities for building intersection results.
 
 module.exports.constructIntersection = constructIntersection
+
+# === VOLUME CALCULATION UTILITIES ===
+# Helper functions for calculating volumes of 3D geometries.
+
+module.exports.signedVolumeOfTriangle = signedVolumeOfTriangle

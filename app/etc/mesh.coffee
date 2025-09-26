@@ -238,3 +238,74 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
         polytree.mesh = obj
 
     return polytree
+
+# Calculate the volume of a 3D geometry using the divergence theorem.
+# This method accepts either a Three.js Mesh or BufferGeometry and returns
+# the total volume by summing the signed volumes of all triangular faces.
+#
+# @param input - Either a Three.js Mesh object or BufferGeometry to calculate volume for.
+#
+# @return The volume of the geometry as a number.
+Polytree.getVolume = (input) ->
+
+    # Handle different input types.
+    geometry = null
+
+    if input.isMesh
+
+        geometry = input.geometry
+
+    else if input.isBufferGeometry
+
+        geometry = input
+
+    else
+
+        throw new Error("Input must be a Three.js Mesh or BufferGeometry")
+
+    # Ensure we have a BufferGeometry.
+    bufferGeometry = geometry.toBuffer?() or geometry
+
+    unless bufferGeometry.isBufferGeometry
+
+        throw new Error("Unable to convert input to BufferGeometry")
+
+    volume = 0
+    v1 = new Vector3()
+    v2 = new Vector3()
+    v3 = new Vector3()
+
+    position = bufferGeometry.attributes.position
+
+    unless position
+
+        return 0 # No position data means no volume.
+
+    if bufferGeometry.index
+
+        # Indexed geometry - use index buffer.
+        index = bufferGeometry.index
+        faces = index.count / 3
+
+        for face in [0...faces]
+
+            v1.fromBufferAttribute(position, index.array[face * 3 + 0])
+            v2.fromBufferAttribute(position, index.array[face * 3 + 1])
+            v3.fromBufferAttribute(position, index.array[face * 3 + 2])
+
+            volume += signedVolumeOfTriangle(v1, v2, v3)
+
+    else
+
+        # Non-indexed geometry - use vertex order directly.
+        faces = position.count / 3
+
+        for face in [0...faces]
+
+            v1.fromBufferAttribute(position, face * 3 + 0)
+            v2.fromBufferAttribute(position, face * 3 + 1)
+            v3.fromBufferAttribute(position, face * 3 + 2)
+
+            volume += signedVolumeOfTriangle(v1, v2, v3)
+
+    return Math.abs(volume) # Return absolute value for total volume.
