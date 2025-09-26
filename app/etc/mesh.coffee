@@ -247,18 +247,17 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 # @return Total surface area as a number.
 Polytree.getSurface = (meshOrGeometry) ->
 
-    throw new Error("Input is required") unless meshOrGeometry
+    surface = 0
+
+    throw new Error("Input is required.") unless meshOrGeometry
 
     # Extract geometry from mesh if needed.
     geometry = if meshOrGeometry.geometry then meshOrGeometry.geometry else meshOrGeometry
 
-    throw new Error("No geometry found") unless geometry and geometry.attributes
+    throw new Error("No geometry found.") unless geometry and geometry.attributes
 
-    surface = 0
-
-    # Extract position and index attributes.
-    posattr = geometry.attributes.position
-    throw new Error("Geometry has no position attribute") unless posattr
+    posattr = geometry.attributes.position # Extract position and index attributes.
+    throw new Error("Geometry has no position attribute.") unless posattr
 
     # Generate index array (explicit or implicit).
     index = if geometry.index then geometry.index.array else (Array((posattr.array.length / posattr.itemSize) | 0).fill().map((_, i) -> i))
@@ -267,7 +266,7 @@ Polytree.getSurface = (meshOrGeometry) ->
     for i in [0...index.length] by 3
 
         # Extract triangle vertices.
-        v1Index = index[i] * 3
+        v1Index = index[i + 0] * 3
         v2Index = index[i + 1] * 3
         v3Index = index[i + 2] * 3
 
