@@ -4,6 +4,8 @@
 #
 # Inspired by three-mesh-bvh spatial query capabilities.
 
+{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, Matrix4} = require('three')
+
 # Find the closest point on any triangle in the polytree to the given point.
 # This is essential for collision detection, mesh repair, and support structure generation.
 #
@@ -81,7 +83,12 @@ Polytree.intersectsSphere = (polytree, sphere) ->
 
         testTriangle = new Triangle(triangle.a, triangle.b, triangle.c)
 
-        if testTriangle.intersectsSphere(sphere)
+        # Simple sphere-triangle intersection: check if sphere center is close to triangle
+        closestPoint = new Vector3()
+        testTriangle.closestPointToPoint(sphere.center, closestPoint)
+        distance = closestPoint.distanceTo(sphere.center)
+
+        if distance <= sphere.radius
 
             return true
 
@@ -131,26 +138,28 @@ Polytree.intersectPlane = (polytree, plane, target = []) ->
 
         # Test each edge of the triangle against the plane.
         triangleEdges = [
-            new Line3(triangle.a, triangle.b)
-            new Line3(triangle.b, triangle.c)
-            new Line3(triangle.c, triangle.a)
+            [triangle.a, triangle.b]
+            [triangle.b, triangle.c]
+            [triangle.c, triangle.a]
         ]
 
         for edge in triangleEdges
-
-            intersectionPoint = new Vector3()
             
-            if plane.intersectLine(edge, intersectionPoint)
+            startPoint = edge[0]
+            endPoint = edge[1]
 
-                # Check if intersection point is actually on the edge segment.
-                edgeLength = edge.distance()
-                startDistance = intersectionPoint.distanceTo(edge.start)
-                endDistance = intersectionPoint.distanceTo(edge.end)
+            # Calculate distances to plane
+            startDist = plane.distanceToPoint(startPoint)
+            endDist = plane.distanceToPoint(endPoint)
 
-                # Point is on edge if sum of distances equals edge length (within tolerance).
-                if Math.abs((startDistance + endDistance) - edgeLength) < 1e-10
+            # Check if edge crosses the plane (different signs)
+            if (startDist * endDist) < 0
 
-                    intersectionPoints.push(intersectionPoint.clone())
+                # Calculate intersection point using linear interpolation
+                t = startDist / (startDist - endDist)
+                intersectionPoint = new Vector3()
+                intersectionPoint.lerpVectors(startPoint, endPoint, t)
+                intersectionPoints.push(intersectionPoint)
 
         # If we have exactly 2 intersection points, create a line segment.
         if intersectionPoints.length is 2
@@ -234,11 +243,12 @@ Polytree.getTrianglesNearPoint = (polytree, targetPoint, searchRadius) ->
 
     return [] unless polytree and targetPoint and searchRadius > 0
 
-    searchSphere = new Sphere(targetPoint, searchRadius)
-
-    return Polytree.shapecast polytree, (testTriangle) ->
+    return Polytree.shapecast polytree, (testTriangle, originalTriangle) ->
         
-        testTriangle.intersectsSphere(searchSphere)
+        # Check if any vertex of the triangle is within the search radius
+        return (testTriangle.a.distanceTo(targetPoint) <= searchRadius or
+                testTriangle.b.distanceTo(targetPoint) <= searchRadius or
+                testTriangle.c.distanceTo(targetPoint) <= searchRadius)
 
 # Calculate approximate volume using monte carlo sampling.
 # Useful for complex geometries where analytical volume calculation is difficult.
@@ -285,7 +295,8 @@ Polytree.estimateVolumeViaSampling = (polytree, sampleCount = 10000, boundingBox
 
         # Test if point is inside the mesh using ray casting.
         testRay = new Ray(samplePoint, new Vector3(1, 0, 0))
-        intersections = polytree.rayIntersect(testRay, new Matrix4())
+        identityMatrix = new Matrix4() # Create identity matrix locally
+        intersections = polytree.rayIntersect(testRay, identityMatrix)
 
         # Point is inside if odd number of intersections.
         insideCount++ if intersections.length % 2 is 1
