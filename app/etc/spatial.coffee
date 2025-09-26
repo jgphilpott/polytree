@@ -22,7 +22,9 @@ convertToPolytree = (input) ->
     else if input.isBufferGeometry
         
         # Create a temporary mesh from BufferGeometry
-        tempMesh = new Mesh(input, new MeshBasicMaterial())
+        # Use a simple material object instead of MeshBasicMaterial constructor
+        tempMaterial = { isMaterial: true, type: "MeshBasicMaterial" }
+        tempMesh = new Mesh(input, tempMaterial)
         return { polytree: Polytree.fromMesh(tempMesh), shouldCleanup: true }
         
     else
@@ -423,7 +425,11 @@ Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = 
 
         # Test if point is inside the mesh using ray casting.
         testRay = new Ray(samplePoint, new Vector3(1, 0, 0))
-        identityMatrix = new Matrix4() # Create identity matrix locally
+        # Create a simple identity matrix manually to avoid Three.js import issues
+        identityMatrix = {
+            elements: [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]
+            isMatrix4: true
+        }
         intersections = polytree.rayIntersect(testRay, identityMatrix)
 
         # Point is inside if odd number of intersections.
