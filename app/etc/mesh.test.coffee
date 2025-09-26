@@ -428,6 +428,99 @@ describe "Mesh Conversion", ->
 
             expect(polygons.length).toBe(12)
 
+    describe "Surface Area Calculation", ->
+
+        it "should calculate surface area for a unit cube mesh", ->
+
+            box = createBox(1, 1, 1)
+            surface = Polytree.getSurface(box)
+
+            # Unit cube has 6 faces, each with area 1, so total surface area is 6.
+            expect(surface).toBe(6)
+
+        it "should calculate surface area for a unit cube geometry", ->
+
+            geometry = new BoxGeometry(1, 1, 1)
+            surface = Polytree.getSurface(geometry)
+
+            # Unit cube has 6 faces, each with area 1, so total surface area is 6.
+            expect(surface).toBe(6)
+
+        it "should calculate surface area for a 2x2x2 cube", ->
+
+            box = createBox(2, 2, 2)
+            surface = Polytree.getSurface(box)
+
+            # 2x2x2 cube has 6 faces, each with area 4, so total surface area is 24.
+            expect(surface).toBe(24)
+
+        it "should calculate surface area for a rectangular box", ->
+
+            box = createBox(2, 3, 4)
+            surface = Polytree.getSurface(box)
+
+            # Box with dimensions 2x3x4 has surface area 2*(2*3 + 2*4 + 3*4) = 2*(6 + 8 + 12) = 52.
+            expect(surface).toBe(52)
+
+        it "should calculate surface area for a sphere geometry", ->
+
+            sphere = createSphere(1)
+            surface = Polytree.getSurface(sphere)
+
+            # Sphere with radius 1 has theoretical surface area 4*π ≈ 12.566.
+            # Low-resolution tessellated sphere will have somewhat less surface area.
+            expect(surface).toBeGreaterThan(10)
+            expect(surface).toBeLessThan(13)
+
+        it "should handle empty or invalid inputs", ->
+
+            expect(() -> Polytree.getSurface(null)).toThrow("Input is required.")
+            expect(() -> Polytree.getSurface(undefined)).toThrow("Input is required.")
+
+        it "should handle mesh without geometry", ->
+
+            mesh = new Mesh()
+
+            expect(() -> Polytree.getSurface(mesh)).toThrow("Geometry has no position attribute.")
+
+        it "should handle object without geometry property", ->
+
+            fakeObject = { someProperty: "value" }
+
+            expect(() -> Polytree.getSurface(fakeObject)).toThrow("No geometry found.")
+
+        it "should handle geometry without position attribute", ->
+
+            geometry = new BufferGeometry()
+
+            expect(() -> Polytree.getSurface(geometry)).toThrow("Geometry has no position attribute.")
+
+        it "should handle geometry with degenerate triangles", ->
+
+            # Create a geometry with a degenerate triangle (all vertices at same point).
+            positions = new Float32Array([
+                0, 0, 0,
+                0, 0, 0,
+                0, 0, 0
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(positions, 3))
+
+            surface = Polytree.getSurface(geometry)
+
+            # Degenerate triangle should have zero area.
+            expect(surface).toBe(0)
+
+        it "should return zero for empty geometry", ->
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(new Float32Array([]), 3))
+
+            surface = Polytree.getSurface(geometry)
+
+            expect(surface).toBe(0)
+
     describe "Volume Calculation", ->
 
         it "should calculate volume of a simple box mesh", ->

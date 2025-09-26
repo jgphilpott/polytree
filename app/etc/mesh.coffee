@@ -239,6 +239,47 @@ Polytree.fromMesh = (obj, objectIndex, polytree = new Polytree(), buildTargetPol
 
     return polytree
 
+# Calculate the surface area of a Three.js mesh or geometry.
+# This method extracts triangles from the geometry and sums their areas using Three.js Triangle.getArea().
+#
+# @param meshOrGeometry - Three.js mesh or BufferGeometry to calculate surface area for.
+#
+# @return Total surface area as a number.
+Polytree.getSurface = (meshOrGeometry) ->
+
+    surface = 0
+
+    throw new Error("Input is required.") unless meshOrGeometry
+
+    # Extract geometry from mesh if needed.
+    geometry = if meshOrGeometry.geometry then meshOrGeometry.geometry else meshOrGeometry
+
+    throw new Error("No geometry found.") unless geometry and geometry.attributes
+
+    posattr = geometry.attributes.position # Extract position and index attributes.
+    throw new Error("Geometry has no position attribute.") unless posattr
+
+    # Generate index array (explicit or implicit).
+    index = if geometry.index then geometry.index.array else (Array((posattr.array.length / posattr.itemSize) | 0).fill().map((_, i) -> i))
+
+    # Process each triangle in the geometry.
+    for i in [0...index.length] by 3
+
+        # Extract triangle vertices.
+        v1Index = index[i + 0] * 3
+        v2Index = index[i + 1] * 3
+        v3Index = index[i + 2] * 3
+
+        v1 = new Vector3(posattr.array[v1Index], posattr.array[v1Index + 1], posattr.array[v1Index + 2])
+        v2 = new Vector3(posattr.array[v2Index], posattr.array[v2Index + 1], posattr.array[v2Index + 2])
+        v3 = new Vector3(posattr.array[v3Index], posattr.array[v3Index + 1], posattr.array[v3Index + 2])
+
+        # Create triangle and add its area to the total surface area.
+        triangle = new Triangle(v1, v2, v3)
+        surface += triangle.getArea()
+
+    return surface
+
 # Calculate the volume of a 3D geometry using the divergence theorem.
 # This method accepts either a Three.js Mesh or BufferGeometry and returns
 # the total volume by summing the signed volumes of all triangular faces.
