@@ -5,30 +5,33 @@
 # Inspired by three-mesh-bvh spatial query capabilities.
 
 # Helper function to convert various input types to polytree.
+#
 # @param input - Three.js Mesh, BufferGeometry, or Polytree instance.
+#
 # @return Object with polytree and shouldCleanup flag, or null if invalid input.
 convertToPolytree = (input) ->
-    
+
     return null unless input
 
     if input.isPolytree
-        
+
         return { polytree: input, shouldCleanup: false }
-        
+
     else if input.isMesh
-        
+
         return { polytree: Polytree.fromMesh(input), shouldCleanup: true }
-        
+
     else if input.isBufferGeometry
-        
-        # Create a temporary mesh from BufferGeometry
-        # Use a simple material object instead of MeshBasicMaterial constructor
+
+        # Create a temporary mesh from BufferGeometry.
+        # Use a simple material object instead of MeshBasicMaterial constructor.
         tempMaterial = { isMaterial: true, type: "MeshBasicMaterial" }
         tempMesh = new Mesh(input, tempMaterial)
+
         return { polytree: Polytree.fromMesh(tempMesh), shouldCleanup: true }
-        
+
     else
-        
+
         return null
 
 # Find the closest point on any triangle surface to the given point.
@@ -47,7 +50,7 @@ Polytree.closestPointToPoint = (input, targetPoint, target = {}, maxDistance = I
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return null unless result
-    
+
     { polytree, shouldCleanup } = result
 
     closestDistance = maxDistance
@@ -60,10 +63,9 @@ Polytree.closestPointToPoint = (input, targetPoint, target = {}, maxDistance = I
 
         # Create temporary triangle for calculations.
         testTriangle = new Triangle(triangle.a, triangle.b, triangle.c)
-        
+
         # Calculate closest point on triangle to target point.
-        trianglePoint = new Vector3()
-        testTriangle.closestPointToPoint(targetPoint, trianglePoint)
+        trianglePoint = new Vector3(); testTriangle.closestPointToPoint(targetPoint, trianglePoint)
 
         # Calculate distance to this point.
         currentDistance = trianglePoint.distanceTo(targetPoint)
@@ -80,12 +82,12 @@ Polytree.closestPointToPoint = (input, targetPoint, target = {}, maxDistance = I
         target.distance = closestDistance
         target.triangle = closestTriangle
 
-        # Clean up temporary polytree if created
+        # Clean up temporary polytree if created.
         shouldCleanup and polytree.delete()
 
         return target
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return null
@@ -117,7 +119,7 @@ Polytree.intersectsSphere = (input, sphere) ->
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return false unless result
-    
+
     { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
@@ -126,18 +128,19 @@ Polytree.intersectsSphere = (input, sphere) ->
 
         testTriangle = new Triangle(triangle.a, triangle.b, triangle.c)
 
-        # Simple sphere-triangle intersection: check if sphere center is close to triangle
+        # Simple sphere-triangle intersection: check if sphere center is close to triangle.
         closestPoint = new Vector3()
         testTriangle.closestPointToPoint(sphere.center, closestPoint)
         distance = closestPoint.distanceTo(sphere.center)
 
         if distance <= sphere.radius
 
-            # Clean up temporary polytree if created
+            # Clean up temporary polytree if created.
             shouldCleanup and polytree.delete()
+
             return true
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return false
@@ -156,7 +159,7 @@ Polytree.intersectsBox = (input, boundingBox) ->
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return false unless result
-    
+
     { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
@@ -167,11 +170,12 @@ Polytree.intersectsBox = (input, boundingBox) ->
 
         if boundingBox.intersectsTriangle(testTriangle)
 
-            # Clean up temporary polytree if created
+            # Clean up temporary polytree if created.
             shouldCleanup and polytree.delete()
+
             return true
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return false
@@ -191,7 +195,7 @@ Polytree.intersectPlane = (input, plane, target = []) ->
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return target unless result
-    
+
     { polytree, shouldCleanup } = result
 
     triangles = polytree.getTriangles()
@@ -209,19 +213,19 @@ Polytree.intersectPlane = (input, plane, target = []) ->
         ]
 
         for edge in triangleEdges
-            
+
             startPoint = edge[0]
             endPoint = edge[1]
 
-            # Calculate distances to plane manually (since bundle context may not have plane methods)
+            # Calculate distances to plane manually (since bundle context may not have plane methods).
             # Distance = normal.dot(point) + constant
             startDist = plane.normal.dot(startPoint) + plane.constant
             endDist = plane.normal.dot(endPoint) + plane.constant
 
-            # Check if edge crosses the plane (different signs)
+            # Check if edge crosses the plane (different signs).
             if (startDist * endDist) < 0
 
-                # Calculate intersection point using linear interpolation
+                # Calculate intersection point using linear interpolation.
                 t = startDist / (startDist - endDist)
                 intersectionPoint = new Vector3()
                 intersectionPoint.lerpVectors(startPoint, endPoint, t)
@@ -232,7 +236,7 @@ Polytree.intersectPlane = (input, plane, target = []) ->
 
             target.push(new Line3(intersectionPoints[0], intersectionPoints[1]))
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return target
@@ -252,10 +256,10 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
 
     return [] unless input and layerHeight > 0 and minZ < maxZ
 
-    # Convert input to polytree once at the beginning
+    # Convert input to polytree once at the beginning.
     result = convertToPolytree(input)
     return [] unless result
-    
+
     { polytree, shouldCleanup } = result
 
     layers = []
@@ -263,15 +267,15 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
 
     while currentZ <= maxZ
 
-        # Create plane at current height using manual plane equation
-        # Since bundle context may not have proper Plane constructor access
+        # Create plane at current height using manual plane equation.
+        # Since bundle context may not have proper Plane constructor access.
         planeNormal = normal.clone()
         planeConstant = -currentZ
-        
-        # Use manual plane-triangle intersection instead of Plane object
+
+        # Use manual plane-triangle intersection instead of Plane object.
         layerSegments = []
         triangles = polytree.getTriangles()
-        
+
         for triangle in triangles
 
             intersectionPoints = []
@@ -284,18 +288,18 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
             ]
 
             for edge in triangleEdges
-                
+
                 startPoint = edge[0]
                 endPoint = edge[1]
 
-                # Calculate distances to plane manually
+                # Calculate distances to plane manually.
                 startDist = planeNormal.dot(startPoint) + planeConstant
                 endDist = planeNormal.dot(endPoint) + planeConstant
 
-                # Check if edge crosses the plane (different signs)
+                # Check if edge crosses the plane (different signs).
                 if (startDist * endDist) < 0
 
-                    # Calculate intersection point using linear interpolation
+                    # Calculate intersection point using linear interpolation.
                     t = startDist / (startDist - endDist)
                     intersectionPoint = new Vector3()
                     intersectionPoint.lerpVectors(startPoint, endPoint, t)
@@ -305,11 +309,11 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
             if intersectionPoints.length is 2
 
                 layerSegments.push(new Line3(intersectionPoints[0], intersectionPoints[1]))
-        
+
         layers.push(layerSegments)
         currentZ += layerHeight
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return layers
@@ -329,7 +333,7 @@ Polytree.shapecast = (input, queryCallback, collectCallback = null) ->
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return [] unless result
-    
+
     { polytree, shouldCleanup } = result
 
     results = []
@@ -350,7 +354,7 @@ Polytree.shapecast = (input, queryCallback, collectCallback = null) ->
 
                 results.push(triangle)
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
 
     return results
@@ -368,8 +372,8 @@ Polytree.getTrianglesNearPoint = (input, targetPoint, searchRadius) ->
     return [] unless input and targetPoint and searchRadius > 0
 
     return Polytree.shapecast input, (testTriangle, originalTriangle) ->
-        
-        # Check if any vertex of the triangle is within the search radius
+
+        # Check if any vertex of the triangle is within the search radius.
         return (testTriangle.a.distanceTo(targetPoint) <= searchRadius or
                 testTriangle.b.distanceTo(targetPoint) <= searchRadius or
                 testTriangle.c.distanceTo(targetPoint) <= searchRadius)
@@ -389,7 +393,7 @@ Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = 
     # Handle different input types - convert to polytree if needed.
     result = convertToPolytree(input)
     return 0 unless result
-    
+
     { polytree, shouldCleanup } = result
 
     # Use polytree bounding box if none provided.
@@ -401,7 +405,7 @@ Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = 
         for triangle in triangles
 
             boundingBox.expandByPoint(triangle.a)
-            boundingBox.expandByPoint(triangle.b) 
+            boundingBox.expandByPoint(triangle.b)
             boundingBox.expandByPoint(triangle.c)
 
     # Calculate bounding box volume for scaling.
@@ -425,11 +429,13 @@ Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = 
 
         # Test if point is inside the mesh using ray casting.
         testRay = new Ray(samplePoint, new Vector3(1, 0, 0))
-        # Create a simple identity matrix manually to avoid Three.js import issues
+
+        # Create a simple identity matrix manually to avoid Three.js import issues.
         identityMatrix = {
             elements: [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]
             isMatrix4: true
         }
+
         intersections = polytree.rayIntersect(testRay, identityMatrix)
 
         # Point is inside if odd number of intersections.
@@ -438,7 +444,7 @@ Polytree.estimateVolumeViaSampling = (input, sampleCount = 10000, boundingBox = 
     # Calculate volume ratio and scale by bounding box volume.
     volumeRatio = insideCount / sampleCount
 
-    # Clean up temporary polytree if created
+    # Clean up temporary polytree if created.
     shouldCleanup and polytree.delete()
-    
+
     return volumeRatio * boxVolume
