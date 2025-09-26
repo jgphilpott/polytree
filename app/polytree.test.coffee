@@ -318,6 +318,7 @@ describe "Polytree", ->
             expect(typeof Polytree.subtract).toBe("function")
             expect(typeof Polytree.intersect).toBe("function")
             expect(typeof Polytree.rayIntersectsTriangle).toBe("function")
+            expect(typeof Polytree.getSurface).toBe("function")
 
     describe "Triangle Extraction Methods", ->
 
