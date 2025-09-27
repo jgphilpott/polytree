@@ -2,9 +2,9 @@ name: Deploy Examples to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "polytree" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "polytree" ]
   workflow_dispatch:
 
 permissions:
@@ -19,33 +19,33 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
         cache: 'npm'
-        
+
     - name: Install dependencies
       run: npm install
-      
+
     - name: Build Polytree bundles
       run: npm run build
-      
+
     - name: Setup Pages
       uses: actions/configure-pages@v4
-      
+
     - name: Prepare GitHub Pages deployment
       run: |
         mkdir -p _deploy
         cp -r examples/* _deploy/
         cp polytree.bundle.browser.js _deploy/
         cp polytree.bundle.browser.min.js _deploy/
-        
+
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v2
       with:

@@ -10,6 +10,8 @@
 
 **Polytree** is a modern, high-performance Constructive Solid Geometry (CSG) library for JavaScript and Node.js, built to utilize the efficiencies of Octree data structure. It is designed for robust 3D modeling, spatial queries, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
 
+**▶️ [View the Polytree Demo Site with GitHub Pages](https://jgphilpott.github.io/polytree)**
+
 ### Features
 
 - **Complete CSG Operations**: Union, subtraction, and intersection with full test coverage.
@@ -22,6 +24,25 @@
 - **Three.js Integration**: Direct mesh-to-mesh operations with material preservation.
 - **Well Documented**: Comprehensive API documentation and examples.
 - **Robust Testing**: 490+ tests ensuring reliability across edge cases.
+
+</details>
+
+<details open>
+
+<summary><h2 style="display:inline">Table of Contents</h2></summary>
+
+- [Intro](#intro)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+    - [Utility Functions](#utility-functions)
+    - [Basic CSG Operations](#basic-csg-operations)
+    - [Async CSG Operations](#async-csg-operations)
+    - [Async Array Operations](#async-array-operations)
+    - [Spatial Query Functions](#spatial-query-functions)
+    - [Advanced Polytree-to-Polytree Operations](#advanced-polytree-to-polytree-operations)
+- [Performance](#performance)
+- [Applications](#applications)
+- [Contributing](#contributing)
 
 </details>
 
