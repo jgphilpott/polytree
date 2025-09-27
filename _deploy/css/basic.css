@@ -1,0 +1,37 @@
+body {
+
+    margin: 0;
+
+    color: #fff;
+    background-color: #000;
+
+}
+
+#stats {
+
+    top: 10px;
+    left: 10px;
+
+    padding: 10px;
+
+    font-size: 12px;
+    line-height: 14px;
+
+    position: absolute;
+
+    display: flex;
+    flex-direction: column;
+
+    color: #fff;
+    background-color: #000;
+
+    font-family: Monospace;
+
+}
+
+.statsLine {
+
+    display: inline-flex;
+    flex-direction: row;
+
+}

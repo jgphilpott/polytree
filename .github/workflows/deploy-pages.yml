@@ -47,6 +47,8 @@ jobs:
         cp polytree.bundle.browser.js _deploy/
         cp polytree.bundle.browser.min.js _deploy/
         cp icon.png _deploy/
+        # Update the bundle paths in HTML files for deployment
+        sed -i 's|"../polytree.bundle.browser.js"|"./polytree.bundle.browser.js"|g' _deploy/*.html
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
