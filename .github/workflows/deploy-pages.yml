@@ -3,14 +3,13 @@ name: Deploy Examples to GitHub Pages
 on:
   push:
     branches: [ "polytree" ]
-  pull_request:
-    branches: [ "polytree" ]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: "pages"
@@ -46,6 +45,8 @@ jobs:
         cp polytree.bundle.browser.js _deploy/
         cp polytree.bundle.browser.min.js _deploy/
         cp icon.png _deploy/
+        # Update the bundle paths in HTML files for deployment
+        sed -i 's|"../polytree.bundle.browser.js"|"./polytree.bundle.browser.js"|g' _deploy/*.html
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
@@ -58,7 +59,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    if: github.ref == 'refs/heads/polytree'
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v4
