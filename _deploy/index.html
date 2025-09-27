@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Polytree Examples - Interactive 3D Demonstrations</title>
+
+        <style>
+            body {
+                margin: 0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #2d5016, #4a8526, #6bb33e);
+                color: #f8f8f8;
+                min-height: 100vh;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 40px;
+            }
+
+            .logo-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                width: 80px;
+                height: 80px;
+                margin-right: 20px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            }
+
+            h1 {
+                font-size: 3rem;
+                margin: 0;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                background: white;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            a {
+                color: white;
+                text-decoration: none;
+            }
+
+            .subtitle {
+                font-size: 1.2rem;
+                margin-top: 10px;
+                opacity: 0.9;
+            }
+
+            .examples-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+                gap: 30px;
+                margin-bottom: 40px;
+            }
+
+            .example-card {
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 15px;
+                padding: 25px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(125, 217, 86, 0.3);
+                transition: all 0.3s ease;
+                text-decoration: none;
+                color: inherit;
+                display: block;
+            }
+
+            .example-card:hover {
+                transform: translateY(-5px);
+                background: rgba(255, 255, 255, 0.12);
+                border-color: rgba(125, 217, 86, 0.5);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            }
+
+            .example-title {
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+            }
+
+            .example-icon {
+                width: 40px;
+                height: 40px;
+                margin-right: 10px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.2rem;
+            }
+
+            .example-description {
+                font-size: 1rem;
+                line-height: 1.6;
+                opacity: 0.9;
+                margin-bottom: 15px;
+            }
+
+            .example-features {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .example-features li {
+                padding: 5px 0;
+                opacity: 0.8;
+                font-size: 0.9rem;
+            }
+
+            .example-features li:before {
+                content: "✓ ";
+                color: #7dd956;
+                font-weight: bold;
+            }
+
+            .info-section {
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 15px;
+                padding: 25px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(125, 217, 86, 0.3);
+                margin-bottom: 30px;
+            }
+
+            .info-section h2 {
+                margin-top: 0;
+                color: #fff;
+            }
+
+            .tech-stack {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                margin-top: 15px;
+            }
+
+            .tech-badge {
+                background: rgba(255, 255, 255, 0.2);
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+
+            .github-link {
+                display: inline-block;
+                background: #4a8526;
+                color: white;
+                text-decoration: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                margin-top: 20px;
+                border: 2px solid #7dd956;
+            }
+
+            .github-link:hover {
+                background: #5ba83a;
+                border-color: #ffffff;
+                transform: translateY(-2px);
+            }
+
+            footer {
+                text-align: center;
+                margin-top: 40px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(125, 217, 86, 0.3);
+                opacity: 0.8;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <div class="logo-container">
+                    <img src="../icon.png" alt="Polytree Logo" class="logo">
+                    <h1>Polytree Examples</h1>
+                </div>
+                <p class="subtitle">Interactive 3D CSG Operations & Spatial Queries for 3D Printing Applications</p>
+            </header>
+
+            <div class="info-section">
+                <h2>About Polytree</h2>
+                <p>
+                    Polytree is a modern, high-performance Constructive Solid Geometry (CSG) library enhanced with advanced spatial query capabilities.
+                    These examples demonstrate real-world applications from basic CSG operations to complex spatial analysis perfect for 3D printing and CAD workflows.
+                </p>
+                <div class="tech-stack">
+                    <span class="tech-badge">Three.js</span>
+                    <span class="tech-badge">WebGL</span>
+                    <span class="tech-badge">CSG Operations</span>
+                    <span class="tech-badge">Octree Optimization</span>
+                    <span class="tech-badge">Spatial Queries</span>
+                    <span class="tech-badge">3D Printing</span>
+                </div>
+                <a href="https://github.com/jgphilpott/polytree" class="github-link">
+                    View Source on GitHub
+                </a>
+            </div>
+
+            <div class="examples-grid">
+                <!-- Basic CSG Example -->
+                <a href="basic.html" class="example-card">
+                    <div class="example-title">
+                        <div class="example-icon basic-icon">🧊</div>
+                        Basic CSG Operations
+                    </div>
+                    <div class="example-description">
+                        Interactive demonstration of fundamental CSG operations: Union, Subtraction, and Intersection.
+                        Drag objects around and see real-time CSG results with performance metrics.
+                    </div>
+                    <ul class="example-features">
+                        <li>Real-time CSG calculations</li>
+                        <li>Interactive transform controls</li>
+                        <li>Performance monitoring</li>
+                        <li>STL export functionality</li>
+                        <li>Multiple primitive shapes</li>
+                    </ul>
+                </a>
+
+                <!-- Real-time Example -->
+                <a href="realtime.html" class="example-card">
+                    <div class="example-title">
+                        <div class="example-icon realtime-icon">⚡</div>
+                        Real-time CSG Demo
+                    </div>
+                    <div class="example-description">
+                        Advanced real-time CSG demonstration showing complex mesh interactions with optimized performance.
+                        Features dynamic object manipulation and smooth real-time updates.
+                    </div>
+                    <ul class="example-features">
+                        <li>High-performance real-time rendering</li>
+                        <li>Complex mesh interactions</li>
+                        <li>Advanced transform controls</li>
+                        <li>Performance statistics</li>
+                        <li>STL model loading</li>
+                    </ul>
+                </a>
+
+                <!-- Spatial Queries Example -->
+                <a href="spatial.html" class="example-card">
+                    <div class="example-title">
+                        <div class="example-icon spatial-icon">🔍</div>
+                        Spatial Queries & Slicing
+                    </div>
+                    <div class="example-description">
+                        Comprehensive spatial analysis demonstration featuring layer slicing for 3D printing,
+                        distance calculations, and advanced geometric queries essential for CAD applications.
+                    </div>
+                    <ul class="example-features">
+                        <li>3D printing layer slicing</li>
+                        <li>Distance field calculations</li>
+                        <li>Closest point queries</li>
+                        <li>Volume analysis</li>
+                        <li>Custom spatial operations</li>
+                    </ul>
+                </a>
+            </div>
+
+            <div class="info-section">
+                <h2>Key Features Demonstrated</h2>
+                <p>
+                    These examples showcase Polytree's transformation from a pure CSG library into a comprehensive spatial querying tool.
+                    The spatial query capabilities are inspired by mature libraries like <code>three-mesh-bvh</code> but optimized for Polytree's octree-based architecture.
+                </p>
+
+                <h3>🏭 3D Printing Applications</h3>
+                <ul style="opacity: 0.9;">
+                    <li><strong>Layer Slicing:</strong> Automated layer generation for FDM/SLA printing</li>
+                    <li><strong>Support Analysis:</strong> Intelligent support structure placement using distance queries</li>
+                    <li><strong>Volume Calculations:</strong> Accurate material estimation with both exact and statistical methods</li>
+                    <li><strong>Quality Control:</strong> Surface analysis and collision detection</li>
+                </ul>
+
+                <h3>🔬 Technical Advantages</h3>
+                <ul style="opacity: 0.9;">
+                    <li><strong>Unified Architecture:</strong> CSG + Spatial Queries in one optimized library</li>
+                    <li><strong>Octree Foundation:</strong> Leverages existing spatial partitioning for maximum performance</li>
+                    <li><strong>Multi-Input Support:</strong> Works directly with Three.js meshes, geometries, and Polytree instances</li>
+                    <li><strong>Memory Efficient:</strong> Automatic cleanup and smart resource management</li>
+                </ul>
+            </div>
+
+            <footer>
+                <p>Polytree © 2025 - Open source CSG library with advanced spatial query capabilities.</p>
+                <p>Perfect foundation for <a href="https://github.com/jgphilpott/polyslice"><strong>Polyslice</strong></a> and other 3D printing applications.</p>
+            </footer>
+        </div>
+    </body>
+</html>
