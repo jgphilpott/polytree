@@ -8,21 +8,25 @@
 
 <summary><h2 style="display:inline">Intro</h2></summary>
 
-**Polytree** is a modern, high-performance Constructive Solid Geometry (CSG) library for JavaScript and Node.js, built to utilize the efficiencies of Octree data structure. It is designed for robust 3D modeling, spatial queries, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
+**Polytree** is a modern, high-performance spatial querying and Constructive Solid Geometry (CSG) library for JavaScript and Node.js Built on an efficient [Octree data structure](https://en.wikipedia.org/wiki/Octree), it is designed for advanced 3D modeling, mesh analysis, geometric search, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
+
+Polytree goes beyond traditional CSG libraries by providing a comprehensive suite of spatial query functions—such as closest point, distance field, intersection testing, layer slicing, and volume analysis—making it ideal for 3D printing, CAD, simulation, and mesh analysis applications.
 
 **▶️ [View the Polytree Demo Site with GitHub Pages](https://jgphilpott.github.io/polytree)**
 
+**📦 [View the Polytree npm Package](https://www.npmjs.com/package/@jgphilpott/polytree)**
+
 ### Features
 
+- **Advanced Spatial Queries**: Closest point search, distance calculations, intersection testing, layer slicing, and volume analysis—optimized for mesh analysis, 3D printing, and simulation workflows.
 - **Complete CSG Operations**: Union, subtraction, and intersection with full test coverage.
-- **Advanced Spatial Queries**: Point-based queries, distance calculations, and intersection testing inspired by [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh).
-- **3D Printing Support**: Layer slicing, volume analysis, and spatial operations for manufacturing applications.
-- **High Performance**: Optimized Octree-based spatial partitioning for fast operations.
-- **Dual API**: Both synchronous and asynchronous operation modes.
+- **3D Printing & CAD Support**: Layer slicing, cross-section analysis, and spatial operations for manufacturing and design applications.
+- **High Performance**: Octree-based spatial partitioning for fast queries and operations on large meshes.
+- **Dual API**: Both synchronous and asynchronous operation modes for flexible integration.
 - **Multi-Input Support**: Works directly with Three.js meshes, BufferGeometry, and Polytree instances.
 - **Lightweight**: Minimal dependencies with efficient memory usage.
-- **Three.js Integration**: Direct mesh-to-mesh operations with material preservation.
-- **Well Documented**: Comprehensive API documentation and examples.
+- **Three.js Integration**: Direct mesh-to-mesh operations and spatial queries with material preservation.
+- **Well Documented**: Comprehensive API documentation and interactive examples.
 - **Robust Testing**: 490+ tests ensuring reliability across edge cases.
 
 </details>
