@@ -2,6 +2,12 @@
     <img width="321" height="321" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Icon">
 </p>
 
+<p align="center">
+  <a href="https://github.com/jgphilpott/polytree/actions"><img src="https://github.com/jgphilpott/polytree/actions/workflows/nodejs.yml/badge.svg" alt="Polytree Tests"></a>
+  <a href="https://badge.fury.io/js/@jgphilpott%2Fpolytree"><img src="https://badge.fury.io/js/@jgphilpott%2Fpolytree.svg" alt="npm version"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+</p>
+
 # Polytree
 
 <details open>
