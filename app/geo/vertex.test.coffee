@@ -297,3 +297,36 @@ describe "Vertex", ->
             # Should handle NaN.
             resultNaN = vertex1.interpolate(vertex2, NaN)
             expect(isNaN(resultNaN.pos.x)).toBe(true)
+
+        it "should handle vertex equality and comparison operations", ->
+
+            vertex1 = new Vertex(v3(1, 2, 3), v3(0, 1, 0))
+            vertex2 = new Vertex(v3(1, 2, 3), v3(0, 1, 0))
+            vertex3 = new Vertex(v3(2, 3, 4), v3(1, 0, 0))
+
+            # Test position equality.
+            expect(vertex1.pos.equals(vertex2.pos)).toBe(true)
+            expect(vertex1.pos.equals(vertex3.pos)).toBe(false)
+
+            # Test normal equality.
+            expect(vertex1.normal.equals(vertex2.normal)).toBe(true)
+            expect(vertex1.normal.equals(vertex3.normal)).toBe(false)
+
+        it "should maintain vertex properties after mathematical operations", ->
+
+            baseVertex = new Vertex(v3(2, 4, 6), v3(0, 0, 1), v2(0.5, 0.5), v3(1, 0, 0))
+
+            # Test cloning preserves all properties.
+            clonedVertex = baseVertex.clone()
+
+            expect(clonedVertex.pos.x).toBe(2)
+            expect(clonedVertex.pos.y).toBe(4)
+            expect(clonedVertex.pos.z).toBe(6)
+            expect(clonedVertex.normal.z).toBe(1)
+            expect(clonedVertex.uv.x).toBe(0.5)
+            expect(clonedVertex.color.x).toBe(1)
+
+            # Test that modifications to clone don't affect original.
+            clonedVertex.pos.x = 100
+
+            expect(baseVertex.pos.x).toBe(2)
