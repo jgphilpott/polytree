@@ -888,8 +888,8 @@ describe "constructIntersection (direct invocation)", ->
 
         ok = constructIntersection(a1, a2, a3, b1, b2, b3, additions)
 
-        # If intersection exists, validate segment properties.
-        if ok
+        if ok # If intersection exists, validate segment properties.
+
             segmentLength = additions.source.distanceTo(additions.target)
             expect(segmentLength).toBeGreaterThan(0)
             expect(segmentLength).toBeLessThan(5) # Reasonable upper bound

@@ -27,7 +27,7 @@ Polytree goes beyond traditional CSG libraries by providing a comprehensive suit
 - **Lightweight**: Minimal dependencies with efficient memory usage.
 - **Three.js Integration**: Direct mesh-to-mesh operations and spatial queries with material preservation.
 - **Well Documented**: Comprehensive API documentation and interactive examples.
-- **Robust Testing**: 490+ tests ensuring reliability across edge cases.
+- **Robust Testing**: 500+ tests ensuring reliability across edge cases.
 
 </details>
 
@@ -428,7 +428,7 @@ Polytree is designed for high-performance CSG operations:
 - **Memory Efficient**: Smart resource management with cleanup methods and automatic temporary object disposal.
 - **Unified Architecture**: CSG operations + spatial queries in one optimized library, eliminating the need for multiple tools.
 - **Multi-Input Support**: Functions work directly with Three.js meshes, geometries, and Polytree instances without manual conversion.
-- **Comprehensive Testing**: 490+ test cases ensuring reliability and performance across all operations.
+- **Comprehensive Testing**: 500+ test cases ensuring reliability and performance across all operations.
 - **Async Support**: Non-blocking operations for smooth user experiences.
 - **Minimal Dependencies**: Only Three.js as a dependency for lightweight integration.
 
