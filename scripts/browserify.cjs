@@ -110,7 +110,8 @@ if (allThreeIdentifiers.length) {
 
 // Find all module.exports assignments and collect them.
 const moduleExports = [];
-const exportRegex = /module\.exports\.(\w+) = (\w+);/g;
+// Match both simple identifiers (X = Y) and property access (X = A.B)
+const exportRegex = /module\.exports\.(\w+) = ([\w.]+);/g;
 let exportMatch;
 
 while ((exportMatch = exportRegex.exec(content)) !== null) {
@@ -118,7 +119,8 @@ while ((exportMatch = exportRegex.exec(content)) !== null) {
 }
 
 // Remove all module.exports property assignment lines (named re-exports).
-content = content.replace(/module\.exports\.\w+ = \w+;\n?/g, '');
+// This handles both simple identifiers (X = Y) and property access (X = A.B)
+content = content.replace(/module\.exports\.\w+ = [\w.]+;\n?/g, '');
 
 // Remove the composite CommonJS export object if present (we'll supply pure ESM exports).
 content = content.replace(/module\.exports\s*=\s*\{[\s\S]*?\};\n?/g, '');
@@ -139,12 +141,30 @@ const seen = new Set();
 let esExports = '\n// ES module exports\n';
 esExports += `export default ${defaultExportName};\n`;
 
+// For exports that reference object properties (e.g., Polytree.method),
+// create const references first so they can be exported
+const constDeclarations = [];
+
 moduleExports.forEach(exp => {
     if (!seen.has(exp.name)) {
-        esExports += `export { ${exp.value} as ${exp.name} };\n`;
+        // Check if value contains a dot (property access)
+        if (exp.value.includes('.')) {
+            // Create a const declaration for the property
+            const constName = `_export_${exp.name}`;
+            constDeclarations.push(`const ${constName} = ${exp.value};`);
+            esExports += `export { ${constName} as ${exp.name} };\n`;
+        } else {
+            esExports += `export { ${exp.value} as ${exp.name} };\n`;
+        }
         seen.add(exp.name);
     }
 });
+
+// Prepend const declarations if any
+if (constDeclarations.length > 0) {
+    esExports = '\n// Export references for object properties\n' + 
+                constDeclarations.join('\n') + '\n' + esExports;
+}
 
 content += esExports;
 

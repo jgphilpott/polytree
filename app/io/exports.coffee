@@ -80,3 +80,25 @@ module.exports.constructIntersection = constructIntersection
 # Helper functions for calculating volumes of 3D geometries.
 
 module.exports.signedVolumeOfTriangle = signedVolumeOfTriangle
+
+# === MESH CONVERSION AND ANALYSIS FUNCTIONS ===
+# Mesh conversion utilities and surface/volume analysis functions.
+
+module.exports.toGeometry = Polytree.toGeometry
+module.exports.toMesh = Polytree.toMesh
+module.exports.fromMesh = Polytree.fromMesh
+module.exports.getSurface = Polytree.getSurface
+module.exports.getVolume = Polytree.getVolume
+
+# === SPATIAL QUERY FUNCTIONS ===
+# Advanced spatial querying capabilities for 3D printing, CAD operations, and geometric analysis.
+
+module.exports.closestPointToPoint = Polytree.closestPointToPoint
+module.exports.distanceToPoint = Polytree.distanceToPoint
+module.exports.intersectsSphere = Polytree.intersectsSphere
+module.exports.intersectsBox = Polytree.intersectsBox
+module.exports.intersectPlane = Polytree.intersectPlane
+module.exports.sliceIntoLayers = Polytree.sliceIntoLayers
+module.exports.shapecast = Polytree.shapecast
+module.exports.getTrianglesNearPoint = Polytree.getTrianglesNearPoint
+module.exports.estimateVolumeViaSampling = Polytree.estimateVolumeViaSampling
