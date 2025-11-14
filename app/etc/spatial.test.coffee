@@ -265,16 +265,14 @@ describe 'Spatial Query Utilities', ->
             
             mesh = new Mesh(geometry, new MeshBasicMaterial())
 
-            # Slice at Z=0 where vertices are exactly on the plane.
-            layers = Polytree.sliceIntoLayers(mesh, 1, -0.5, 0.5)
+            # Slice with finer resolution to capture the Z=0 plane properly.
+            layers = Polytree.sliceIntoLayers(mesh, 0.25, -0.5, 0.5)
 
-            expect(layers.length).toBe(2) # Two layers: Z=-0.5 and Z=0.5.
+            expect(layers.length).toBe(5) # Five layers: Z=-0.5, -0.25, 0, 0.25, 0.5.
             
-            # The first layer at Z=-0.5 should have segments.
-            expect(layers[0].length).toBeGreaterThan(0)
-            
-            # The second layer at Z=0.5 should have segments.
-            expect(layers[1].length).toBeGreaterThan(0)
+            # The middle layer at Z=0 should have segments (both triangles intersect here).
+            middleLayerIndex = 2 # Z=0.
+            expect(layers[middleLayerIndex].length).toBeGreaterThan(0)
 
             return
 

@@ -205,6 +205,12 @@ Polytree.intersectPlane = (input, plane, target = []) ->
         testTriangle = new Triangle(triangle.a, triangle.b, triangle.c)
         intersectionPoints = []
 
+        # Helper to check if point already exists in array (to avoid duplicates).
+        pointExists = (point, array, tolerance = 1e-10) ->
+            for existingPoint in array
+                return true if existingPoint.distanceToSquared(point) < tolerance
+            return false
+
         # Test each edge of the triangle against the plane.
         triangleEdges = [
             [triangle.a, triangle.b]
@@ -233,12 +239,14 @@ Polytree.intersectPlane = (input, plane, target = []) ->
                 if startDist is 0
 
                     # Start point exactly on plane.
-                    intersectionPoints.push(startPoint.clone())
+                    pt = startPoint.clone()
+                    intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
                 else if endDist is 0
 
                     # End point exactly on plane.
-                    intersectionPoints.push(endPoint.clone())
+                    pt = endPoint.clone()
+                    intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
                 else
 
@@ -297,6 +305,12 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
 
             intersectionPoints = []
 
+            # Helper to check if point already exists in array (to avoid duplicates).
+            pointExists = (point, array, tolerance = 1e-10) ->
+                for existingPoint in array
+                    return true if existingPoint.distanceToSquared(point) < tolerance
+                return false
+
             # Test each edge of the triangle against the plane.
             triangleEdges = [
                 [triangle.a, triangle.b]
@@ -324,12 +338,14 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
                     if startDist is 0
 
                         # Start point exactly on plane.
-                        intersectionPoints.push(startPoint.clone())
+                        pt = startPoint.clone()
+                        intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
                     else if endDist is 0
 
                         # End point exactly on plane.
-                        intersectionPoints.push(endPoint.clone())
+                        pt = endPoint.clone()
+                        intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
                     else
 
