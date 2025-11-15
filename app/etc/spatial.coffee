@@ -205,6 +205,12 @@ Polytree.intersectPlane = (input, plane, target = []) ->
         testTriangle = new Triangle(triangle.a, triangle.b, triangle.c)
         intersectionPoints = []
 
+        # Helper to check if point already exists in array (to avoid duplicates).
+        pointExists = (point, array, tolerance = 1e-10) ->
+            for existingPoint in array
+                return true if existingPoint.distanceToSquared(point) < tolerance
+            return false
+
         # Test each edge of the triangle against the plane.
         triangleEdges = [
             [triangle.a, triangle.b]
@@ -222,14 +228,33 @@ Polytree.intersectPlane = (input, plane, target = []) ->
             startDist = plane.normal.dot(startPoint) + plane.constant
             endDist = plane.normal.dot(endPoint) + plane.constant
 
-            # Check if edge crosses the plane (different signs).
-            if (startDist * endDist) < 0
+            # Skip edges that lie entirely in the plane (coplanar).
+            continue if startDist is 0 and endDist is 0
 
-                # Calculate intersection point using linear interpolation.
-                t = startDist / (startDist - endDist)
-                intersectionPoint = new Vector3()
-                intersectionPoint.lerpVectors(startPoint, endPoint, t)
-                intersectionPoints.push(intersectionPoint)
+            # Check if edge crosses the plane or has one endpoint on it.
+            # Use <= to catch edges where one endpoint is exactly on the plane.
+            if (startDist * endDist) <= 0
+
+                # Calculate intersection point.
+                if startDist is 0
+
+                    # Start point exactly on plane.
+                    pt = startPoint.clone()
+                    intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
+
+                else if endDist is 0
+
+                    # End point exactly on plane.
+                    pt = endPoint.clone()
+                    intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
+
+                else
+
+                    # Edge crosses plane - use linear interpolation.
+                    t = startDist / (startDist - endDist)
+                    intersectionPoint = new Vector3()
+                    intersectionPoint.lerpVectors(startPoint, endPoint, t)
+                    intersectionPoints.push(intersectionPoint)
 
         # If we have exactly 2 intersection points, create a line segment.
         if intersectionPoints.length is 2
@@ -280,6 +305,12 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
 
             intersectionPoints = []
 
+            # Helper to check if point already exists in array (to avoid duplicates).
+            pointExists = (point, array, tolerance = 1e-10) ->
+                for existingPoint in array
+                    return true if existingPoint.distanceToSquared(point) < tolerance
+                return false
+
             # Test each edge of the triangle against the plane.
             triangleEdges = [
                 [triangle.a, triangle.b]
@@ -296,14 +327,33 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
                 startDist = planeNormal.dot(startPoint) + planeConstant
                 endDist = planeNormal.dot(endPoint) + planeConstant
 
-                # Check if edge crosses the plane (different signs).
-                if (startDist * endDist) < 0
+                # Skip edges that lie entirely in the plane (coplanar).
+                continue if startDist is 0 and endDist is 0
 
-                    # Calculate intersection point using linear interpolation.
-                    t = startDist / (startDist - endDist)
-                    intersectionPoint = new Vector3()
-                    intersectionPoint.lerpVectors(startPoint, endPoint, t)
-                    intersectionPoints.push(intersectionPoint)
+                # Check if edge crosses the plane or has one endpoint on it.
+                # Use <= to catch edges where one endpoint is exactly on the plane.
+                if (startDist * endDist) <= 0
+
+                    # Calculate intersection point.
+                    if startDist is 0
+
+                        # Start point exactly on plane.
+                        pt = startPoint.clone()
+                        intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
+
+                    else if endDist is 0
+
+                        # End point exactly on plane.
+                        pt = endPoint.clone()
+                        intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
+
+                    else
+
+                        # Edge crosses plane - use linear interpolation.
+                        t = startDist / (startDist - endDist)
+                        intersectionPoint = new Vector3()
+                        intersectionPoint.lerpVectors(startPoint, endPoint, t)
+                        intersectionPoints.push(intersectionPoint)
 
             # If we have exactly 2 intersection points, create a line segment.
             if intersectionPoints.length is 2

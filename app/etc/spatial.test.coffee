@@ -1,6 +1,6 @@
 # Test spatial query utilities for enhanced Polytree functionality.
 
-{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, SphereGeometry, BoxGeometry, PlaneGeometry, Matrix4, Mesh, MeshBasicMaterial} = require('three')
+{Vector3, Plane, Box3, Sphere, Triangle, Ray, Line3, SphereGeometry, BoxGeometry, PlaneGeometry, Matrix4, Mesh, MeshBasicMaterial, BufferGeometry, BufferAttribute} = require('three')
 {Polytree} = require('../../polytree.bundle.js')
 
 # Test tolerance for floating point comparisons.
@@ -172,6 +172,39 @@ describe 'Spatial Query Utilities', ->
             expect(result1.length).toBe(0)
             expect(result2.length).toBe(0)
 
+        it 'should handle vertices exactly on the plane', ->
+
+            # Create geometry with vertices exactly on a plane.
+            vertexArray = new Float32Array([
+                # Triangle with one edge on Z=0 plane.
+                -0.5, -0.5, 0.0,   # On plane.
+                0.5, -0.5, 0.0,    # On plane.
+                0.0, 0.5, -0.5,    # Below plane.
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+            plane = new Plane(new Vector3(0, 0, 1), 0) # Z=0 plane.
+
+            intersections = Polytree.intersectPlane(mesh, plane)
+
+            expect(intersections.length).toBe(1) # Should find one segment.
+            
+            # The segment should be on the Z=0 plane.
+            segment = intersections[0]
+            expect(segment.start.z).toBeCloseTo(0, 5)
+            expect(segment.end.z).toBeCloseTo(0, 5)
+
+            return
+
     describe 'sliceIntoLayers', ->
 
         it 'should create multiple layer slices', ->
@@ -204,6 +237,44 @@ describe 'Spatial Query Utilities', ->
             layers = Polytree.sliceIntoLayers(cube, layerHeight, -1, 1, customNormal)
 
             expect(layers.length).toBe(3) # Should have 3 layers.
+
+        it 'should handle vertices exactly on the slicing plane', ->
+
+            # Create geometry with vertices exactly on a plane.
+            vertexArray = new Float32Array([
+                # Triangle 1: one edge on Z=0 plane, third vertex below.
+                -0.5, -0.5, 0.0,   # Vertex on plane.
+                0.5, -0.5, 0.0,    # Vertex on plane.
+                0.0, 0.5, -0.5,    # Vertex below plane.
+                
+                # Triangle 2: one vertex on Z=0, others above and below.
+                -0.5, 0.5, -0.5,   # Below plane.
+                0.5, 0.5, 0.0,     # On plane.
+                0.0, -0.5, 0.5,    # Above plane.
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2, 3, 4, 5])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+
+            # Slice with finer resolution to capture the Z=0 plane properly.
+            layers = Polytree.sliceIntoLayers(mesh, 0.25, -0.5, 0.5)
+
+            expect(layers.length).toBe(5) # Five layers: Z=-0.5, -0.25, 0, 0.25, 0.5.
+            
+            # The middle layer at Z=0 should have segments (both triangles intersect here).
+            middleLayerIndex = 2 # Z=0.
+            expect(layers[middleLayerIndex].length).toBeGreaterThan(0)
+
+            return
 
     describe 'shapecast', ->
 
