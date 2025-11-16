@@ -279,7 +279,7 @@ Polytree.intersectPlane = (input, plane, target = []) ->
 # @return Array of arrays, each containing Line3 segments for that layer.
 Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3(0, 0, 1)) ->
 
-    return [] unless input and layerHeight > 0 and minZ < maxZ
+    return [] unless input and layerHeight > 0 and minZ <= maxZ
 
     # Convert input to polytree once at the beginning.
     result = convertToPolytree(input)
@@ -327,23 +327,53 @@ Polytree.sliceIntoLayers = (input, layerHeight, minZ, maxZ, normal = new Vector3
                 startDist = planeNormal.dot(startPoint) + planeConstant
                 endDist = planeNormal.dot(endPoint) + planeConstant
 
-                # Skip edges that lie entirely in the plane (coplanar).
-                continue if startDist is 0 and endDist is 0
+                # Calculate edge vector and length for adaptive epsilon.
+                edgeVector = new Vector3().subVectors(endPoint, startPoint)
+                edgeLength = edgeVector.length()
+
+                # Skip zero-length edges (degenerate).
+                continue if edgeLength < 1e-10
+
+                # Normalize edge vector.
+                edgeDir = edgeVector.clone().divideScalar(edgeLength)
+
+                # Calculate angle between edge and plane normal.
+                # For edges parallel to plane, dot product with normal approaches 0.
+                dotWithNormal = Math.abs(edgeDir.dot(planeNormal))
+
+                # Adaptive epsilon based on edge characteristics.
+                # For edges nearly parallel to plane (dotWithNormal close to 0),
+                # use larger epsilon to handle floating-point precision issues.
+                # Base epsilon scales with edge length.
+                baseEpsilon = Math.max(1e-10, edgeLength * 1e-9)
+
+                # Angle-adaptive factor: increase epsilon for near-parallel edges.
+                # When dotWithNormal is small (< 0.017 ≈ 1°), scale epsilon significantly.
+                angleFactor = if dotWithNormal < 0.02 then 100.0 else 1.0
+
+                epsilon = baseEpsilon * angleFactor
+
+                # Absolute distances for threshold checks.
+                absStartDist = Math.abs(startDist)
+                absEndDist = Math.abs(endDist)
+
+                # Skip edges that lie entirely in the plane (both endpoints within epsilon).
+                continue if absStartDist < epsilon and absEndDist < epsilon
 
                 # Check if edge crosses the plane or has one endpoint on it.
-                # Use <= to catch edges where one endpoint is exactly on the plane.
+                # Use epsilon-based checks instead of exact equality.
                 if (startDist * endDist) <= 0
 
                     # Calculate intersection point.
-                    if startDist is 0
+                    if absStartDist < epsilon
 
-                        # Start point exactly on plane.
+                        # Start point on or very near plane.
                         pt = startPoint.clone()
                         intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
-                    else if endDist is 0
+                    else if absEndDist < epsilon
 
-                        # End point exactly on plane.
+                        # End point on or very near plane.
                         pt = endPoint.clone()
                         intersectionPoints.push(pt) unless pointExists(pt, intersectionPoints)
 
