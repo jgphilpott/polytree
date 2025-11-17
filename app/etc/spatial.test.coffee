@@ -276,6 +276,156 @@ describe 'Spatial Query Utilities', ->
 
             return
 
+        it 'should handle edges nearly parallel to slicing plane', ->
+
+            # Create triangles with edges nearly parallel to Z=0.5 plane.
+            # This tests the adaptive epsilon for near-parallel edge detection.
+            vertexArray = new Float32Array([
+                # Triangle 1: Clear intersection, one edge nearly parallel to plane.
+                -1.0, -1.0, 0.2,            # Well below plane.
+                1.0, -1.0, 0.4999998,       # Very slightly below Z=0.5 (nearly on plane).
+                1.0, 1.0, 0.7,              # Well above plane.
+                
+                # Triangle 2: Similar configuration, different position.
+                -1.0, 1.0, 0.3,             # Well below plane.
+                -0.5, 0.5, 0.5000002,       # Very slightly above Z=0.5 (nearly on plane).
+                1.0, 1.0, 0.8,              # Well above plane.
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2, 3, 4, 5])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+
+            # Slice at Z=0.5 where edges are nearly parallel.
+            layers = Polytree.sliceIntoLayers(mesh, 0.1, 0.5, 0.5)
+
+            expect(layers.length).toBe(1)
+            
+            # Should detect intersection segments despite near-parallel edges.
+            # Both triangles should produce segments.
+            expect(layers[0].length).toBe(2)
+
+            return
+
+        it 'should handle very small edge distances with adaptive epsilon', ->
+
+            # Create geometry where edge endpoints have very small distances to plane.
+            # This simulates floating-point precision issues in real-world meshes.
+            vertexArray = new Float32Array([
+                # Triangle crossing Z=1.0 with tiny distances.
+                -1.0, -1.0, 0.8,            # Below plane.
+                1.0, -1.0, 0.9999999999,    # 1e-10 below plane.
+                1.0, 1.0, 1.2,              # Above plane.
+                
+                # Triangle 2: One vertex extremely close to plane.
+                -1.0, 1.0, 0.9,             # Well below Z=1.0.
+                -0.5, 0.5, 1.0000000005,    # 5e-10 above plane.
+                1.0, 1.0, 1.2,              # Well above plane.
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2, 3, 4, 5])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+
+            layers = Polytree.sliceIntoLayers(mesh, 0.5, 1.0, 1.0)
+
+            expect(layers.length).toBe(1)
+            
+            # Should correctly identify intersections with adaptive epsilon.
+            expect(layers[0].length).toBe(2) # Two triangles should intersect.
+
+            return
+
+        it 'should not duplicate segments for edges on plane with epsilon tolerance', ->
+
+            # Create geometry with edges exactly on the slicing plane.
+            # Tests that duplicate detection works with epsilon-based comparisons.
+            vertexArray = new Float32Array([
+                # Two adjacent triangles sharing an edge on Z=2.0.
+                -1.0, 0.0, 2.0,     # Shared vertex 1 on plane.
+                1.0, 0.0, 2.0,      # Shared vertex 2 on plane.
+                0.0, -1.0, 1.5,     # Triangle 1 below.
+                
+                -1.0, 0.0, 2.0,     # Shared vertex 1 (same as above).
+                1.0, 0.0, 2.0,      # Shared vertex 2 (same as above).
+                0.0, 1.0, 2.5,      # Triangle 2 above.
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2, 3, 4, 5])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+
+            layers = Polytree.sliceIntoLayers(mesh, 1.0, 2.0, 2.0)
+
+            expect(layers.length).toBe(1)
+            
+            # Should have 2 segments (one from each triangle).
+            # Duplicate detection should prevent extra segments.
+            expect(layers[0].length).toBe(2)
+
+            return
+
+        it 'should handle long edges with scaled epsilon', ->
+
+            # Create geometry with very long edges to test epsilon scaling.
+            # Long edges accumulate more floating-point error.
+            vertexArray = new Float32Array([
+                # Triangle with very long edges crossing Z=10.0.
+                -100.0, -100.0, 9.5,        # Below plane.
+                100.0, 100.0, 9.9999,       # Very close below, far from origin.
+                100.0, -100.0, 10.5,        # Above plane, far from origin.
+                
+                # Smaller triangle for comparison.
+                -1.0, 0.0, 9.5,
+                1.0, 0.0, 10.5,
+                0.0, 1.0, 12.0,
+            ])
+
+            normalArray = new Float32Array([
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+                0, 0, 1,  0, 0, 1,  0, 0, 1,
+            ])
+
+            geometry = new BufferGeometry()
+            geometry.setAttribute('position', new BufferAttribute(vertexArray, 3))
+            geometry.setAttribute('normal', new BufferAttribute(normalArray, 3))
+            geometry.setIndex([0, 1, 2, 3, 4, 5])
+            
+            mesh = new Mesh(geometry, new MeshBasicMaterial())
+
+            layers = Polytree.sliceIntoLayers(mesh, 1.0, 10.0, 10.0)
+
+            expect(layers.length).toBe(1)
+            
+            # Adaptive epsilon should handle both long and short edges correctly.
+            expect(layers[0].length).toBe(2)
+
+            return
+
     describe 'shapecast', ->
 
         it 'should find triangles matching custom query', ->
