@@ -1,11 +1,12 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A modern, high-performance spatial querying library designed specifically for three.js and Node.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
   "exports": {
     ".": {
+      "import": "./polytree.bundle.browser.esm.js",
       "require": "./polytree.bundle.js"
     }
   },
@@ -15,7 +16,8 @@
     "polytree.bundle.js",
     "polytree.bundle.min.js",
     "polytree.bundle.browser.js",
-    "polytree.bundle.browser.min.js"
+    "polytree.bundle.browser.min.js",
+    "polytree.bundle.browser.esm.js"
   ],
   "directories": {
     "example": "examples"
@@ -25,9 +27,10 @@
     "pretest": "npm run build",
     "compile": "coffee -cb .",
     "compile:watch": "coffee -cbw . &",
-    "build": "npm run compile && npm run build:node && npm run build:browser && npm run minify",
+    "build": "npm run compile && npm run build:node && npm run build:browser && npm run build:browser:esm && npm run minify",
     "build:node": "./scripts/bundle.sh",
     "build:browser": "node scripts/browserify.cjs",
+    "build:browser:esm": "esbuild polytree.bundle.browser.js --bundle --platform=browser --format=esm --outfile=polytree.bundle.browser.esm.js --external:three",
     "minify": "npm run minify:node && npm run minify:browser",
     "minify:node": "uglifyjs polytree.bundle.js -cmo polytree.bundle.min.js",
     "minify:browser": "uglifyjs polytree.bundle.browser.js -cmo polytree.bundle.browser.min.js",
@@ -43,12 +46,14 @@
   "license": "MIT",
   "bugs": { "url": "https://github.com/jgphilpott/polytree/issues" },
   "homepage": "https://github.com/jgphilpott/polytree#readme",
+  "module": "polytree.bundle.browser.esm.js",
   "devDependencies": {
     "coffeescript": "^2.7.0",
     "jest": "^30.2.0",
-    "uglify-js": "^3.19.3"
+    "uglify-js": "^3.19.3",
+    "esbuild": "^0.27.1"
   },
   "dependencies": {
-    "three": "^0.181.2"
+    "three": "^0.182.0"
   }
 }
