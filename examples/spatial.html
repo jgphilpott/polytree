@@ -10,7 +10,9 @@
         {
             "imports": {
                 "three": "./js/three.module.min.js",
-                "Polytree": "../polytree.bundle.browser.js"
+                "Polytree": "../polytree.bundle.browser.js",
+                "STLLoader": "./js/STLLoader.min.js",
+                "OBJLoader": "./js/OBJLoader.min.js"
             }
         }
         </script>
@@ -91,6 +93,11 @@
             </div>
 
             <div class="control-group">
+                <label>Or Upload File (STL/OBJ):</label>
+                <input type="file" id="fileUpload" accept=".stl,.obj" style="color: white;">
+            </div>
+
+            <div class="control-group">
                 <label>Layer Height:</label>
                 <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.3">
                 <span id="layerHeightValue">0.3</span>
@@ -126,6 +133,8 @@
 
         <script type="module">
             import * as THREE from 'three';
+            import { STLLoader } from 'STLLoader';
+            import { OBJLoader } from 'OBJLoader';
             import Polytree from 'Polytree';
 
             // Scene setup
@@ -221,6 +230,101 @@
                 updateStats();
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
+
+            // File upload handling
+            const stlLoader = new STLLoader();
+            const objLoader = new OBJLoader();
+
+            document.getElementById('fileUpload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const fileName = file.name.toLowerCase();
+                const fileExtension = fileName.split('.').pop();
+
+                // Remove existing mesh
+                if (currentMesh) {
+                    scene.remove(currentMesh);
+                    if (currentPolytree) {
+                        currentPolytree.delete();
+                    }
+                }
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const startTime = performance.now();
+                    
+                    try {
+                        let geometry;
+                        
+                        if (fileExtension === 'stl') {
+                            // Parse STL file
+                            geometry = stlLoader.parse(e.target.result);
+                        } else if (fileExtension === 'obj') {
+                            // Parse OBJ file
+                            const text = e.target.result;
+                            const object = objLoader.parse(text);
+                            
+                            // Extract geometry from the first mesh in the object
+                            if (object.children.length > 0) {
+                                geometry = object.children[0].geometry;
+                            } else {
+                                console.error('No geometry found in OBJ file');
+                                return;
+                            }
+                        } else {
+                            console.error('Unsupported file format');
+                            return;
+                        }
+
+                        // Create mesh with the loaded geometry
+                        const material = new THREE.MeshLambertMaterial({
+                            color: 0x00aa88,
+                            transparent: true,
+                            opacity: 0.8,
+                            side: THREE.DoubleSide
+                        });
+
+                        currentMesh = new THREE.Mesh(geometry, material);
+                        
+                        // Center and scale the mesh to fit in view
+                        geometry.computeBoundingBox();
+                        const boundingBox = geometry.boundingBox;
+                        const center = new THREE.Vector3();
+                        boundingBox.getCenter(center);
+                        currentMesh.position.sub(center);
+                        
+                        // Scale to reasonable size
+                        const size = new THREE.Vector3();
+                        boundingBox.getSize(size);
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 4 / maxDim;
+                        currentMesh.scale.setScalar(scale);
+                        
+                        scene.add(currentMesh);
+
+                        // Create Polytree
+                        currentPolytree = Polytree.fromMesh(currentMesh);
+                        const endTime = performance.now();
+
+                        // Update stats
+                        updateStats();
+                        document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+                        
+                    } catch (error) {
+                        console.error('Error loading file:', error);
+                        alert('Error loading file: ' + error.message);
+                    }
+                };
+
+                // Read file based on type
+                if (fileExtension === 'stl') {
+                    reader.readAsArrayBuffer(file);
+                } else if (fileExtension === 'obj') {
+                    reader.readAsText(file);
+                }
+            });
 
             // Slicing functionality
             window.sliceGeometry = function() {
