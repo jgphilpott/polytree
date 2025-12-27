@@ -52,6 +52,9 @@
                 color: white;
                 border-radius: 4px;
             }
+            .control-group input[type="file"] {
+                color: white;
+            }
             .control-group button {
                 width: 100%;
                 padding: 10px;
@@ -94,7 +97,7 @@
 
             <div class="control-group">
                 <label>Or Upload File (STL/OBJ):</label>
-                <input type="file" id="fileUpload" accept=".stl,.obj" style="color: white;">
+                <input type="file" id="fileUpload" accept=".stl,.obj">
             </div>
 
             <div class="control-group">
@@ -270,13 +273,15 @@
                             if (object.children.length > 0 && object.children[0].isMesh) {
                                 geometry = object.children[0].geometry;
                             } else {
-                                console.error('No valid mesh geometry found in OBJ file');
-                                alert('Error: No valid mesh geometry found in OBJ file');
+                                const errorMsg = 'Error: No valid mesh geometry found in OBJ file';
+                                console.error(errorMsg);
+                                alert(errorMsg);
                                 return;
                             }
                         } else {
-                            console.error('Unsupported file format. Only STL and OBJ files are supported.');
-                            alert('Unsupported file format. Only STL and OBJ files are supported.');
+                            const errorMsg = 'Unsupported file format. Only STL and OBJ files are supported.';
+                            console.error(errorMsg);
+                            alert(errorMsg);
                             return;
                         }
 
