@@ -267,14 +267,16 @@
                             const object = objLoader.parse(text);
                             
                             // Extract geometry from the first mesh in the object
-                            if (object.children.length > 0) {
+                            if (object.children.length > 0 && object.children[0].isMesh) {
                                 geometry = object.children[0].geometry;
                             } else {
-                                console.error('No geometry found in OBJ file');
+                                console.error('No valid mesh geometry found in OBJ file');
+                                alert('Error: No valid mesh geometry found in OBJ file');
                                 return;
                             }
                         } else {
-                            console.error('Unsupported file format');
+                            console.error('Unsupported file format. Only STL and OBJ files are supported.');
+                            alert('Unsupported file format. Only STL and OBJ files are supported.');
                             return;
                         }
 
@@ -314,7 +316,7 @@
                         
                     } catch (error) {
                         console.error('Error loading file:', error);
-                        alert('Error loading file: ' + error.message);
+                        alert('Error loading file. Please ensure the file is a valid STL or OBJ format.\n\nDetails: ' + error.message);
                     }
                 };
 
