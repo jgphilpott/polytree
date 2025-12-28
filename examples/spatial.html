@@ -12,7 +12,8 @@
                 "three": "./js/three.module.min.js",
                 "Polytree": "../polytree.bundle.browser.js",
                 "STLLoader": "./js/STLLoader.min.js",
-                "OBJLoader": "./js/OBJLoader.min.js"
+                "OBJLoader": "./js/OBJLoader.min.js",
+                "OrbitControls": "./js/OrbitControls.min.js"
             }
         }
         </script>
@@ -136,6 +137,7 @@
 
         <script type="module">
             import * as THREE from 'three';
+            import { OrbitControls } from 'OrbitControls';
             import { STLLoader } from 'STLLoader';
             import { OBJLoader } from 'OBJLoader';
             import Polytree from 'Polytree';
@@ -160,6 +162,14 @@
             camera.position.set(5, 5, 5);
             camera.lookAt(0, 0, 0);
 
+            // Orbit controls for manual rotation
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 2;
+            controls.maxDistance = 50;
+
             // Global variables
             let currentMesh = null;
             let currentPolytree = null;
@@ -172,10 +182,8 @@
             function animate() {
                 requestAnimationFrame(animate);
 
-                // Rotate the geometry for better visualization
-                if (currentMesh) {
-                    currentMesh.rotation.y += 0.005;
-                }
+                // Update controls for smooth damping
+                controls.update();
 
                 renderer.render(scene, camera);
             }
@@ -365,12 +373,22 @@
                     });
                 });
 
+                // Hide the mesh when showing slices
+                if (currentMesh) {
+                    currentMesh.visible = false;
+                }
+
                 document.getElementById('layerCount').textContent = `Layers: ${layers.length}`;
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
 
             window.clearSlices = function() {
                 sliceLines.clear();
+                
+                // Restore the mesh visibility when clearing slices
+                if (currentMesh) {
+                    currentMesh.visible = true;
+                }
             };
 
             // Closest point testing
