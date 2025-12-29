@@ -158,8 +158,9 @@
             directionalLight.position.set(10, 10, 5);
             scene.add(directionalLight);
 
-            // Camera controls
-            camera.position.set(5, 5, 5);
+            // Camera controls - Z-up orientation
+            camera.position.set(5, -5, 5);
+            camera.up.set(0, 0, 1); // Set Z as up vector
             camera.lookAt(0, 0, 0);
 
             // Orbit controls for manual rotation
@@ -169,6 +170,7 @@
             controls.screenSpacePanning = false;
             controls.minDistance = 2;
             controls.maxDistance = 50;
+            controls.target.set(0, 0, 0);
 
             // Global variables
             let currentMesh = null;
