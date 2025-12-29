@@ -159,6 +159,7 @@
             scene.add(directionalLight);
 
             // Camera controls - Z-up orientation
+            // Position camera at angle for good view of Z-up geometry (X, Y, Z)
             camera.position.set(5, -5, 5);
             camera.up.set(0, 0, 1); // Set Z as up vector
             camera.lookAt(0, 0, 0);
@@ -170,7 +171,6 @@
             controls.screenSpacePanning = false;
             controls.minDistance = 2;
             controls.maxDistance = 50;
-            controls.target.set(0, 0, 0);
 
             // Global variables
             let currentMesh = null;
