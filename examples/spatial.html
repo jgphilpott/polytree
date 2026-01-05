@@ -32,107 +32,124 @@
                 position: relative;
             }
             #sidebar {
-                width: 300px;
+                width: 360px;
                 background: #313030;
-                padding: 20px;
+                padding: 15px;
                 box-sizing: border-box;
-                overflow: hidden;
+                overflow: scroll;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
             }
             .control-group {
                 margin-bottom: 20px;
             }
             .control-group label {
                 display: block;
-                margin-bottom: 5px;
+                margin-bottom: 10px;
+            }
+            .control-group p {
+                font-size: 12px;
+                margin: 6px;
             }
             .control-group input, .control-group select {
-                width: 100%;
                 padding: 8px;
                 background: #333;
                 border: 1px solid #555;
                 color: white;
                 border-radius: 4px;
+                cursor: pointer;
             }
             .control-group input[type="file"] {
                 color: white;
             }
             .control-group button {
-                width: 100%;
                 padding: 10px;
                 background: #0066cc;
                 color: white;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
-                margin-top: 10px;
             }
             .control-group button:hover {
                 background: #0088ff;
-            }
-            #stats {
-                background: #333;
-                padding: 10px;
-                border-radius: 4px;
-                margin-top: 20px;
-            }
-            #stats p {
-                margin: 5px 0;
-                font-size: 12px;
             }
         </style>
     </head>
     <body>
         <div id="container"></div>
         <div id="sidebar">
+
             <h2>Polytree Spatial Queries</h2>
 
             <div class="control-group">
+
                 <label>Geometry Type:</label>
+
                 <select id="geometrySelect">
                     <option value="box">Box</option>
                     <option value="sphere">Sphere</option>
                     <option value="torus">Torus Knot</option>
                 </select>
+
                 <button onclick="createGeometry()">Create Geometry</button>
+
             </div>
 
             <div class="control-group">
-                <label>Or Upload File (STL/OBJ):</label>
+
+                <label>Upload File (STL/OBJ):</label>
+
                 <input type="file" id="fileUpload" accept=".stl,.obj">
+
             </div>
 
             <div class="control-group">
-                <label>Layer Height:</label>
-                <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.3">
-                <span id="layerHeightValue">0.3</span>
+
+                <label>Layer Height: <b><span id="layerHeightValue">0.2</span></b></label>
+
+                <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.2">
+
             </div>
 
             <div class="control-group">
+
                 <label>Slice Operations:</label>
+
                 <button onclick="sliceGeometry()">Slice into Layers</button>
                 <button onclick="clearSlices()">Clear Slices</button>
+
             </div>
 
             <div class="control-group">
+
                 <label>Distance Analysis:</label>
+
                 <button onclick="testClosestPoint()">Test Closest Point</button>
                 <button onclick="testDistanceField()">Show Distance Field</button>
+
             </div>
 
             <div class="control-group">
+
                 <label>Volume Analysis:</label>
+
                 <button onclick="calculateVolume()">Calculate Volume</button>
                 <button onclick="estimateVolume()">Estimate Volume (Sampling)</button>
+
             </div>
 
-            <div id="stats">
-                <h3>Statistics</h3>
+            <div id="stats" class="control-group">
+
+                <label>Statistics:</label>
+
                 <p id="triangleCount">Triangles: 0</p>
                 <p id="volumeExact">Exact Volume: 0</p>
                 <p id="volumeEstimate">Estimated Volume: 0</p>
                 <p id="layerCount">Layers: 0</p>
                 <p id="performance">Last Operation: 0ms</p>
+
             </div>
+
         </div>
 
         <script type="module">
@@ -148,7 +165,7 @@
 
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth - 300, window.innerHeight);
+            renderer.setSize(window.innerWidth - 360, window.innerHeight);
             document.getElementById('container').appendChild(renderer.domElement);
 
             // Lighting
@@ -193,7 +210,7 @@
 
             // Window resize handler
             window.addEventListener('resize', () => {
-                const width = window.innerWidth - 300;
+                const width = window.innerWidth - 360;
                 const height = window.innerHeight;
                 camera.aspect = width / height;
                 camera.updateProjectionMatrix();
@@ -267,10 +284,10 @@
 
                 reader.onload = function(e) {
                     const startTime = performance.now();
-                    
+
                     try {
                         let geometry;
-                        
+
                         if (fileExtension === 'stl') {
                             // Parse STL file
                             geometry = stlLoader.parse(e.target.result);
@@ -278,7 +295,7 @@
                             // Parse OBJ file
                             const text = e.target.result;
                             const object = objLoader.parse(text);
-                            
+
                             // Extract geometry from the first mesh in the object
                             if (object.children.length > 0 && object.children[0].isMesh) {
                                 geometry = object.children[0].geometry;
@@ -304,21 +321,21 @@
                         });
 
                         currentMesh = new THREE.Mesh(geometry, material);
-                        
+
                         // Center and scale the mesh to fit in view
                         geometry.computeBoundingBox();
                         const boundingBox = geometry.boundingBox;
                         const center = new THREE.Vector3();
                         boundingBox.getCenter(center);
                         currentMesh.position.sub(center);
-                        
+
                         // Scale to reasonable size
                         const size = new THREE.Vector3();
                         boundingBox.getSize(size);
                         const maxDim = Math.max(size.x, size.y, size.z);
                         const scale = 4 / maxDim;
                         currentMesh.scale.setScalar(scale);
-                        
+
                         scene.add(currentMesh);
 
                         // Create Polytree
@@ -328,7 +345,7 @@
                         // Update stats
                         updateStats();
                         document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
-                        
+
                     } catch (error) {
                         console.error('Error loading file:', error);
                         alert('Error loading file. Please ensure the file is a valid STL or OBJ format.\n\nDetails: ' + error.message);
@@ -386,7 +403,7 @@
 
             window.clearSlices = function() {
                 sliceLines.clear();
-                
+
                 // Restore the mesh visibility when clearing slices
                 if (currentMesh) {
                     currentMesh.visible = true;
