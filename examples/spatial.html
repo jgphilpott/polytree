@@ -90,9 +90,11 @@
                 <label>Geometry Type:</label>
 
                 <select id="geometrySelect">
-                    <option value="box">Box</option>
+                    <option value="cube">Cube</option>
+                    <option value="cylinder">Cylinder</option>
+                    <option value="cone">Cone</option>
                     <option value="sphere">Sphere</option>
-                    <option value="torus">Torus Knot</option>
+                    <option value="torus">Torus</option>
                 </select>
 
                 <button onclick="createGeometry()">Create Geometry</button>
@@ -221,6 +223,33 @@
                 renderer.setSize(width, height);
             });
 
+            // Helper function to adjust camera to fit object
+            function fitCameraToObject(mesh) {
+                const boundingBox = new THREE.Box3().setFromObject(mesh);
+                const size = new THREE.Vector3();
+                boundingBox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                
+                // Calculate camera distance to fit object in view
+                const fov = camera.fov * (Math.PI / 180);
+                const cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * 1.5;
+                
+                // Position camera at angle for good view (maintaining Z-up orientation)
+                const angle = Math.PI / 4; // 45 degrees
+                camera.position.set(
+                    cameraDistance * Math.cos(angle),
+                    -cameraDistance * Math.sin(angle),
+                    cameraDistance * 0.7
+                );
+                
+                // Point camera at object center
+                const center = new THREE.Vector3();
+                boundingBox.getCenter(center);
+                camera.lookAt(center);
+                controls.target.copy(center);
+                controls.update();
+            }
+
             // Geometry creation
             window.createGeometry = function() {
                 const geometryType = document.getElementById('geometrySelect').value;
@@ -235,14 +264,25 @@
 
                 let geometry;
                 switch (geometryType) {
+                    case 'cylinder':
+                        // 10mm diameter, 10mm height (1cm)
+                        geometry = new THREE.CylinderGeometry(5, 5, 10, 32);
+                        break;
+                    case 'cone':
+                        // 10mm diameter base, 10mm height (1cm)
+                        geometry = new THREE.ConeGeometry(5, 10, 32);
+                        break;
                     case 'sphere':
-                        geometry = new THREE.SphereGeometry(2, 16, 12);
+                        // 10mm diameter (1cm)
+                        geometry = new THREE.SphereGeometry(5, 32, 24);
                         break;
                     case 'torus':
-                        geometry = new THREE.TorusKnotGeometry(1.5, 0.5, 64, 16);
+                        // 10mm outer diameter (1cm)
+                        geometry = new THREE.TorusGeometry(4, 1, 16, 32);
                         break;
-                    default:
-                        geometry = new THREE.BoxGeometry(3, 3, 3);
+                    default: // cube
+                        // 10mm cube (1cm)
+                        geometry = new THREE.BoxGeometry(10, 10, 10);
                 }
 
                 const material = new THREE.MeshLambertMaterial({
@@ -254,6 +294,9 @@
 
                 currentMesh = new THREE.Mesh(geometry, material);
                 scene.add(currentMesh);
+
+                // Adjust camera to fit the object
+                fitCameraToObject(currentMesh);
 
                 // Create Polytree
                 const startTime = performance.now();
@@ -326,21 +369,17 @@
 
                         currentMesh = new THREE.Mesh(geometry, material);
 
-                        // Center and scale the mesh to fit in view
+                        // Center the mesh (keep original scale)
                         geometry.computeBoundingBox();
                         const boundingBox = geometry.boundingBox;
                         const center = new THREE.Vector3();
                         boundingBox.getCenter(center);
                         currentMesh.position.sub(center);
 
-                        // Scale to reasonable size
-                        const size = new THREE.Vector3();
-                        boundingBox.getSize(size);
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        const scale = 4 / maxDim;
-                        currentMesh.scale.setScalar(scale);
-
                         scene.add(currentMesh);
+
+                        // Adjust camera to fit the object at its original size
+                        fitCameraToObject(currentMesh);
 
                         // Create Polytree
                         currentPolytree = Polytree.fromMesh(currentMesh);
