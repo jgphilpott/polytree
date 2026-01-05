@@ -32,7 +32,7 @@
                 position: relative;
             }
             #sidebar {
-                width: 360px;
+                width: 315px;
                 background: #313030;
                 padding: 15px;
                 box-sizing: border-box;
@@ -69,9 +69,13 @@
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
+                margin-bottom: 5px;
             }
             .control-group button:hover {
                 background: #0088ff;
+            }
+            input#fileUpload {
+                width: 210px;
             }
         </style>
     </head>
@@ -134,7 +138,7 @@
                 <label>Volume Analysis:</label>
 
                 <button onclick="calculateVolume()">Calculate Volume</button>
-                <button onclick="estimateVolume()">Estimate Volume (Sampling)</button>
+                <button onclick="estimateVolume()">Estimate Volume</button>
 
             </div>
 
@@ -165,7 +169,7 @@
 
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth - 360, window.innerHeight);
+            renderer.setSize(window.innerWidth - 315, window.innerHeight);
             document.getElementById('container').appendChild(renderer.domElement);
 
             // Lighting
@@ -210,7 +214,7 @@
 
             // Window resize handler
             window.addEventListener('resize', () => {
-                const width = window.innerWidth - 360;
+                const width = window.innerWidth - 315;
                 const height = window.innerHeight;
                 camera.aspect = width / height;
                 camera.updateProjectionMatrix();
