@@ -232,7 +232,7 @@
                 
                 // Calculate camera distance to fit object in view
                 const fov = camera.fov * (Math.PI / 180);
-                const cameraDistance = Math.abs(maxDim / Math.sin(fov / 2)) * 1.5;
+                const cameraDistance = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * 1.5;
                 
                 // Position camera at angle for good view (maintaining Z-up orientation)
                 const angle = Math.PI / 4; // 45 degrees
@@ -273,11 +273,11 @@
                         geometry = new THREE.ConeGeometry(5, 10, 32);
                         break;
                     case 'sphere':
-                        // 10mm diameter (1cm)
+                        // 10mm diameter sphere (radius 5mm)
                         geometry = new THREE.SphereGeometry(5, 32, 24);
                         break;
                     case 'torus':
-                        // 10mm outer diameter (1cm)
+                        // 10mm outer diameter torus (major radius 4mm, minor radius 1mm)
                         geometry = new THREE.TorusGeometry(4, 1, 16, 32);
                         break;
                     default: // cube
