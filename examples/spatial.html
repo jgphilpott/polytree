@@ -139,7 +139,7 @@
                 <label>Distance Analysis:</label>
 
                 <button onclick="testClosestPoint()">Test Closest Point</button>
-                <button onclick="testDistanceField()">Show Distance Field</button>
+                <button onclick="clearClosestPoints()">Clear Closest Points</button>
 
             </div>
 
@@ -259,6 +259,20 @@
                 renderer.setSize(width, height);
             });
 
+            // Helper function to clear all visualizations
+            function clearAllVisualizations() {
+                // Clear slice lines
+                sliceLines.clear();
+                
+                // Clear test points
+                testPoints.clear();
+                
+                // Restore mesh visibility
+                if (currentMesh) {
+                    currentMesh.visible = true;
+                }
+            }
+
             // Helper function to adjust camera to fit object
             function fitCameraToObject(mesh) {
                 const boundingBox = new THREE.Box3().setFromObject(mesh);
@@ -289,6 +303,9 @@
             // Geometry creation
             window.createGeometry = function() {
                 const geometryType = document.getElementById('geometrySelect').value;
+
+                // Clear all visualizations (slices, test points)
+                clearAllVisualizations();
 
                 // Remove existing mesh
                 if (currentMesh) {
@@ -366,6 +383,9 @@
 
                 const fileName = file.name.toLowerCase();
                 const fileExtension = fileName.split('.').pop();
+
+                // Clear all visualizations (slices, test points)
+                clearAllVisualizations();
 
                 // Remove existing mesh
                 if (currentMesh) {
@@ -507,6 +527,11 @@
                 if (currentMesh) {
                     currentMesh.visible = true;
                 }
+            };
+
+            // Clear closest point visualizations
+            window.clearClosestPoints = function() {
+                testPoints.clear();
             };
 
             // Closest point testing
