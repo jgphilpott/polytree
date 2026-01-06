@@ -260,6 +260,8 @@
             });
 
             // Helper function to clear all visualizations
+            // Clears slice lines and test points, and restores mesh visibility
+            // Called when creating new geometry or uploading files to prevent clutter
             function clearAllVisualizations() {
                 // Clear slice lines
                 sliceLines.clear();
@@ -267,7 +269,7 @@
                 // Clear test points
                 testPoints.clear();
                 
-                // Restore mesh visibility
+                // Restore mesh visibility (in case it was hidden by slicing)
                 if (currentMesh) {
                     currentMesh.visible = true;
                 }
