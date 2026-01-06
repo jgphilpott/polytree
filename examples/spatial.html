@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="../icon.png">
-        <title>Polytree Spatial Queries - Slicing Demo</title>
+        <title>Example - Spatial Queries</title>
 
         <script type="importmap">
         {
@@ -19,6 +19,7 @@
         </script>
 
         <style>
+
             body {
                 margin: 0;
                 font-family: Arial, sans-serif;
@@ -27,30 +28,40 @@
                 display: flex;
                 height: 100vh;
             }
+
             #container {
                 flex: 1;
                 position: relative;
             }
+
             #sidebar {
                 width: 320px;
                 background: #313030;
-                padding: 15px;
+                padding: 12px;
                 box-sizing: border-box;
                 overflow: scroll;
                 scrollbar-width: thin;
                 scrollbar-color: transparent transparent;
             }
+
+            #sidebar h2 {
+                margin-top: 0;
+            }
+
             .control-group {
                 margin-bottom: 20px;
             }
+
             .control-group label {
                 display: block;
                 margin-bottom: 10px;
             }
+
             .control-group p {
                 font-size: 12px;
                 margin: 6px;
             }
+
             .control-group input, .control-group select {
                 padding: 8px;
                 background: #333;
@@ -60,9 +71,11 @@
                 cursor: pointer;
                 margin-bottom: 5px;
             }
+
             .control-group input[type="file"] {
                 color: white;
             }
+
             .control-group button {
                 padding: 10px;
                 background: #0066cc;
@@ -72,13 +85,16 @@
                 cursor: pointer;
                 margin-bottom: 5px;
             }
+
             .control-group button:hover {
                 background: #0088ff;
             }
+
             input#fileUpload,
             select#fileUpAxis {
                 width: 200px;
             }
+
         </style>
     </head>
     <body>
@@ -145,7 +161,7 @@
 
             <div class="control-group">
 
-                <label>Surface Area:</label>
+                <label>Surface Area Analysis:</label>
 
                 <button onclick="calculateSurfaceArea()">Calculate Area</button>
                 <button onclick="estimateSurfaceArea()">Estimate Area</button>
@@ -166,7 +182,7 @@
                 <label>Statistics:</label>
 
                 <p id="triangleCount">Triangles: 0</p>
-                <p id="surfaceAreaExact">Surface Area: 0</p>
+                <p id="surfaceAreaExact">Exact Surface Area: 0</p>
                 <p id="surfaceAreaEstimate">Estimated Surface Area: 0</p>
                 <p id="volumeExact">Exact Volume: 0</p>
                 <p id="volumeEstimate">Estimated Volume: 0</p>
@@ -276,14 +292,29 @@
             function clearAllVisualizations() {
                 // Clear slice lines
                 sliceLines.clear();
-                
+
                 // Clear test points
                 testPoints.clear();
-                
+
                 // Restore mesh visibility (in case it was hidden by slicing)
                 if (currentMesh) {
                     currentMesh.visible = true;
                 }
+            }
+
+            // Helper to reset statistics display
+            function resetStats() {
+                const setText = (id, text) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = text;
+                };
+                setText('triangleCount', 'Triangles: 0');
+                setText('surfaceAreaExact', 'Exact Surface Area: 0');
+                setText('surfaceAreaEstimate', 'Estimated Surface Area: 0');
+                setText('volumeExact', 'Exact Volume: 0');
+                setText('volumeEstimate', 'Estimated Volume: 0');
+                setText('layerCount', 'Layers: 0');
+                setText('performance', 'Last Operation: 0ms');
             }
 
             // Helper function to adjust camera to fit object
@@ -319,6 +350,9 @@
 
                 // Clear all visualizations (slices, test points)
                 clearAllVisualizations();
+
+                // Reset statistics
+                resetStats();
 
                 // Remove existing mesh
                 if (currentMesh) {
@@ -399,6 +433,9 @@
 
                 // Clear all visualizations (slices, test points)
                 clearAllVisualizations();
+
+                // Reset statistics
+                resetStats();
 
                 // Remove existing mesh
                 if (currentMesh) {
