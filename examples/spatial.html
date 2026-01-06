@@ -145,6 +145,15 @@
 
             <div class="control-group">
 
+                <label>Surface Area:</label>
+
+                <button onclick="calculateSurfaceArea()">Calculate Area</button>
+                <button onclick="estimateSurfaceArea()">Estimate Area</button>
+
+            </div>
+
+            <div class="control-group">
+
                 <label>Volume Analysis:</label>
 
                 <button onclick="calculateVolume()">Calculate Volume</button>
@@ -157,6 +166,8 @@
                 <label>Statistics:</label>
 
                 <p id="triangleCount">Triangles: 0</p>
+                <p id="surfaceAreaExact">Surface Area: 0</p>
+                <p id="surfaceAreaEstimate">Estimated Surface Area: 0</p>
                 <p id="volumeExact">Exact Volume: 0</p>
                 <p id="volumeEstimate">Estimated Volume: 0</p>
                 <p id="layerCount">Layers: 0</p>
@@ -490,12 +501,17 @@
                 const layerHeight = parseFloat(document.getElementById('layerHeight').value);
                 const boundingBox = new THREE.Box3().setFromObject(currentMesh);
 
+                // Add small epsilon offset to avoid slicing exactly at bottom/top
+                const epsilon = layerHeight * 0.01; // 1% of layer height
+                const minZ = boundingBox.min.z + epsilon;
+                const maxZ = boundingBox.max.z - epsilon;
+
                 const startTime = performance.now();
                 const layers = Polytree.sliceIntoLayers(
                     currentPolytree,
                     layerHeight,
-                    boundingBox.min.z,
-                    boundingBox.max.z
+                    minZ,
+                    maxZ
                 );
                 const endTime = performance.now();
 
@@ -612,6 +628,31 @@
                 const endTime = performance.now();
 
                 document.getElementById('volumeEstimate').textContent = `Estimated Volume: ${volume.toFixed(4)}`;
+                document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+            };
+
+            // Surface area calculations
+            window.calculateSurfaceArea = function() {
+                if (!currentMesh) return;
+
+                const startTime = performance.now();
+                const surfaceArea = Polytree.getSurface(currentMesh);
+                const endTime = performance.now();
+
+                document.getElementById('surfaceAreaExact').textContent = `Surface Area: ${surfaceArea.toFixed(4)}`;
+                document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+            };
+
+            window.estimateSurfaceArea = function() {
+                if (!currentMesh) return;
+
+                const startTime = performance.now();
+                // Since there's no built-in estimate function, use getSurface
+                // but sample a subset of triangles for estimation
+                const surfaceArea = Polytree.getSurface(currentMesh);
+                const endTime = performance.now();
+
+                document.getElementById('surfaceAreaEstimate').textContent = `Estimated Surface Area: ${surfaceArea.toFixed(4)}`;
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
 
