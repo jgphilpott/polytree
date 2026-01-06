@@ -647,8 +647,8 @@
                 if (!currentMesh) return;
 
                 const startTime = performance.now();
-                // Since there's no built-in estimate function, use getSurface
-                // but sample a subset of triangles for estimation
+                // Note: Polytree doesn't have a separate surface area estimation function
+                // Using getSurface() which provides exact calculation
                 const surfaceArea = Polytree.getSurface(currentMesh);
                 const endTime = performance.now();
 
