@@ -4,18 +4,22 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="../icon.png">
-        <title>Polytree Spatial Queries - Slicing Demo</title>
+        <title>Example - Spatial Queries</title>
 
         <script type="importmap">
         {
             "imports": {
                 "three": "./js/three.module.min.js",
-                "Polytree": "../polytree.bundle.browser.js"
+                "Polytree": "../polytree.bundle.browser.js",
+                "STLLoader": "./js/STLLoader.min.js",
+                "OBJLoader": "./js/OBJLoader.min.js",
+                "OrbitControls": "./js/OrbitControls.min.js"
             }
         }
         </script>
 
         <style>
+
             body {
                 margin: 0;
                 font-family: Arial, sans-serif;
@@ -24,109 +28,191 @@
                 display: flex;
                 height: 100vh;
             }
+
             #container {
                 flex: 1;
                 position: relative;
             }
+
             #sidebar {
-                width: 300px;
+                width: 320px;
                 background: #313030;
-                padding: 20px;
+                padding: 12px;
                 box-sizing: border-box;
-                overflow: hidden;
+                overflow: scroll;
+                scrollbar-width: thin;
+                scrollbar-color: transparent transparent;
             }
+
+            #sidebar h2 {
+                margin-top: 0;
+            }
+
             .control-group {
                 margin-bottom: 20px;
             }
+
             .control-group label {
                 display: block;
-                margin-bottom: 5px;
+                margin-bottom: 10px;
             }
+
+            .control-group p {
+                font-size: 12px;
+                margin: 6px;
+            }
+
             .control-group input, .control-group select {
-                width: 100%;
                 padding: 8px;
                 background: #333;
                 border: 1px solid #555;
                 color: white;
                 border-radius: 4px;
+                cursor: pointer;
+                margin-bottom: 5px;
             }
+
+            .control-group input[type="file"] {
+                color: white;
+            }
+
             .control-group button {
-                width: 100%;
                 padding: 10px;
                 background: #0066cc;
                 color: white;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
-                margin-top: 10px;
+                margin-bottom: 5px;
             }
+
             .control-group button:hover {
                 background: #0088ff;
             }
-            #stats {
-                background: #333;
-                padding: 10px;
-                border-radius: 4px;
-                margin-top: 20px;
+
+            input#fileUpload,
+            select#fileUpAxis {
+                width: 200px;
             }
-            #stats p {
-                margin: 5px 0;
-                font-size: 12px;
-            }
+
         </style>
     </head>
     <body>
         <div id="container"></div>
         <div id="sidebar">
+
             <h2>Polytree Spatial Queries</h2>
 
             <div class="control-group">
+
                 <label>Geometry Type:</label>
+
                 <select id="geometrySelect">
-                    <option value="box">Box</option>
+                    <option value="cube">Cube</option>
+                    <option value="cylinder">Cylinder</option>
+                    <option value="cone">Cone</option>
                     <option value="sphere">Sphere</option>
-                    <option value="torus">Torus Knot</option>
+                    <option value="torus">Torus</option>
                 </select>
+
                 <button onclick="createGeometry()">Create Geometry</button>
+
             </div>
 
             <div class="control-group">
-                <label>Layer Height:</label>
-                <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.3">
-                <span id="layerHeightValue">0.3</span>
+
+                <label>Upload File (STL/OBJ):</label>
+
+                <select id="fileUpAxis">
+                    <option value="z" selected>Z-up Orientation</option>
+                    <option value="y">Y-up Orientation</option>
+                    <option value="x">X-up Orientation</option>
+                </select>
+
+                <input type="file" id="fileUpload" accept=".stl,.obj">
+
             </div>
 
             <div class="control-group">
+
+                <label>Layer Height: <b><span id="layerHeightValue">0.2</span></b></label>
+
+                <input type="range" id="layerHeight" min="0.1" max="1" step="0.1" value="0.2">
+
+            </div>
+
+            <div class="control-group">
+
                 <label>Slice Operations:</label>
+
                 <button onclick="sliceGeometry()">Slice into Layers</button>
                 <button onclick="clearSlices()">Clear Slices</button>
+
             </div>
 
             <div class="control-group">
+
                 <label>Distance Analysis:</label>
+
                 <button onclick="testClosestPoint()">Test Closest Point</button>
-                <button onclick="testDistanceField()">Show Distance Field</button>
+                <button onclick="clearClosestPoints()">Clear Closest Points</button>
+
             </div>
 
             <div class="control-group">
-                <label>Volume Analysis:</label>
-                <button onclick="calculateVolume()">Calculate Volume</button>
-                <button onclick="estimateVolume()">Estimate Volume (Sampling)</button>
+
+                <label>Surface Area Analysis:</label>
+
+                <button onclick="calculateSurfaceArea()">Calculate Area</button>
+                <button onclick="estimateSurfaceArea()">Estimate Area</button>
+
             </div>
 
-            <div id="stats">
-                <h3>Statistics</h3>
+            <div class="control-group">
+
+                <label>Volume Analysis:</label>
+
+                <button onclick="calculateVolume()">Calculate Volume</button>
+                <button onclick="estimateVolume()">Estimate Volume</button>
+
+            </div>
+
+            <div id="stats" class="control-group">
+
+                <label>Statistics:</label>
+
                 <p id="triangleCount">Triangles: 0</p>
+                <p id="surfaceAreaExact">Exact Surface Area: 0</p>
+                <p id="surfaceAreaEstimate">Estimated Surface Area: 0</p>
                 <p id="volumeExact">Exact Volume: 0</p>
                 <p id="volumeEstimate">Estimated Volume: 0</p>
                 <p id="layerCount">Layers: 0</p>
                 <p id="performance">Last Operation: 0ms</p>
+
             </div>
+
         </div>
 
         <script type="module">
             import * as THREE from 'three';
+            import { OrbitControls } from 'OrbitControls';
+            import { STLLoader } from 'STLLoader';
+            import { OBJLoader } from 'OBJLoader';
             import Polytree from 'Polytree';
+
+            // Use Z-up globally so uploaded and generated objects are oriented correctly.
+            // Set this BEFORE creating any objects, cameras, or controls.
+            // Guard for Three.js builds that don't expose Object3D.DEFAULT_UP.
+            if (THREE.Object3D && THREE.Object3D.DEFAULT_UP && typeof THREE.Object3D.DEFAULT_UP.set === 'function') {
+
+                THREE.Object3D.DEFAULT_UP.set(0, 0, 1);
+
+            } else if (THREE.Object3D && THREE.Object3D.prototype && THREE.Object3D.prototype.up && typeof THREE.Object3D.prototype.up.set === 'function') {
+
+                // Fallback: update the prototype default up vector
+                THREE.Object3D.prototype.up.set(0, 0, 1);
+
+            }
 
             // Scene setup
             const scene = new THREE.Scene();
@@ -134,7 +220,7 @@
 
             const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             const renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth - 300, window.innerHeight);
+            renderer.setSize(window.innerWidth - 320, window.innerHeight);
             document.getElementById('container').appendChild(renderer.domElement);
 
             // Lighting
@@ -144,9 +230,19 @@
             directionalLight.position.set(10, 10, 5);
             scene.add(directionalLight);
 
-            // Camera controls
-            camera.position.set(5, 5, 5);
+            // Camera controls - Z-up orientation
+            // Position camera at angle for good view of Z-up geometry (X, Y, Z)
+            camera.position.set(10, 10, 10);
+            camera.up.set(0, 0, 1); // Set Z as up vector
             camera.lookAt(0, 0, 0);
+
+            // Orbit controls for manual rotation
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 2;
+            controls.maxDistance = 50;
 
             // Global variables
             let currentMesh = null;
@@ -160,27 +256,103 @@
             function animate() {
                 requestAnimationFrame(animate);
 
-                // Rotate the geometry for better visualization
-                if (currentMesh) {
-                    currentMesh.rotation.y += 0.005;
-                }
+                // Update controls for smooth damping
+                controls.update();
 
                 renderer.render(scene, camera);
             }
             animate();
 
+            // Rotate a mesh so its current up-axis matches Z-up in the scene
+            function applySelectedUpAxis(mesh) {
+                const select = document.getElementById('fileUpAxis');
+                const up = select ? select.value : 'z';
+                // Map from selected up to Z-up
+                // If model is authored Y-up, rotate +90° around X to map Y→Z
+                // If model is authored X-up, rotate -90° around Y to map X→Z
+                if (up === 'y') {
+                    mesh.rotateX(Math.PI / 2);
+                } else if (up === 'x') {
+                    mesh.rotateY(-Math.PI / 2);
+                }
+            }
+
             // Window resize handler
             window.addEventListener('resize', () => {
-                const width = window.innerWidth - 300;
+                const width = window.innerWidth - 320;
                 const height = window.innerHeight;
                 camera.aspect = width / height;
                 camera.updateProjectionMatrix();
                 renderer.setSize(width, height);
             });
 
+            // Helper function to clear all visualizations
+            // Clears slice lines and test points, and restores mesh visibility
+            // Called when creating new geometry or uploading files to prevent clutter
+            function clearAllVisualizations() {
+                // Clear slice lines
+                sliceLines.clear();
+
+                // Clear test points
+                testPoints.clear();
+
+                // Restore mesh visibility (in case it was hidden by slicing)
+                if (currentMesh) {
+                    currentMesh.visible = true;
+                }
+            }
+
+            // Helper to reset statistics display
+            function resetStats() {
+                const setText = (id, text) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = text;
+                };
+                setText('triangleCount', 'Triangles: 0');
+                setText('surfaceAreaExact', 'Exact Surface Area: 0');
+                setText('surfaceAreaEstimate', 'Estimated Surface Area: 0');
+                setText('volumeExact', 'Exact Volume: 0');
+                setText('volumeEstimate', 'Estimated Volume: 0');
+                setText('layerCount', 'Layers: 0');
+                setText('performance', 'Last Operation: 0ms');
+            }
+
+            // Helper function to adjust camera to fit object
+            function fitCameraToObject(mesh) {
+                const boundingBox = new THREE.Box3().setFromObject(mesh);
+                const size = new THREE.Vector3();
+                boundingBox.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z);
+
+                // Calculate camera distance to fit object in view
+                const fov = camera.fov * (Math.PI / 180);
+                const cameraDistance = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * 3.0;
+
+                // Position camera at angle for good view (maintaining Z-up orientation)
+                const angle = Math.PI / 4; // 45 degrees
+                camera.position.set(
+                    cameraDistance * Math.cos(angle),
+                    -cameraDistance * Math.sin(angle),
+                    cameraDistance * 0.7
+                );
+
+                // Point camera at object center
+                const center = new THREE.Vector3();
+                boundingBox.getCenter(center);
+                camera.lookAt(center);
+                controls.target.copy(center);
+                controls.update();
+            }
+
             // Geometry creation
             window.createGeometry = function() {
                 const geometryType = document.getElementById('geometrySelect').value;
+
+                // Clear all visualizations (slices, test points)
+                clearAllVisualizations();
+
+                // Reset statistics
+                resetStats();
 
                 // Remove existing mesh
                 if (currentMesh) {
@@ -192,14 +364,25 @@
 
                 let geometry;
                 switch (geometryType) {
+                    case 'cylinder':
+                        // 10mm diameter, 10mm height (1cm)
+                        geometry = new THREE.CylinderGeometry(5, 5, 10, 32);
+                        break;
+                    case 'cone':
+                        // 10mm diameter base, 10mm height (1cm)
+                        geometry = new THREE.ConeGeometry(5, 10, 32);
+                        break;
                     case 'sphere':
-                        geometry = new THREE.SphereGeometry(2, 16, 12);
+                        // 10mm diameter sphere (radius 5mm)
+                        geometry = new THREE.SphereGeometry(5, 32, 24);
                         break;
                     case 'torus':
-                        geometry = new THREE.TorusKnotGeometry(1.5, 0.5, 64, 16);
+                        // 10mm outer diameter torus (major radius 4mm, minor radius 1mm)
+                        geometry = new THREE.TorusGeometry(4, 1, 16, 32);
                         break;
-                    default:
-                        geometry = new THREE.BoxGeometry(3, 3, 3);
+                    default: // cube
+                        // 10mm cube (1cm)
+                        geometry = new THREE.BoxGeometry(10, 10, 10);
                 }
 
                 const material = new THREE.MeshLambertMaterial({
@@ -210,7 +393,16 @@
                 });
 
                 currentMesh = new THREE.Mesh(geometry, material);
+
+                // Ensure primitives whose axis is along Y (e.g., cylinder/cone) are Z-up
+                if (geometryType === 'cylinder' || geometryType === 'cone') {
+                    currentMesh.rotateX(Math.PI / 2);
+                }
+
                 scene.add(currentMesh);
+
+                // Adjust camera to fit the object
+                fitCameraToObject(currentMesh);
 
                 // Create Polytree
                 const startTime = performance.now();
@@ -222,6 +414,121 @@
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
 
+            // File upload handling
+            const stlLoader = new STLLoader();
+            const objLoader = new OBJLoader();
+            const fileInput = document.getElementById('fileUpload');
+
+            // Ensure selecting the same file twice still triggers a change
+            if (fileInput) {
+                fileInput.addEventListener('click', (e) => { e.target.value = ''; });
+            }
+
+            document.getElementById('fileUpload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const fileName = file.name.toLowerCase();
+                const fileExtension = fileName.split('.').pop();
+
+                // Clear all visualizations (slices, test points)
+                clearAllVisualizations();
+
+                // Reset statistics
+                resetStats();
+
+                // Remove existing mesh
+                if (currentMesh) {
+                    scene.remove(currentMesh);
+                    if (currentPolytree) {
+                        currentPolytree.delete();
+                    }
+                }
+
+                const reader = new FileReader();
+
+                // Always reset the input after the read completes (success or error)
+                reader.onloadend = function() {
+                    if (fileInput) fileInput.value = '';
+                };
+
+                reader.onload = function(e) {
+                    const startTime = performance.now();
+
+                    try {
+                        let geometry;
+
+                        if (fileExtension === 'stl') {
+                            // Parse STL file
+                            geometry = stlLoader.parse(e.target.result);
+                        } else if (fileExtension === 'obj') {
+                            // Parse OBJ file
+                            const text = e.target.result;
+                            const object = objLoader.parse(text);
+
+                            // Extract geometry from the first mesh in the object
+                            if (object.children.length > 0 && object.children[0].isMesh) {
+                                geometry = object.children[0].geometry;
+                            } else {
+                                const errorMsg = 'Error: No valid mesh geometry found in OBJ file';
+                                console.error(errorMsg);
+                                alert(errorMsg);
+                                return;
+                            }
+                        } else {
+                            const errorMsg = 'Unsupported file format. Only STL and OBJ files are supported.';
+                            console.error(errorMsg);
+                            alert(errorMsg);
+                            return;
+                        }
+
+                        // Create mesh with the loaded geometry
+                        const material = new THREE.MeshLambertMaterial({
+                            color: 0x00aa88,
+                            transparent: true,
+                            opacity: 0.8,
+                            side: THREE.DoubleSide
+                        });
+
+                        currentMesh = new THREE.Mesh(geometry, material);
+
+                        // Center the mesh (keep original scale)
+                        geometry.computeBoundingBox();
+                        const boundingBox = geometry.boundingBox;
+                        const center = new THREE.Vector3();
+                        boundingBox.getCenter(center);
+                        currentMesh.position.sub(center);
+
+                        // Apply the selected up-axis mapping before viewing
+                        applySelectedUpAxis(currentMesh);
+
+                        scene.add(currentMesh);
+
+                        // Adjust camera to fit the object at its original size
+                        fitCameraToObject(currentMesh);
+
+                        // Create Polytree
+                        currentPolytree = Polytree.fromMesh(currentMesh);
+                        const endTime = performance.now();
+
+                        // Update stats
+                        updateStats();
+                        document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+
+                    } catch (error) {
+                        console.error('Error loading file:', error);
+                        alert('Error loading file. Please ensure the file is a valid STL or OBJ format.\n\nDetails: ' + error.message);
+                    }
+                };
+
+                // Read file based on type
+                if (fileExtension === 'stl') {
+                    reader.readAsArrayBuffer(file);
+                } else if (fileExtension === 'obj') {
+                    reader.readAsText(file);
+                }
+            });
+
             // Slicing functionality
             window.sliceGeometry = function() {
                 if (!currentPolytree) return;
@@ -231,12 +538,17 @@
                 const layerHeight = parseFloat(document.getElementById('layerHeight').value);
                 const boundingBox = new THREE.Box3().setFromObject(currentMesh);
 
+                // Add small epsilon offset to avoid slicing exactly at bottom/top
+                const epsilon = layerHeight * 0.01; // 1% of layer height
+                const minZ = boundingBox.min.z + epsilon;
+                const maxZ = boundingBox.max.z - epsilon;
+
                 const startTime = performance.now();
                 const layers = Polytree.sliceIntoLayers(
                     currentPolytree,
                     layerHeight,
-                    boundingBox.min.z,
-                    boundingBox.max.z
+                    minZ,
+                    maxZ
                 );
                 const endTime = performance.now();
 
@@ -254,12 +566,27 @@
                     });
                 });
 
+                // Hide the mesh when showing slices
+                if (currentMesh) {
+                    currentMesh.visible = false;
+                }
+
                 document.getElementById('layerCount').textContent = `Layers: ${layers.length}`;
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
 
             window.clearSlices = function() {
                 sliceLines.clear();
+
+                // Restore the mesh visibility when clearing slices
+                if (currentMesh) {
+                    currentMesh.visible = true;
+                }
+            };
+
+            // Clear closest point visualizations
+            window.clearClosestPoints = function() {
+                testPoints.clear();
             };
 
             // Closest point testing
@@ -338,6 +665,31 @@
                 const endTime = performance.now();
 
                 document.getElementById('volumeEstimate').textContent = `Estimated Volume: ${volume.toFixed(4)}`;
+                document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+            };
+
+            // Surface area calculations
+            window.calculateSurfaceArea = function() {
+                if (!currentMesh) return;
+
+                const startTime = performance.now();
+                const surfaceArea = Polytree.getSurface(currentMesh);
+                const endTime = performance.now();
+
+                document.getElementById('surfaceAreaExact').textContent = `Surface Area: ${surfaceArea.toFixed(4)}`;
+                document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
+            };
+
+            window.estimateSurfaceArea = function() {
+                if (!currentMesh) return;
+
+                const startTime = performance.now();
+                // Note: Polytree doesn't have a separate surface area estimation function
+                // Using getSurface() which provides exact calculation
+                const surfaceArea = Polytree.getSurface(currentMesh);
+                const endTime = performance.now();
+
+                document.getElementById('surfaceAreaEstimate').textContent = `Estimated Surface Area: ${surfaceArea.toFixed(4)}`;
                 document.getElementById('performance').textContent = `Last Operation: ${(endTime - startTime).toFixed(2)}ms`;
             };
 
