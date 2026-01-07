@@ -284,7 +284,7 @@ Polytree.async.uniteArray(polytreeArray).then(result => {
 
 </details>
 
-<details open>
+<details>
 
 <summary><h3 style="display:inline">Spatial Query Functions</h3></summary>
 
@@ -424,7 +424,7 @@ final.delete();
 
 </details>
 
-<details open>
+<details>
 
 <summary><h2 style="display:inline">Performance</h2></summary>
 
@@ -440,7 +440,7 @@ Polytree is designed for high-performance CSG operations:
 
 </details>
 
-<details open>
+<details>
 
 <summary><h2 style="display:inline">Applications</h2></summary>
 

@@ -1,6 +1,6 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A modern, high-performance spatial querying library designed specifically for three.js and Node.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
@@ -41,17 +41,28 @@
     "type": "git",
     "url": "https://github.com/jgphilpott/polytree"
   },
-  "keywords": ["Polytree", "Octree", "CSG", "BVH"],
-  "author": { "name": "Jacob Philpott", "email": "jacob.philpott@gmx.com" },
+  "keywords": [
+    "Polytree",
+    "Octree",
+    "CSG",
+    "BVH"
+  ],
+  "author": {
+    "name": "Jacob Philpott",
+    "email": "jacob.philpott@gmx.com"
+  },
   "license": "MIT",
-  "bugs": { "url": "https://github.com/jgphilpott/polytree/issues" },
+  "bugs": {
+    "url": "https://github.com/jgphilpott/polytree/issues"
+  },
   "homepage": "https://github.com/jgphilpott/polytree#readme",
   "module": "polytree.bundle.browser.esm.js",
   "devDependencies": {
+    "baseline-browser-mapping": "^2.9.11",
     "coffeescript": "^2.7.0",
+    "esbuild": "^0.27.2",
     "jest": "^30.2.0",
-    "uglify-js": "^3.19.3",
-    "esbuild": "^0.27.2"
+    "uglify-js": "^3.19.3"
   },
   "dependencies": {
     "three": "^0.182.0"
