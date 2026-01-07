@@ -84,7 +84,7 @@ For browser usage, use the ES module-compatible bundle:
 {
     "imports": {
         "three": "./path/to/three.module.min.js",
-        "polytree": "./path/to/polytree.bundle.browser.js"
+        "polytree": "./path/to/polytree.bundle.browser.esm.js"
     }
 }
 </script>
@@ -95,7 +95,7 @@ import Polytree from 'polytree';
 </script>
 ```
 
-The browser bundle (`polytree.bundle.browser.js`) is specifically designed for ES module imports in browsers, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
+The ESM browser bundle (`polytree.bundle.browser.esm.js`) is designed for browser `import`/`importmap` usage, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
 
 </details>
 
