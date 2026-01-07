@@ -14,7 +14,7 @@
 
 <summary><h2 style="display:inline">Intro</h2></summary>
 
-**Polytree** is a modern, high-performance spatial querying and Constructive Solid Geometry (CSG) library for JavaScript and Node.js Built on an efficient [Octree data structure](https://en.wikipedia.org/wiki/Octree), it is designed for advanced 3D modeling, mesh analysis, geometric search, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
+**Polytree** is a modern, high-performance spatial querying and Constructive Solid Geometry (CSG) library for JavaScript and Node.js. Built on an efficient [Octree data structure](https://en.wikipedia.org/wiki/Octree), it is designed for advanced 3D modeling, mesh analysis, geometric search, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
 
 Polytree goes beyond traditional CSG libraries by providing a comprehensive suite of spatial query functions—such as closest point, distance field, intersection testing, layer slicing, and volume analysis—making it ideal for 3D printing, CAD, simulation, and mesh analysis applications.
 
@@ -65,14 +65,14 @@ Polytree goes beyond traditional CSG libraries by providing a comprehensive suit
 #### Install
 
 ```bash
-npm install polytree
+npm i @jgphilpott/polytree
 ```
 
 #### Import
 
 ```js
 import * as THREE from 'three';
-import { Polytree } from 'polytree';
+import { Polytree } from '@jgphilpott/polytree';
 ```
 
 ### Browser
@@ -84,7 +84,7 @@ For browser usage, use the ES module-compatible bundle:
 {
     "imports": {
         "three": "./path/to/three.module.min.js",
-        "polytree": "./path/to/polytree.bundle.browser.js"
+        "polytree": "./path/to/polytree.bundle.browser.esm.js"
     }
 }
 </script>
@@ -95,7 +95,7 @@ import Polytree from 'polytree';
 </script>
 ```
 
-The browser bundle (`polytree.bundle.browser.js`) is specifically designed for ES module imports in browsers, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
+The ESM browser bundle (`polytree.bundle.browser.esm.js`) is designed for browser `import`/`importmap` usage, while the main bundle (`polytree.bundle.js`) is for Node.js environments.
 
 </details>
 
@@ -264,7 +264,7 @@ Process multiple objects efficiently:
 
 ```js
 // Unite multiple objects asynchronously.
-const meshArray = [mesh1, mesh2, mesh3, mesh4 ... meshX];
+const meshArray = [mesh1, mesh2, mesh3, mesh4]; // ... and more meshes
 const polytreeArray = meshArray.map(mesh => Polytree.fromMesh(mesh));
 
 Polytree.async.uniteArray(polytreeArray).then(result => {
