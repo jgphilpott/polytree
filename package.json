@@ -1,6 +1,6 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A modern, high-performance spatial querying library designed specifically for three.js and Node.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
@@ -65,6 +65,6 @@
     "uglify-js": "^3.19.3"
   },
   "dependencies": {
-    "three": "^0.182.0"
+    "three": "^0.183.0"
   }
 }
