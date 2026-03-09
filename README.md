@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="321" height="321" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Icon">
+    <img width="183" height="183" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Icon">
 </p>
 
 <p align="center">
@@ -14,7 +14,7 @@
 
 <summary><h2 style="display:inline">Intro</h2></summary>
 
-**Polytree** is a modern, high-performance spatial querying and Constructive Solid Geometry (CSG) library for JavaScript and Node.js. Built on an efficient [Octree data structure](https://en.wikipedia.org/wiki/Octree), it is designed for advanced 3D modeling, mesh analysis, geometric search, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
+**Polytree** is a modern, high-performance, spatial querying and Constructive Solid Geometry (CSG) library for JavaScript and Node.js. Built on an efficient [Octree data structure](https://en.wikipedia.org/wiki/Octree), it is designed for advanced 3D modeling, mesh analysis, geometric search, and seamless integration with [three.js](https://github.com/mrdoob/three.js).
 
 Polytree goes beyond traditional CSG libraries by providing a comprehensive suite of spatial query functions—such as closest point, distance field, intersection testing, layer slicing, and volume analysis—making it ideal for 3D printing, CAD, simulation, and mesh analysis applications.
 
