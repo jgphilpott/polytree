@@ -1,6 +1,6 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "A modern, high-performance, spatial querying library.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
