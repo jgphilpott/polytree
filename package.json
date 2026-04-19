@@ -58,13 +58,13 @@
   "homepage": "https://github.com/jgphilpott/polytree#readme",
   "module": "polytree.bundle.browser.esm.js",
   "devDependencies": {
-    "baseline-browser-mapping": "^2.10.18",
+    "baseline-browser-mapping": "^2.10.20",
     "coffeescript": "^2.7.0",
     "esbuild": "^0.28.0",
     "jest": "^30.3.0",
     "uglify-js": "^3.19.3"
   },
   "dependencies": {
-    "three": "^0.183.2"
+    "three": "^0.184.0"
   }
 }
