@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="183" height="183" src="https://raw.githubusercontent.com/jgphilpott/polytree/polytree/icon.png" alt="Polytree Icon">
+    <img width="183" height="183" src="./icon.png" alt="Polytree Icon">
 </p>
 
 <p align="center">
