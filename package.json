@@ -1,6 +1,6 @@
 {
   "name": "@jgphilpott/polytree",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "A modern, high-performance, spatial querying library.",
   "funding": "https://github.com/sponsors/jgphilpott",
   "main": "polytree.bundle.js",
@@ -58,13 +58,13 @@
   "homepage": "https://github.com/jgphilpott/polytree#readme",
   "module": "polytree.bundle.browser.esm.js",
   "devDependencies": {
-    "baseline-browser-mapping": "^2.10.20",
+    "baseline-browser-mapping": "^2.10.40",
     "coffeescript": "^2.7.0",
-    "esbuild": "^0.28.0",
-    "jest": "^30.3.0",
+    "esbuild": "^0.28.1",
+    "jest": "^30.4.2",
     "uglify-js": "^3.19.3"
   },
   "dependencies": {
-    "three": "^0.184.0"
+    "three": "^0.185.0"
   }
 }
